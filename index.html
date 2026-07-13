@@ -1,0 +1,245 @@
+HTML
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>即時危害鑑別與風險評估系統 (JSA Mobile)</title>
+    <!-- 引入美觀的 CSS 框架 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入網頁截圖大師套件 (用來把簽名與表格直接導出圖片) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { background-color: #f4f6f9; font-family: "Microsoft JhengHei", sans-serif; }
+        #capture-area { padding: 15px; background-color: #f4f6f9; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; background-color: #fff; }
+        .header-banner { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 25px 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+        .risk-badge { font-size: 1.2rem; font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; color: white; }
+        .risk-5 { background-color: #721c24; } 
+        .risk-4 { background-color: #dc3545; } 
+        .risk-3 { background-color: #fd7e14; } 
+        .risk-2 { background-color: #ffc107; color: #333; } 
+        .risk-1 { background-color: #198754; } 
+        #signature-pad { border: 2px dashed #ccc; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; }
+        @media print { .no-print { display: none !important; } body, #capture-area { background-color: #fff; padding: 0; } .card { box-shadow: none; margin-bottom: 10px; } }
+    </style>
+</head>
+<body>
+
+    <!-- 這一層包起來是要給手機一鍵截圖用的範圍 -->
+    <div id="capture-area">
+        <div class="header-banner">
+            <h3>智慧職安安全管理系統</h3>
+            <p class="mb-0">開工前即時危害鑑別與風險評估 (Mobile JSA)</p>
+        </div>
+
+        <div class="container px-1">
+            <!-- 專案基本資訊 -->
+            <div class="card p-3">
+                <h5 class="text-primary border-bottom pb-2">1. 基本資料輸入</h5>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">工程名稱</label>
+                        <input type="text" class="form-control" value="高雄市楠梓再生水廠興建移轉營運案" readonly>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">目前施工工項</label>
+                        <select class="form-select" id="jobType">
+                            <option value="light_bulb">天花板燈泡更換作業</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 條件勾選區 -->
+            <div class="card p-3 no-print">
+                <h5 class="text-primary border-bottom pb-2">2. 勾選現場實際作業條件</h5>
+                <div class="form-check mb-3">
+                    <input class="form-check-input condition-check" type="checkbox" id="cond_height" value="height">
+                    <label class="form-check-label fw-bold" for="cond_height">⚠️ 作業高度大於等於 2 公尺 (約 3 米高)</label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input condition-check" type="checkbox" id="cond_ladder" value="ladder">
+                    <label class="form-check-label fw-bold" for="cond_ladder">🪜 使用 A 字梯或移動式合梯作業</label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input condition-check" type="checkbox" id="cond_electric" value="electric">
+                    <label class="form-check-label fw-bold" for="cond_electric">⚡ 涉及電氣/活線迴路作業 (更換燈泡)</label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input condition-check" type="checkbox" id="cond_wet" value="wet">
+                    <label class="form-check-label fw-bold" for="cond_wet">💦 現場環境潮濕或鄰近金屬導電結構</label>
+                </div>
+            </div>
+
+            <!-- 即時風險分析與對策輸出 -->
+            <div class="card p-3">
+                <h5 class="text-primary border-bottom pb-2">3. 系統即時評估結果</h5>
+                <div id="riskResultBox" class="mb-3">
+                    <div class="risk-badge risk-1">請勾選上方現場條件以進行即時評估</div>
+                </div>
+
+                <div id="analysisDetails" style="display: none;">
+                    <table class="table table-bordered align-middle" style="font-size: 0.9rem;">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th style="width: 30%;">潛在危害與法規</th>
+                                <th>應採取之具體控制措施 (依據永康水資中心PDCA標準)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultRows"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 手機觸控簽名 -->
+            <div class="card p-3">
+                <h5 class="text-primary border-bottom pb-2">4. 危害告知與開工確認簽名</h5>
+                <p class="text-muted small">作業人員與監工已確實知悉上述危害與控制對策，承諾落實防護：</p>
+                <div class="text-center">
+                    <canvas id="signature-pad" width="300" height="150"></canvas>
+                    <div class="mt-2 no-print">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="clearSignature()">清除簽名</button>
+                    </div>
+                </div>
+                <div class="mt-4 row">
+                    <div class="col-12 fw-bold text-secondary mb-2">評估人員：江慶誠 (職安工程師)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 按鈕控制區（獨立在截圖範圍外） -->
+    <div class="container mb-5 no-print">
+        <div class="d-grid gap-2">
+            <button class="btn btn-success btn-lg" onclick="exportAsImage()">📸 匯出紀錄 (儲存為圖片檔)</button>
+            <button class="btn btn-outline-primary" onclick="window.print()">🖨️ 呼叫系統列印 / PDF</button>
+        </div>
+    </div>
+
+    <!-- 核心運算邏輯 JavaScript -->
+    <script>
+        const ruleDatabase = {
+            height: {
+                hazard: "墜落、物體飛落<br><span class='badge bg-danger'>設施規則第224、225條</span>",
+                level: "4－高度風險",
+                class: "risk-4",
+                controls: "<strong>【工程控制】</strong>優先評估使用高空工作車或搭設標準施工架。<br><strong>【管理控制】</strong>設置地面專責看護人員，嚴禁無關人員進入投影管制區。<br><strong>【個人防護】</strong>作業人員必須全程正確配戴雙大鉤全身式安全帶及安全帽，安全帶需牢固錨錠。"
+            },
+            ladder: {
+                hazard: "梯具翻倒、滑脫、斷裂<br><span class='badge bg-warning text-dark'>設施規則第229條</span>",
+                level: "3－中度風險",
+                class: "risk-3",
+                controls: "<strong>【工程控制】</strong>合梯梯腳須有完好防滑絕緣腳套，繫材需牢固扣鎖。<br><strong>【管理控制】</strong>嚴禁站在合梯頂板或最上面兩階作業！下方必須有專人扶持監護。<br><strong>【特別規定】</strong>電氣作業活線環境嚴禁使用鋁製合梯。"
+            },
+            electric: {
+                hazard: "感電、電弧灼傷<br><span class='badge bg-danger'>設施規則第243、254條</span>",
+                level: "5－重大風險",
+                class: "risk-5",
+                controls: "<strong>【工程控制】</strong>作業前務必將該照明迴路開關<strong>斷電</strong>，並實施上鎖掛牌（LOTO）。<br><strong>【管理控制】</strong>開工前必須使用驗電筆實際量測，確認處於無活線狀態。<br><strong>【個人防護】</strong>作業人員須配戴經檢驗合格之絕緣手套與絕緣鞋。"
+            },
+            wet: {
+                hazard: "感電加劇、濕滑跌倒<br><span class='badge bg-danger'>設施規則第243條</span>",
+                level: "4－高度風險",
+                class: "risk-4",
+                controls: "<strong>【工程控制】</strong>如使用移動式電動輔助工具，開頭端必須連接合格之漏電斷路器。<br><strong>【管理控制】</strong>嚴禁身體潮濕或衣服浸濕時進行電氣作業。<br><strong>【個人防護】</strong>穿戴完全乾燥之橡膠手套，並清理現場積水。"
+            }
+        };
+
+        const checkboxes = document.querySelectorAll('.condition-check');
+        checkboxes.forEach(box => box.addEventListener('change', evaluateRisk));
+
+        function evaluateRisk() {
+            const resultRows = document.getElementById('resultRows');
+            const riskResultBox = document.getElementById('riskResultBox');
+            const idDetails = document.getElementById('analysisDetails');
+            
+            resultRows.innerHTML = '';
+            let maxRiskClass = 'risk-1';
+            let maxRiskText = '5－輕微風險 (現場環境安全，落實自主管理)';
+            let hasSelection = false;
+
+            checkboxes.forEach(box => {
+                if (box.checked) {
+                    hasSelection = true;
+                    const rule = ruleDatabase[box.value];
+                    
+                    if (rule.class === 'risk-5') {
+                        maxRiskClass = 'risk-5'; maxRiskText = '5－重大風險 (必須執行上鎖掛牌與斷電檢驗！)';
+                    } else if (rule.class === 'risk-4' && maxRiskClass !== 'risk-5') {
+                        maxRiskClass = 'risk-4'; maxRiskText = '4－高度風險 (須採取控制措施)';
+                    } else if (rule.class === 'risk-3' && maxRiskClass !== 'risk-5' && maxRiskClass !== 'risk-4') {
+                        maxRiskClass = 'risk-3'; maxRiskText = '3－中度風險 (逐步採取降低風險措施)';
+                    }
+
+                    const row = `<tr>
+                        <td class="fw-bold text-danger">${rule.hazard}<br><span class='badge bg-secondary mt-1'>${rule.level}</span></td>
+                        <td>${rule.controls}</td>
+                    </tr>`;
+                    resultRows.insertAdjacentHTML('beforeend', row);
+                }
+            });
+
+            if (hasSelection) {
+                riskResultBox.innerHTML = `<div class="risk-badge ${maxRiskClass}">即時評估最高總體風險：${maxRiskText}</div>`;
+                idDetails.style.display = 'block';
+            } else {
+                riskResultBox.innerHTML = `<div class="risk-badge risk-1">請勾選上方現場條件以進行即時評估</div>`;
+                idDetails.style.display = 'none';
+            }
+        }
+
+        // 觸控簽名板邏輯
+        const canvas = document.getElementById('signature-pad');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+        function startDraw(e) { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }
+        function draw(e) { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }
+        function stopDraw() { drawing = false; }
+
+        canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', draw); window.addEventListener('mouseup', stopDraw);
+        canvas.addEventListener('touchstart', startDraw); canvas.addEventListener('touchmove', draw); window.addEventListener('touchend', stopDraw);
+        ctx.lineWidth = 3; ctx.strokeStyle = "#000";
+
+        function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        // 📸 一鍵將網頁內容轉為圖片並下載
+        function exportAsImage() {
+            // 隱藏不需要出現在圖片中的按鈕與打勾欄位
+            const elementsToHide = document.querySelectorAll('.no-print');
+            elementsToHide.forEach(el => el.style.visibility = 'hidden');
+
+            const target = document.getElementById('capture-area');
+            
+            // 執行網頁截圖
+            html2canvas(target, {
+                useCORS: true,
+                scale: 2, // 提高解析度，讓簽名和文字更清晰
+                backgroundColor: "#f4f6f9"
+            }).then(canvas => {
+                // 將截圖轉為圖片網址
+                const image = canvas.toDataURL("image/png");
+                
+                // 建立一個隱藏的下載連結
+                const link = document.createElement('a');
+                link.download = `JSA_評估紀錄_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = image;
+                link.click();
+
+                // 恢復顯示被隱藏的欄位
+                elementsToHide.forEach(el => el.style.visibility = 'visible');
+            }).catch(err => {
+                alert("匯出圖片失敗，請嘗試使用手機內建截圖功能功能存檔！");
+                elementsToHide.forEach(el => el.style.visibility = 'visible');
+            });
+        }
+    </script>
+</body>
+</html>
