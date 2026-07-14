@@ -5,10 +5,9 @@ HTML
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智慧型動態危害辨識與風險評估系統</title>
-    <!-- 引入美觀的 CSS 框架 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入截圖套件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; }
         #capture-area { padding: 15px; background-color: #f1f5f9; }
@@ -24,25 +23,58 @@ HTML
         .disaster-label { display: block; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; transition: all 0.2s; background-color: #fff; }
         .disaster-btn:checked + .disaster-label { background-color: #2563eb; color: white; border-color: #1d4ed8; transform: scale(1.03); box-shadow: 0 4px 6px rgba(37,99,235,0.2); }
         .sig-canvas { border: 2px dashed #94a3b8; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; max-width: 320px; height: 130px; }
+        
+        /* 彈出視窗(Modal)的樣式 */
+        .qr-modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .qr-modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
         @media print { .no-print { display: none !important; } body, #capture-area { background-color: #fff; padding: 0; } .card { box-shadow: none; margin-bottom: 10px; } }
     </style>
 </head>
 <body>
 
+    <div id="qrModal" class="qr-modal no-print">
+        <div class="qr-modal-content">
+            <h5 class="fw-bold text-primary mb-3">📱 現場/遠端 接關 QR Code</h5>
+            <p class="text-muted small">1. 在現場：請職安人員直接用手機相機掃描此碼。<br>2. 遠端：將此畫面截圖並透過 LINE 傳送給職安人員掃描。</p>
+            <div id="qrcode" class="d-flex justify-content-center my-3"></div>
+            <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-primary" id="lineShareDirectBtn">📲 依然使用 LINE 傳送連結</button>
+                <button class="btn btn-secondary" onclick="closeQRModal()">關閉視窗</button>
+            </div>
+        </div>
+    </div>
+
     <div id="capture-area">
-        <!-- 抬頭 -->
         <div class="header-banner">
             <h3>智慧型動態危害辨識與風險評估系統</h3>
             <p class="mb-0 fw-bold text-warning">現場即時動態危害辨識與風險評估 (JSA Mobile)</p>
         </div>
 
         <div class="container px-1">
-            <!-- 警示橫幅：當職安人員開啟接關時顯示 -->
             <div id="jc-alert" class="alert alert-warning d-none text-center fw-bold shadow-sm mb-3" role="alert">
                 ℹ️ 偵測到施工人員傳送的簽名紀錄，請審核完畢後於右側簽名板簽字確認。
             </div>
 
-            <!-- 1. 現場工項輸入 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2">📋 1. 作業工項登記</h5>
                 <div class="row g-3">
@@ -53,16 +85,13 @@ HTML
                 </div>
             </div>
 
-            <!-- 2. 災害類型勾選區 -->
             <div class="card p-3 no-print" id="disasterCardSec">
                 <h5 class="text-primary border-bottom pb-2">⚠️ 2. 辨識現場潛在災害類型 (可多選)</h5>
                 <p class="text-muted small">請職安人員或現場主管評估，此作業製程中可能發生哪些危害：</p>
                 <div class="row g-2" id="disasterGrid">
-                    <!-- 由 JS 動態產生災害類型按鈕 -->
-                </div>
+                    </div>
             </div>
 
-            <!-- 3. 評估結果 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2">📊 3. 危害標準風險評估結果</h5>
                 <div id="riskResultBox" class="mb-3">
@@ -86,13 +115,11 @@ HTML
                 </div>
             </div>
 
-            <!-- 4. 雙重簽名確認區 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2">✍️ 4. 危害告知與開工確認簽章</h5>
                 <p class="text-muted small">作業人員與現場職安主管已確實召開工具箱會議，知悉上述危害並承諾落實防護：</p>
                 
                 <div class="row g-3 text-center">
-                    <!-- 左邊：已了解危害人員簽名 -->
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold text-danger">【簽名】已了解危害人員（施工人員）</label>
                         <div>
@@ -103,7 +130,6 @@ HTML
                         </div>
                     </div>
                     
-                    <!-- 右邊：職安人員簽名 -->
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold text-primary">【簽名】職安管理人員</label>
                         <div>
@@ -118,13 +144,10 @@ HTML
         </div>
     </div>
 
-    <!-- 按鈕控制區 -->
     <div class="container mb-5 no-print">
         <div class="d-grid gap-2">
-            <!-- 施工人員使用的傳送鈕 -->
-            <button id="sendToSafetyBtn" class="btn btn-primary btn-lg shadow" onclick="passToSafety()">🚀 簽名完成：傳送給職安人員審核</button>
+            <button id="sendToSafetyBtn" class="btn btn-primary btn-lg shadow" onclick="generatePassData()">🚀 簽名完成：傳送給職安人員審核</button>
             
-            <!-- 職安人員最終核可使用的按鈕 -->
             <button id="exportBtn" class="btn btn-success btn-lg shadow d-none" onclick="exportAsImage()">📸 審核通過：匯出雙簽名 JSA 紀錄圖檔</button>
             <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ 呼叫系統列印 / 存成 PDF</button>
         </div>
@@ -205,7 +228,7 @@ HTML
             "衝撞": {
                 before: "低度風險 (S2×P2=2)", beforeClass: "risk-2",
                 after: "輕微風險 (S1×P1=1)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>危險轉角或視線死角裝設凸面反光鏡。<br><strong>【管理控制】</strong>廠區內車輛嚴格速限 10 km/h，人員行走應走專用人行步道。"
+                controls: "<strong>【工程控制】</strong>危險轉角 or 視線死角裝設凸面反光鏡。<br><strong>【管理控制】</strong>廠區內車輛嚴格速限 10 km/h，人員行走應走專用人行步道。"
             },
             "其他交通事故": {
                 before: "高度風險 (S3×P3=3)", beforeClass: "risk-3",
@@ -244,7 +267,7 @@ HTML
                 canvas: document.getElementById('worker-sig'), 
                 ctx: document.getElementById('worker-sig').getContext('2d'), 
                 drawing: false,
-                strokes: [] // 用來儲存簽名筆畫軌跡，傳給職安人員還原
+                strokes: [] 
             },
             safety: { 
                 canvas: document.getElementById('safety-sig'), 
@@ -354,17 +377,17 @@ HTML
             }
         }
 
-        // ==================== 🚀 方案一：LINE傳送接關邏輯 ====================
-        
-        // 1. 施工人員：打包點擊「傳送給職安人員」
-        function passToSafety() {
+        // ==================== 🚀 雙軌接關：QR Code 產生與 LINE 跳轉外部瀏覽器 ====================
+        let generatedTargetUrl = ""; // 用於保存當前生成好的傳送網址
+        let qrGenerator = null;
+
+        function generatePassData() {
             const jobName = document.getElementById('jobInput').value.trim();
             if (!jobName) {
                 alert("請先輸入作業工項名稱！");
                 return;
             }
 
-            // 取得所有勾選的災害
             const selectedDisasters = [];
             document.querySelectorAll('.condition-check:checked').forEach(cb => {
                 selectedDisasters.push(cb.value);
@@ -375,7 +398,6 @@ HTML
                 return;
             }
 
-            // 檢查施工人員簽名
             if (sigPads.worker.strokes.length === 0) {
                 alert("請【施工人員】先在左側欄位簽名！");
                 return;
@@ -385,58 +407,72 @@ HTML
             const dataToShare = {
                 jName: jobName,
                 disasters: selectedDisasters,
-                wSig: sigPads.worker.strokes // 筆跡數據
+                wSig: sigPads.worker.strokes 
             };
 
-            // 將整個物件轉為 base64 字串安全放入網址
             const jsonString = JSON.stringify(dataToShare);
             const base64Data = btoa(encodeURIComponent(jsonString));
             
-            // 取得目前網頁的基礎 URL
             const baseUrl = window.location.origin + window.location.pathname;
-            const targetUrl = `${baseUrl}?data=${base64Data}`;
+            
+            // 💡 方案 B 黑科技：在網址後面強加跳轉瀏覽器參數 (加入 ?openExternalBrowser=1 參數)
+            // 這串指令會命令 LINE 軟體直接調用手機預設外部瀏覽器打開連結！
+            generatedTargetUrl = `${baseUrl}?data=${base64Data}&openExternalBrowser=1`;
 
-            // 調用 LINE 傳送連結
-            const lineText = `【職安卡即時危害辨識核可申請】\n工項：${jobName}\n已由施工人員完成危害確認，請點擊以下網址審核、手寫簽名，並導出簽認紀錄圖檔：\n\n${targetUrl}`;
-            const lineHref = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
+            // 方案 A：在網頁上生成接關 QR Code
+            document.getElementById('qrcode').innerHTML = ""; // 清空舊的
+            qrGenerator = new QRCode(document.getElementById("qrcode"), {
+                text: generatedTargetUrl,
+                width: 200,
+                height: 200,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M // 提高容錯率，讓相機更容易掃到
+            });
 
-            // 跳轉到 LINE
-            window.location.href = lineHref;
+            // 打開 Modal 彈出視窗
+            document.getElementById('qrModal').style.display = "block";
         }
 
-        // 2. 職安人員：解析網址，還原資料與簽名
+        // LINE 傳送連結按鈕點擊處理
+        document.getElementById('lineShareDirectBtn').addEventListener('click', () => {
+            const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
+            const lineText = `【職安卡即時危害辨識核可申請】\n工項：${jobName}\n施工人員已簽認，請直接點擊連結進行外部瀏覽器核可：\n\n${generatedTargetUrl}`;
+            const lineHref = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
+            window.location.href = lineHref;
+        });
+
+        function closeQRModal() {
+            document.getElementById('qrModal').style.display = "none";
+        }
+
+        // 職安人員：解析網址還原資料
         window.addEventListener('load', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const rawData = urlParams.get('data');
 
             if (rawData) {
                 try {
-                    // 解碼
                     const decodedData = JSON.parse(decodeURIComponent(atob(rawData)));
                     
-                    // 填入工項
                     document.getElementById('jobInput').value = decodedData.jName;
                     document.getElementById('jobInput').readOnly = true;
 
-                    // 勾選災害類型並觸發評估
                     document.querySelectorAll('.condition-check').forEach(cb => {
                         if (decodedData.disasters.includes(cb.value)) {
                             cb.checked = true;
                         } else {
-                            // 非選中的災害隱藏不顯示（避免畫面太亂）
                             cb.closest('.col-6').classList.add('d-none');
                         }
                     });
                     
-                    // 隱藏非必要的選擇提示卡
                     document.getElementById('disasterCardSec').classList.add('d-none');
                     evaluateRisk();
 
-                    // 還原工人簽名軌跡
                     if (decodedData.wSig && decodedData.wSig.length > 0) {
                         const canvas = sigPads.worker.canvas;
                         const ctx = sigPads.worker.ctx;
-                        sigPads.worker.strokes = decodedData.wSig; // 同步筆跡
+                        sigPads.worker.strokes = decodedData.wSig; 
 
                         decodedData.wSig.forEach(stroke => {
                             if (stroke.length > 0) {
@@ -449,15 +485,13 @@ HTML
                             }
                         });
                         
-                        // 鎖定工人簽名板與清除按鈕（避免職安人員改到）
                         document.getElementById('worker-clear-btn').classList.add('d-none');
                         canvas.style.pointerEvents = "none";
                     }
 
-                    // 控制按鈕切換
-                    document.getElementById('jc-alert').classList.remove('d-none'); // 顯示提示字
-                    document.getElementById('sendToSafetyBtn').classList.add('d-none'); // 隱藏施工人員用按鈕
-                    document.getElementById('exportBtn').classList.remove('d-none'); // 顯示職安人員最終核可按鈕
+                    document.getElementById('jc-alert').classList.remove('d-none'); 
+                    document.getElementById('sendToSafetyBtn').classList.add('d-none'); 
+                    document.getElementById('exportBtn').classList.remove('d-none'); 
 
                 } catch (e) {
                     console.error("解析接關數據失敗", e);
@@ -467,7 +501,6 @@ HTML
 
         // 📸 職安人員最終核可：一鍵截圖下載圖片
         function exportAsImage() {
-            // 檢查職安人員簽名
             if (sigPads.safety.strokes.length === 0) {
                 alert("請【職安管理人員】先在右側欄位簽名再進行核可！");
                 return;
