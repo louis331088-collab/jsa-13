@@ -24,27 +24,28 @@ HTML
         .disaster-btn:checked + .disaster-label { background-color: #2563eb; color: white; border-color: #1d4ed8; transform: scale(1.03); box-shadow: 0 4px 6px rgba(37,99,235,0.2); }
         .sig-canvas { border: 2px dashed #94a3b8; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; max-width: 320px; height: 130px; }
         
-        /* 彈出視窗(Modal)的樣式 */
-        .qr-modal {
+        /* 穩定的彈出視窗(Modal)的樣式 */
+        .custom-modal {
             display: none;
             position: fixed;
-            z-index: 1050;
+            z-index: 9999;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
         }
-        .qr-modal-content {
+        .custom-modal-content {
             background-color: #fff;
             margin: 15% auto;
-            padding: 20px;
+            padding: 25px;
             border-radius: 14px;
             width: 90%;
             max-width: 400px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            position: relative;
         }
 
         @media print { .no-print { display: none !important; } body, #capture-area { background-color: #fff; padding: 0; } .card { box-shadow: none; margin-bottom: 10px; } }
@@ -52,13 +53,13 @@ HTML
 </head>
 <body>
 
-    <div id="qrModal" class="qr-modal no-print">
-        <div class="qr-modal-content">
-            <h5 class="fw-bold text-primary mb-3">📱 現場/遠端 接關 QR Code</h5>
-            <p class="text-muted small">1. 在現場：請職安人員直接用手機相機掃描此碼。<br>2. 遠端：將此畫面截圖並透過 LINE 傳送給職安人員掃描。</p>
+    <div id="qrModal" class="custom-modal no-print">
+        <div class="custom-modal-content">
+            <h5 class="fw-bold text-primary mb-3">📱 危害辨識核可 QR Code</h5>
+            <p class="text-muted small text-start">1. <strong>現場面對面：</strong>請職安人員直接用手機相機掃描此碼。<br>2. <strong>遠端傳送：</strong>將此畫面截圖透過 LINE 傳給職安人員，職安人員長按即可在外部瀏覽器開啟。</p>
             <div id="qrcode" class="d-flex justify-content-center my-3"></div>
             <div class="d-grid gap-2 mt-3">
-                <button class="btn btn-primary" id="lineShareDirectBtn">📲 依然使用 LINE 傳送連結</button>
+                <button class="btn btn-primary" id="lineShareDirectBtn">📲 使用 LINE 傳送接關網址</button>
                 <button class="btn btn-secondary" onclick="closeQRModal()">關閉視窗</button>
             </div>
         </div>
@@ -153,6 +154,8 @@ HTML
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         const disasterDatabase = {
             "墜落": {
@@ -188,7 +191,7 @@ HTML
             "崩塌": {
                 before: "重大風險 (S4×P4=5)", beforeClass: "risk-5",
                 after: "中度風險 (S4×P2=3)", afterClass: "risk-3",
-                controls: "<strong>【工程控制】</strong>開挖深度達1.5公尺以上者應設置擋土支撐；邊坡應有適當坡度或採取鋪設防水布。<br><strong>【管理控制】</strong>開挖作業主管全程在場監督，嚴格實施每日開工前土質巡檢。<br><strong>【個人防護】</strong>配戴安全帽、安全鞋，嚴禁無關人員進入開挖軸線。"
+                controls: "<strong>【工程控制】</strong>開挖深度達1.5公尺以上者應設置擋土支撐；边坡應有適當坡度或採取鋪設防水布。<br><strong>【管理控制】</strong>開挖作業主管全程在場監督，嚴格實施每日開工前土質巡檢。<br><strong>【個人防護】</strong>配戴安全帽、安全鞋，嚴禁無關人員進入開挖軸線。"
             },
             "被撞": {
                 before: "中度風險 (S3×P2=3)", beforeClass: "risk-3",
@@ -228,7 +231,7 @@ HTML
             "衝撞": {
                 before: "低度風險 (S2×P2=2)", beforeClass: "risk-2",
                 after: "輕微風險 (S1×P1=1)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>危險轉角 or 視線死角裝設凸面反光鏡。<br><strong>【管理控制】</strong>廠區內車輛嚴格速限 10 km/h，人員行走應走專用人行步道。"
+                controls: "<strong>【工程控制】</strong>危險轉角或視線死角裝設凸面反光鏡。<br><strong>【管理控制】</strong>廠區內車輛嚴格速限 10 km/h，人員行走應走專用人行步道。"
             },
             "其他交通事故": {
                 before: "高度風險 (S3×P3=3)", beforeClass: "risk-3",
@@ -327,7 +330,7 @@ HTML
         setTimeout(() => {
             const checkboxes = document.querySelectorAll('.condition-check');
             checkboxes.forEach(box => box.addEventListener('change', evaluateRisk));
-        }, 100);
+        }, 200);
 
         function evaluateRisk() {
             const resultRows = document.getElementById('resultRows');
@@ -377,9 +380,8 @@ HTML
             }
         }
 
-        // ==================== 🚀 雙軌接關：QR Code 產生與 LINE 跳轉外部瀏覽器 ====================
-        let generatedTargetUrl = ""; // 用於保存當前生成好的傳送網址
-        let qrGenerator = null;
+        // ==================== 🚀 雙軌接關核心邏輯修復 ====================
+        let generatedTargetUrl = ""; 
 
         function generatePassData() {
             const jobName = document.getElementById('jobInput').value.trim();
@@ -414,23 +416,20 @@ HTML
             const base64Data = btoa(encodeURIComponent(jsonString));
             
             const baseUrl = window.location.origin + window.location.pathname;
-            
-            // 💡 方案 B 黑科技：在網址後面強加跳轉瀏覽器參數 (加入 ?openExternalBrowser=1 參數)
-            // 這串指令會命令 LINE 軟體直接調用手機預設外部瀏覽器打開連結！
             generatedTargetUrl = `${baseUrl}?data=${base64Data}&openExternalBrowser=1`;
 
-            // 方案 A：在網頁上生成接關 QR Code
-            document.getElementById('qrcode').innerHTML = ""; // 清空舊的
-            qrGenerator = new QRCode(document.getElementById("qrcode"), {
+            // 生成網頁端 QR Code
+            document.getElementById('qrcode').innerHTML = ""; 
+            new QRCode(document.getElementById("qrcode"), {
                 text: generatedTargetUrl,
                 width: 200,
                 height: 200,
                 colorDark : "#0f172a",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M // 提高容錯率，讓相機更容易掃到
+                correctLevel : QRCode.CorrectLevel.M 
             });
 
-            // 打開 Modal 彈出視窗
+            // 顯示純 CSS 彈出視窗 (排除套件衝突)
             document.getElementById('qrModal').style.display = "block";
         }
 
@@ -446,7 +445,7 @@ HTML
             document.getElementById('qrModal').style.display = "none";
         }
 
-        // 職安人員：解析網址還原資料
+        // 職安人員解碼接關常規流程
         window.addEventListener('load', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const rawData = urlParams.get('data');
@@ -474,21 +473,27 @@ HTML
                         const ctx = sigPads.worker.ctx;
                         sigPads.worker.strokes = decodedData.wSig; 
 
-                        decodedData.wSig.forEach(stroke => {
-                            if (stroke.length > 0) {
-                                ctx.beginPath();
-                                ctx.moveTo(stroke[0].x, stroke[0].y);
-                                stroke.forEach(pt => {
-                                    ctx.lineTo(pt.x, pt.y);
-                                });
-                                ctx.stroke();
-                            }
-                        });
+                        // 稍微延遲繪製，避免 Canvas 尺寸未初始化導致錯位
+                        setTimeout(() => {
+                            decodedData.wSig.forEach(stroke => {
+                                if (stroke.length > 0) {
+                                    ctx.beginPath();
+                                    ctx.lineWidth = 3;
+                                    ctx.strokeStyle = "#0f172a";
+                                    ctx.moveTo(stroke[0].x, stroke[0].y);
+                                    stroke.forEach(pt => {
+                                        ctx.lineTo(pt.x, pt.y);
+                                    });
+                                    ctx.stroke();
+                                }
+                            });
+                        }, 300);
                         
                         document.getElementById('worker-clear-btn').classList.add('d-none');
                         canvas.style.pointerEvents = "none";
                     }
 
+                    // 切換至職安審核模式
                     document.getElementById('jc-alert').classList.remove('d-none'); 
                     document.getElementById('sendToSafetyBtn').classList.add('d-none'); 
                     document.getElementById('exportBtn').classList.remove('d-none'); 
@@ -499,7 +504,7 @@ HTML
             }
         });
 
-        // 📸 職安人員最終核可：一鍵截圖下載圖片
+        // 📸 職安人員最終核可圖片導出
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) {
                 alert("請【職安管理人員】先在右側欄位簽名再進行核可！");
