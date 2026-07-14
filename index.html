@@ -4,10 +4,8 @@ HTML
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧動態危害辨識與風險評估系統</title>
-    <!-- 引入美觀的 CSS 框架 -->
+    <title>永康水資中心－智慧動態危害辨識與風險評估系統</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入截圖套件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; }
@@ -23,21 +21,19 @@ HTML
         .disaster-btn { display: none; }
         .disaster-label { display: block; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; transition: all 0.2s; background-color: #fff; }
         .disaster-btn:checked + .disaster-label { background-color: #2563eb; color: white; border-color: #1d4ed8; transform: scale(1.03); box-shadow: 0 4px 6px rgba(37,99,235,0.2); }
-        #signature-pad { border: 2px dashed #94a3b8; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; }
+        .sig-canvas { border: 2px dashed #94a3b8; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; max-width: 320px; height: 130px; }
         @media print { .no-print { display: none !important; } body, #capture-area { background-color: #fff; padding: 0; } .card { box-shadow: none; margin-bottom: 10px; } }
     </style>
 </head>
 <body>
 
     <div id="capture-area">
-        <!-- 抬頭：專案名稱與統包工程 -->
         <div class="header-banner">
-            <h3>高雄市楠梓再生水廠興建移轉營運案</h3>
+            <h3>臺南市永康水資源回收中心及再生水廠新建統包工程</h3>
             <p class="mb-0 fw-bold text-warning">現場即時動態危害辨識與風險評估系統 (JSA Mobile)</p>
         </div>
 
         <div class="container px-1">
-            <!-- 1. 現場工項輸入 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2">📋 1. 作業工項登記</h5>
                 <div class="row g-3">
@@ -48,16 +44,13 @@ HTML
                 </div>
             </div>
 
-            <!-- 2. 災害類型勾選區 -->
             <div class="card p-3 no-print">
                 <h5 class="text-primary border-bottom pb-2">⚠️ 2. 辨識現場潛在災害類型 (可多選)</h5>
                 <p class="text-muted small">請職安人員或現場主管評估，此作業製程中可能發生哪些危害：</p>
                 <div class="row g-2" id="disasterGrid">
-                    <!-- 由 JS 動態產生 20 大災害類型按鈕 -->
-                </div>
+                    </div>
             </div>
 
-            <!-- 3. Risk Assessment 評估結果 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2">📊 3. 永康水資中心標準風險評估結果</h5>
                 <div id="riskResultBox" class="mb-3">
@@ -81,25 +74,39 @@ HTML
                 </div>
             </div>
 
-            <!-- 4. 確認簽名 -->
             <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2">✍️ 4. 危害告知與開工簽認</h5>
-                <p class="text-muted small">作業人員與現場監工已確實執行開工前工具箱會議，知悉上述危害並承諾落實防護措施：</p>
-                <div class="text-center">
-                    <canvas id="signature-pad" width="320" height="150"></canvas>
-                    <div class="mt-2 no-print">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="clearSignature()">清除簽名</button>
+                <h5 class="text-primary border-bottom pb-2">✍️ 4. 危害告知與開工確認簽章</h5>
+                <p class="text-muted small">作業人員與現場職安主管已確實召開工具箱會議，知悉上述危害並承諾落實防護：</p>
+                
+                <div class="row g-3 text-center">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold text-danger">【簽名】已了解危害人員（施工人員）</label>
+                        <div>
+                            <canvas id="worker-sig" class="sig-canvas" width="300" height="130"></canvas>
+                        </div>
+                        <div class="mt-1 no-print">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="clearSig('worker')">清除簽名</button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold text-primary">【簽名】職安管理人員：江慶誠</label>
+                        <div>
+                            <canvas id="safety-sig" class="sig-canvas" width="300" height="130"></canvas>
+                        </div>
+                        <div class="mt-1 no-print">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="clearSig('safety')">清除簽名</button>
+                        </div>
                     </div>
                 </div>
+                
                 <div class="mt-4 row">
-                    <div class="col-6 fw-bold text-secondary">評估人員：江慶誠 (職安工程師)</div>
-                    <div class="col-6 fw-bold text-secondary text-end">審核人員：陳建安</div>
+                    <div class="col-12 text-muted small text-end">審核人員：陳建安</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 按鈕控制區 -->
     <div class="container mb-5 no-print">
         <div class="d-grid gap-2">
             <button class="btn btn-success btn-lg shadow" onclick="exportAsImage()">📸 匯出今日 JSA 紀錄 (儲存為圖片檔)</button>
@@ -178,7 +185,7 @@ HTML
             "與高溫、低溫之接觸": {
                 before: "低度風險 (S2×P2=2)", beforeClass: "risk-2",
                 after: "輕微風險 (S1×P1=1)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>高溫管線與設備表面包覆保溫棉或設置防燙隔板。<br><strong>【管理控制】</strong>設置高溫警示貼紙，動火焊接作業後設定冷卻冷卻期。<br><strong>【個人防護】</strong>配戴防高溫皮手套、隔熱服或護目鏡。"
+                controls: "<strong>【工程控制】</strong>高溫管線與設備表面包覆保溫棉或設置防燙隔板。<br><strong>【管理控制】</strong>設置高溫警示貼紙，動火焊接作業後設定冷卻冷卻期。<br><strong>【個人防護】</strong>配戴防高溫皮手套、隔熱服 or 護目鏡。"
             },
             "衝撞": {
                 before: "低度風險 (S2×P2=2)", beforeClass: "risk-2",
@@ -197,7 +204,6 @@ HTML
             }
         };
 
-        // 20 大災害類型清單
         const disasterTypes = [
             "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", 
             "被夾", "被捲", "與有害物等之接觸", "跌倒", "爆炸", 
@@ -244,7 +250,6 @@ HTML
                         controls: "落實自主檢查與標準作業程序（SOP）。"
                     };
                     
-                    // 判斷最高風險級別
                     if (rule.beforeClass === 'risk-5') {
                         maxRiskClass = 'risk-5'; maxRiskText = '5－重大風險 (必須立即召開工具箱會議並由高階主管簽核防護對策！)';
                     } else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') {
@@ -272,26 +277,36 @@ HTML
             }
         }
 
-        // 觸控簽名板
-        const canvas = document.getElementById('signature-pad');
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
+        // 雙簽名板控制邏輯
+        const sigPads = {
+            worker: { canvas: document.getElementById('worker-sig'), ctx: document.getElementById('worker-sig').getContext('2d'), drawing: false },
+            safety: { canvas: document.getElementById('safety-sig'), ctx: document.getElementById('safety-sig').getContext('2d'), drawing: false }
+        };
 
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: clientX - rect.left, y: clientY - rect.top };
+        // 初始化簽名板畫筆樣式
+        Object.keys(sigPads).forEach(key => {
+            const pad = sigPads[key];
+            pad.ctx.lineWidth = 3;
+            pad.ctx.strokeStyle = "#0f172a";
+            
+            function getPos(e) {
+                const rect = pad.canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            }
+            function startDraw(e) { pad.drawing = true; pad.ctx.beginPath(); const p = getPos(e); pad.ctx.moveTo(p.x, p.y); e.preventDefault(); }
+            function draw(e) { if(!pad.drawing) return; const p = getPos(e); pad.ctx.lineTo(p.x, p.y); pad.ctx.stroke(); e.preventDefault(); }
+            function stopDraw() { pad.drawing = false; }
+
+            pad.canvas.addEventListener('mousedown', startDraw); pad.canvas.addEventListener('mousemove', draw); window.addEventListener('mouseup', stopDraw);
+            pad.canvas.addEventListener('touchstart', startDraw); pad.canvas.addEventListener('touchmove', draw); window.addEventListener('touchend', stopDraw);
+        });
+
+        function clearSig(key) {
+            const pad = sigPads[key];
+            pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
         }
-        function startDraw(e) { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }
-        function draw(e) { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }
-        function stopDraw() { drawing = false; }
-
-        canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', draw); window.addEventListener('mouseup', stopDraw);
-        canvas.addEventListener('touchstart', startDraw); canvas.addEventListener('touchmove', draw); window.addEventListener('touchend', stopDraw);
-        ctx.lineWidth = 3; ctx.strokeStyle = "#0f172a";
-
-        function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
         // 一鍵截圖下載圖片
         function exportAsImage() {
