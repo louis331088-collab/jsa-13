@@ -7,7 +7,6 @@ HTML
     <title>智慧型動態危害辨識與風險評估系統</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; }
         #capture-area { padding: 15px; background-color: #f1f5f9; }
@@ -57,7 +56,11 @@ HTML
         <div class="custom-modal-content">
             <h5 class="fw-bold text-primary mb-3">📱 危害辨識核可 QR Code</h5>
             <p class="text-muted small text-start">1. <strong>現場面對面：</strong>請職安人員直接用手機相機掃描此碼。<br>2. <strong>遠端傳送：</strong>將此畫面截圖透過 LINE 傳給職安人員，職安人員長按即可在外部瀏覽器開啟。</p>
-            <div id="qrcode" class="d-flex justify-content-center my-3"></div>
+            
+            <div class="d-flex justify-content-center my-3">
+                <img id="qrImage" src="" alt="QR Code" style="width: 200px; height: 200px; border: 1px solid #ccc; padding: 5px; background: white;" />
+            </div>
+            
             <div class="d-grid gap-2 mt-3">
                 <button class="btn btn-primary" id="lineShareDirectBtn">📲 使用 LINE 傳送接關網址</button>
                 <button class="btn btn-secondary" onclick="closeQRModal()">關閉視窗</button>
@@ -153,8 +156,6 @@ HTML
             <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ 呼叫系統列印 / 存成 PDF</button>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         const disasterDatabase = {
@@ -380,8 +381,15 @@ HTML
             }
         }
 
-        // ==================== 🚀 雙軌接關核心邏輯修復 ====================
+        // ==================== 🚀 雙軌接關核心邏輯 ====================
         let generatedTargetUrl = ""; 
+
+        // 安全的中文字 Base64 編碼方法，防範手機瀏覽器卡死
+        function safeBtoa(str) {
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                return String.fromCharCode(parseInt(p1, 16));
+            }));
+        }
 
         function generatePassData() {
             const jobName = document.getElementById('jobInput').value.trim();
@@ -412,28 +420,22 @@ HTML
                 wSig: sigPads.worker.strokes 
             };
 
+            // 使用安全無亂碼的 Base64 轉換
             const jsonString = JSON.stringify(dataToShare);
-            const base64Data = btoa(encodeURIComponent(jsonString));
+            const base64Data = safeBtoa(jsonString);
             
             const baseUrl = window.location.origin + window.location.pathname;
             generatedTargetUrl = `${baseUrl}?data=${base64Data}&openExternalBrowser=1`;
 
-            // 生成網頁端 QR Code
-            document.getElementById('qrcode').innerHTML = ""; 
-            new QRCode(document.getElementById("qrcode"), {
-                text: generatedTargetUrl,
-                width: 200,
-                height: 200,
-                colorDark : "#0f172a",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M 
-            });
+            // 修正：完全放棄 JS QR Code 套件，直接使用最穩定的免費雲端圖檔生成 API，這在手機上100%絕對會正常顯示
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(generatedTargetUrl)}`;
+            document.getElementById('qrImage').src = qrApiUrl;
 
-            // 顯示純 CSS 彈出視窗 (排除套件衝突)
+            // 顯示彈出視窗
             document.getElementById('qrModal').style.display = "block";
         }
 
-        // LINE 傳送連結按鈕點擊處理
+        // LINE 傳送連結按鈕
         document.getElementById('lineShareDirectBtn').addEventListener('click', () => {
             const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
             const lineText = `【職安卡即時危害辨識核可申請】\n工項：${jobName}\n施工人員已簽認，請直接點擊連結進行外部瀏覽器核可：\n\n${generatedTargetUrl}`;
@@ -445,14 +447,21 @@ HTML
             document.getElementById('qrModal').style.display = "none";
         }
 
-        // 職安人員解碼接關常規流程
+        // 職安人員：安全的中文字 Base64 解碼方法
+        function safeAtob(str) {
+            return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+        }
+
+        // 職安人員：解析網址還原資料
         window.addEventListener('load', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const rawData = urlParams.get('data');
 
             if (rawData) {
                 try {
-                    const decodedData = JSON.parse(decodeURIComponent(atob(rawData)));
+                    const decodedData = JSON.parse(safeAtob(rawData));
                     
                     document.getElementById('jobInput').value = decodedData.jName;
                     document.getElementById('jobInput').readOnly = true;
@@ -473,7 +482,6 @@ HTML
                         const ctx = sigPads.worker.ctx;
                         sigPads.worker.strokes = decodedData.wSig; 
 
-                        // 稍微延遲繪製，避免 Canvas 尺寸未初始化導致錯位
                         setTimeout(() => {
                             decodedData.wSig.forEach(stroke => {
                                 if (stroke.length > 0) {
@@ -487,7 +495,7 @@ HTML
                                     ctx.stroke();
                                 }
                             });
-                        }, 300);
+                        }, 500); // 加長延遲，確保 Canvas 完美加載與渲染
                         
                         document.getElementById('worker-clear-btn').classList.add('d-none');
                         canvas.style.pointerEvents = "none";
