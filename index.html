@@ -30,13 +30,18 @@ HTML
 <body>
 
     <div id="capture-area">
-        <!-- 抬頭：改成全工地通用名稱 -->
+        <!-- 抬頭 -->
         <div class="header-banner">
             <h3>智慧型動態危害辨識與風險評估系統</h3>
             <p class="mb-0 fw-bold text-warning">現場即時動態危害辨識與風險評估 (JSA Mobile)</p>
         </div>
 
         <div class="container px-1">
+            <!-- 警示橫幅：當職安人員開啟接關時顯示 -->
+            <div id="jc-alert" class="alert alert-warning d-none text-center fw-bold shadow-sm mb-3" role="alert">
+                ℹ️ 偵測到施工人員傳送的簽名紀錄，請審核完畢後於右側簽名板簽字確認。
+            </div>
+
             <!-- 1. 現場工項輸入 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2">📋 1. 作業工項登記</h5>
@@ -49,7 +54,7 @@ HTML
             </div>
 
             <!-- 2. 災害類型勾選區 -->
-            <div class="card p-3 no-print">
+            <div class="card p-3 no-print" id="disasterCardSec">
                 <h5 class="text-primary border-bottom pb-2">⚠️ 2. 辨識現場潛在災害類型 (可多選)</h5>
                 <p class="text-muted small">請職安人員或現場主管評估，此作業製程中可能發生哪些危害：</p>
                 <div class="row g-2" id="disasterGrid">
@@ -57,7 +62,7 @@ HTML
                 </div>
             </div>
 
-            <!-- 3. Risk Assessment 評估結果 (已修正為通用標題) -->
+            <!-- 3. 評估結果 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2">📊 3. 危害標準風險評估結果</h5>
                 <div id="riskResultBox" class="mb-3">
@@ -81,7 +86,7 @@ HTML
                 </div>
             </div>
 
-            <!-- 4. 雙重簽名確認區（已修正江慶誠姓名與審核人員） -->
+            <!-- 4. 雙重簽名確認區 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2">✍️ 4. 危害告知與開工確認簽章</h5>
                 <p class="text-muted small">作業人員與現場職安主管已確實召開工具箱會議，知悉上述危害並承諾落實防護：</p>
@@ -94,11 +99,11 @@ HTML
                             <canvas id="worker-sig" class="sig-canvas" width="300" height="130"></canvas>
                         </div>
                         <div class="mt-1 no-print">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="clearSig('worker')">清除簽名</button>
+                            <button id="worker-clear-btn" class="btn btn-sm btn-outline-secondary" onclick="clearSig('worker')">清除簽名</button>
                         </div>
                     </div>
                     
-                    <!-- 右邊：職安人員簽名 (去識別化) -->
+                    <!-- 右邊：職安人員簽名 -->
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold text-primary">【簽名】職安管理人員</label>
                         <div>
@@ -116,13 +121,16 @@ HTML
     <!-- 按鈕控制區 -->
     <div class="container mb-5 no-print">
         <div class="d-grid gap-2">
-            <button class="btn btn-success btn-lg shadow" onclick="exportAsImage()">📸 匯出今日 JSA 紀錄 (儲存為圖片檔)</button>
+            <!-- 施工人員使用的傳送鈕 -->
+            <button id="sendToSafetyBtn" class="btn btn-primary btn-lg shadow" onclick="passToSafety()">🚀 簽名完成：傳送給職安人員審核</button>
+            
+            <!-- 職安人員最終核可使用的按鈕 -->
+            <button id="exportBtn" class="btn btn-success btn-lg shadow d-none" onclick="exportAsImage()">📸 審核通過：匯出雙簽名 JSA 紀錄圖檔</button>
             <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ 呼叫系統列印 / 存成 PDF</button>
         </div>
     </div>
 
     <script>
-        // 核心資料庫：對應標準防護措施與 S*P 矩陣
         const disasterDatabase = {
             "墜落": {
                 before: "重大風險 (S4×P3=4)", beforeClass: "risk-4",
@@ -192,7 +200,7 @@ HTML
             "與高溫、低溫之接觸": {
                 before: "低度風險 (S2×P2=2)", beforeClass: "risk-2",
                 after: "輕微風險 (S1×P1=1)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>高溫管線與設備表面包覆保溫棉或設置防燙隔板。<br><strong>【管理控制】</strong>設置高溫警示貼紙，動火焊接作業後設定冷卻冷卻期。<br><strong>【個人防護】</strong>配戴防高溫皮手套、隔熱服 或 護目鏡。"
+                controls: "<strong>【工程控制】</strong>高溫管線與設備表面包覆保溫棉或設置防燙隔板。<br><strong>【管理控制】</strong>設置高溫警示貼紙，動火焊接作業後設定冷卻期。<br><strong>【個人防護】</strong>配戴防高溫皮手套、隔熱服 或 護目鏡。"
             },
             "衝撞": {
                 before: "低度風險 (S2×P2=2)", beforeClass: "risk-2",
@@ -230,7 +238,69 @@ HTML
             grid.insertAdjacentHTML('beforeend', html);
         });
 
-        // 綁定監聽事件
+        // 雙簽名板控制邏輯與軌跡紀錄
+        const sigPads = {
+            worker: { 
+                canvas: document.getElementById('worker-sig'), 
+                ctx: document.getElementById('worker-sig').getContext('2d'), 
+                drawing: false,
+                strokes: [] // 用來儲存簽名筆畫軌跡，傳給職安人員還原
+            },
+            safety: { 
+                canvas: document.getElementById('safety-sig'), 
+                ctx: document.getElementById('safety-sig').getContext('2d'), 
+                drawing: false,
+                strokes: []
+            }
+        };
+
+        Object.keys(sigPads).forEach(key => {
+            const pad = sigPads[key];
+            pad.ctx.lineWidth = 3;
+            pad.ctx.strokeStyle = "#0f172a";
+            
+            let currentStroke = [];
+
+            function getPos(e) {
+                const rect = pad.canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            }
+            function startDraw(e) { 
+                pad.drawing = true; 
+                pad.ctx.beginPath(); 
+                const p = getPos(e); 
+                pad.ctx.moveTo(p.x, p.y); 
+                currentStroke = [p];
+                e.preventDefault(); 
+            }
+            function draw(e) { 
+                if(!pad.drawing) return; 
+                const p = getPos(e); 
+                pad.ctx.lineTo(p.x, p.y); 
+                pad.ctx.stroke(); 
+                currentStroke.push(p);
+                e.preventDefault(); 
+            }
+            function stopDraw() { 
+                if(pad.drawing) {
+                    pad.strokes.push(currentStroke);
+                }
+                pad.drawing = false; 
+            }
+
+            pad.canvas.addEventListener('mousedown', startDraw); pad.canvas.addEventListener('mousemove', draw); window.addEventListener('mouseup', stopDraw);
+            pad.canvas.addEventListener('touchstart', startDraw); pad.canvas.addEventListener('touchmove', draw); window.addEventListener('touchend', stopDraw);
+        });
+
+        function clearSig(key) {
+            const pad = sigPads[key];
+            pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
+            pad.strokes = [];
+        }
+
+        // 監聽勾選改變
         setTimeout(() => {
             const checkboxes = document.querySelectorAll('.condition-check');
             checkboxes.forEach(box => box.addEventListener('change', evaluateRisk));
@@ -284,39 +354,125 @@ HTML
             }
         }
 
-        // 雙簽名板控制邏輯
-        const sigPads = {
-            worker: { canvas: document.getElementById('worker-sig'), ctx: document.getElementById('worker-sig').getContext('2d'), drawing: false },
-            safety: { canvas: document.getElementById('safety-sig'), ctx: document.getElementById('safety-sig').getContext('2d'), drawing: false }
-        };
-
-        // 初始化簽名板畫筆樣式
-        Object.keys(sigPads).forEach(key => {
-            const pad = sigPads[key];
-            pad.ctx.lineWidth = 3;
-            pad.ctx.strokeStyle = "#0f172a";
-            
-            function getPos(e) {
-                const rect = pad.canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: clientX - rect.left, y: clientY - rect.top };
+        // ==================== 🚀 方案一：LINE傳送接關邏輯 ====================
+        
+        // 1. 施工人員：打包點擊「傳送給職安人員」
+        function passToSafety() {
+            const jobName = document.getElementById('jobInput').value.trim();
+            if (!jobName) {
+                alert("請先輸入作業工項名稱！");
+                return;
             }
-            function startDraw(e) { pad.drawing = true; pad.ctx.beginPath(); const p = getPos(e); pad.ctx.moveTo(p.x, p.y); e.preventDefault(); }
-            function draw(e) { if(!pad.drawing) return; const p = getPos(e); pad.ctx.lineTo(p.x, p.y); pad.ctx.stroke(); e.preventDefault(); }
-            function stopDraw() { pad.drawing = false; }
 
-            pad.canvas.addEventListener('mousedown', startDraw); pad.canvas.addEventListener('mousemove', draw); window.addEventListener('mouseup', stopDraw);
-            pad.canvas.addEventListener('touchstart', startDraw); pad.canvas.addEventListener('touchmove', draw); window.addEventListener('touchend', stopDraw);
-        });
+            // 取得所有勾選的災害
+            const selectedDisasters = [];
+            document.querySelectorAll('.condition-check:checked').forEach(cb => {
+                selectedDisasters.push(cb.value);
+            });
 
-        function clearSig(key) {
-            const pad = sigPads[key];
-            pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
+            if (selectedDisasters.length === 0) {
+                alert("請至少勾選一個災害類型！");
+                return;
+            }
+
+            // 檢查施工人員簽名
+            if (sigPads.worker.strokes.length === 0) {
+                alert("請【施工人員】先在左側欄位簽名！");
+                return;
+            }
+
+            // 壓縮資料打包
+            const dataToShare = {
+                jName: jobName,
+                disasters: selectedDisasters,
+                wSig: sigPads.worker.strokes // 筆跡數據
+            };
+
+            // 將整個物件轉為 base64 字串安全放入網址
+            const jsonString = JSON.stringify(dataToShare);
+            const base64Data = btoa(encodeURIComponent(jsonString));
+            
+            // 取得目前網頁的基礎 URL
+            const baseUrl = window.location.origin + window.location.pathname;
+            const targetUrl = `${baseUrl}?data=${base64Data}`;
+
+            // 調用 LINE 傳送連結
+            const lineText = `【職安卡即時危害辨識核可申請】\n工項：${jobName}\n已由施工人員完成危害確認，請點擊以下網址審核、手寫簽名，並導出簽認紀錄圖檔：\n\n${targetUrl}`;
+            const lineHref = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
+
+            // 跳轉到 LINE
+            window.location.href = lineHref;
         }
 
-        // 一鍵截圖下載圖片
+        // 2. 職安人員：解析網址，還原資料與簽名
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawData = urlParams.get('data');
+
+            if (rawData) {
+                try {
+                    // 解碼
+                    const decodedData = JSON.parse(decodeURIComponent(atob(rawData)));
+                    
+                    // 填入工項
+                    document.getElementById('jobInput').value = decodedData.jName;
+                    document.getElementById('jobInput').readOnly = true;
+
+                    // 勾選災害類型並觸發評估
+                    document.querySelectorAll('.condition-check').forEach(cb => {
+                        if (decodedData.disasters.includes(cb.value)) {
+                            cb.checked = true;
+                        } else {
+                            // 非選中的災害隱藏不顯示（避免畫面太亂）
+                            cb.closest('.col-6').classList.add('d-none');
+                        }
+                    });
+                    
+                    // 隱藏非必要的選擇提示卡
+                    document.getElementById('disasterCardSec').classList.add('d-none');
+                    evaluateRisk();
+
+                    // 還原工人簽名軌跡
+                    if (decodedData.wSig && decodedData.wSig.length > 0) {
+                        const canvas = sigPads.worker.canvas;
+                        const ctx = sigPads.worker.ctx;
+                        sigPads.worker.strokes = decodedData.wSig; // 同步筆跡
+
+                        decodedData.wSig.forEach(stroke => {
+                            if (stroke.length > 0) {
+                                ctx.beginPath();
+                                ctx.moveTo(stroke[0].x, stroke[0].y);
+                                stroke.forEach(pt => {
+                                    ctx.lineTo(pt.x, pt.y);
+                                });
+                                ctx.stroke();
+                            }
+                        });
+                        
+                        // 鎖定工人簽名板與清除按鈕（避免職安人員改到）
+                        document.getElementById('worker-clear-btn').classList.add('d-none');
+                        canvas.style.pointerEvents = "none";
+                    }
+
+                    // 控制按鈕切換
+                    document.getElementById('jc-alert').classList.remove('d-none'); // 顯示提示字
+                    document.getElementById('sendToSafetyBtn').classList.add('d-none'); // 隱藏施工人員用按鈕
+                    document.getElementById('exportBtn').classList.remove('d-none'); // 顯示職安人員最終核可按鈕
+
+                } catch (e) {
+                    console.error("解析接關數據失敗", e);
+                }
+            }
+        });
+
+        // 📸 職安人員最終核可：一鍵截圖下載圖片
         function exportAsImage() {
+            // 檢查職安人員簽名
+            if (sigPads.safety.strokes.length === 0) {
+                alert("請【職安管理人員】先在右側欄位簽名再進行核可！");
+                return;
+            }
+
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
             const target = document.getElementById('capture-area');
@@ -327,7 +483,7 @@ HTML
             }).then(canvas => {
                 const image = canvas.toDataURL("image/png");
                 const link = document.createElement('a');
-                link.download = `智慧JSA評估紀錄_[${jobName}]_${new Date().toISOString().slice(0,10)}.png`;
+                link.download = `智慧JSA核可紀錄_[${jobName}]_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = image;
                 link.click();
                 elementsToHide.forEach(el => el.style.visibility = 'visible');
