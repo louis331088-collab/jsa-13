@@ -160,7 +160,6 @@ HTML
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // 💡 依指引（第三版）第54-55頁規範重新定義：採用 5x5 的 25分制 半定量風險評估數據
         const disasterDatabase = {
             "墜落": {
                 before: "高度風險 (S5×P3=15)", beforeClass: "risk-4",
@@ -185,7 +184,7 @@ HTML
             "被捲": {
                 before: "中度風險 (S3×P3=9)", beforeClass: "risk-3",
                 after: "極低風險 (S3×P1=2)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>轉動機械設備應設置防捲入護網，並設置極限停止或緊急連鎖斷電裝置（設施規則第45條）。<br><strong>【管理控制】</strong>制定設備操作SOP，長髮人員應確實紮起並收納入安全帽內。<br><strong>【個人防護】</strong>穿著緊身工作服，絕對禁止配戴棉紗手套操作。"
+                controls: "<strong>【工程控制】</strong>轉動機械設備應設置防捲入護網，並設置極限停止或緊急連鎖斷電裝置（設施規則第45條）。<br><strong>【管理控制】</strong>局限空間增設強制通風設備，或設置密閉式抽排風系統。<br><strong>【個人防護】</strong>穿著緊身工作服，絕對禁止配戴棉紗手套操作。"
             },
             "物體倒塌": {
                 before: "高度風險 (S4×P3=12)", beforeClass: "risk-4",
@@ -200,7 +199,7 @@ HTML
             "被撞": {
                 before: "中度風險 (S3×P3=9)", beforeClass: "risk-3",
                 after: "低度風險 (S3×P1=3)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>車輛動線、人行動線應實施分流，車輛倒車警報器與鳴聲器必須保持正常運作（設施規則第116條）。<br><strong>【管理控制】</strong>營建機械、工程車輛作業時應指派交通指揮手與引導人員。<br><strong>&nbsp;【個人防護】</strong>現場作業人員應全程正確穿著高可視度反光背心。"
+                controls: "<strong>【工程控制】</strong>人車動線、人行動線應實施分流，車輛倒車警報器與鳴聲器必須保持正常運作（設施規則第116條）。<br><strong>【管理控制】</strong>營建機械、工程車輛作業時應指派交通指揮手與引導人員。<br><strong>&nbsp;【個人防護】</strong>現場作業人員應全程正確穿著高可視度反光背心。"
             },
             "與有害物等之接觸": {
                 before: "高度風險 (S4×P3=12)", beforeClass: "risk-4",
@@ -215,7 +214,7 @@ HTML
             "火災": {
                 before: "高度風險 (S4×P3=12)", beforeClass: "risk-4",
                 after: "低度風險 (S4×P1=4)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>動火作業點周遭10公尺內嚴禁堆放易燃物，並配備防火擋焰毯以遮擋熔渣。<br><strong>【管理控制】</strong>落實動火許可證審查制度，作業現場應指派專責「看火人」進行全程監控。<br><strong>【個人防護】</strong>動火現場應隨案配備經合格檢驗之乾粉滅火器。"
+                controls: "<strong>【工程控制】</strong>動火作業點周遭10公尺內嚴禁堆放易燃物，並配備防火擋焰毯以遮擋熔渣。<br><strong>【管理控制】</strong>落實動火作業許可證審查制度，作業現場應指派專職「看火人」進行全程監控。<br><strong>【個人防護】</strong>動火現場應隨案配備經合格檢驗之乾粉滅火器。"
             },
             "爆炸": {
                 before: "高度風險 (S4×P3=12)", beforeClass: "risk-4",
@@ -225,12 +224,12 @@ HTML
             "溺斃": {
                 before: "高度風險 (S5×P3=15)", beforeClass: "risk-4",
                 after: "低度風險 (S5×P1=5)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>鄰水、深水沉砂池、水池周遭應設置防墜護欄，並架設固定式安全爬梯（營造標準第38條）。<br><strong>【管理控制】</strong>嚴禁人員單獨一人接近未設護欄之水體作業；並設定水深管制區。<br><strong>【個人防護】</strong>臨水、臨海作業人員必須全程正確穿戴合格之救生衣。"
+                controls: "<strong>【工程控制】</strong>水池、沉砂池周遭應設置防墜護欄，並架設固定式安全爬梯（營造標準第38條）。<br><strong>【管理控制】</strong>嚴禁人員單獨一人接近未設護欄之水體作業；並設定水深管制區。<br><strong>【個人防護】</strong>臨水、臨海作業人員必須全程正確穿戴合格之救生衣。"
             },
             "與高溫、低溫之接觸": {
                 before: "低度風險 (S2×P2=4)", beforeClass: "risk-2",
                 after: "極低風險 (S2×P1=1)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>高溫管線或熔融加工熱源，應裝設防接觸隔熱板或安全警示包護棉。<br><strong>【管理控制】</strong>焊接或動火加熱完畢後應設定設備冷卻管制期，張貼高溫警示牌。<br><strong>【個人防護】</strong>作業時穿戴隔熱服、防高溫皮革長手套及安全面罩。"
+                controls: "<strong>【工程控制】</strong>高溫管線與設備表面包覆保溫棉或設置防燙隔板。<br><strong>【管理控制】</strong>焊接或動火加熱完畢後應設定設備冷卻管制期，張貼高溫警示牌。<br><strong>【個人防護】</strong>作業時穿戴隔熱服、防高溫皮革長手套及安全面罩。"
             },
             "衝撞": {
                 before: "低度風險 (S2×P2=4)", beforeClass: "risk-2",
@@ -240,7 +239,7 @@ HTML
             "其他交通事故": {
                 before: "高度風險 (S3×P4=12)", beforeClass: "risk-4",
                 after: "低度風險 (S3×P1=3)", afterClass: "risk-2",
-                controls: "<strong>【管理控制】</strong>工區主要大門及重車進出動線應指派專職交管人員；落實重車與大卡車視野死角管制；嚴禁人員酒後、疲勞駕駛。"
+                controls: "<strong>【管理控制】</strong>工區大門及重車進出動線應指派專職交管人員；落實重車與大卡車視野死角管制；嚴禁人員酒後、疲勞駕駛。"
             },
             "物體破裂": {
                 before: "中度風險 (S3×P3=9)", beforeClass: "risk-3",
@@ -265,7 +264,7 @@ HTML
             "化學品洩漏": {
                 before: "中度風險 (S3×P2=6)", beforeClass: "risk-3",
                 after: "極低風險 (S2×P1=2)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>化學藥劑與酸鹼桶儲放區應設置防液堤、集液托盤或洩漏防堵欄（設施規則第25條）。<br><strong>【管理控制】</strong>現場備妥化學品SDS，提供吸液棉、防液沙包等洩漏應變器材。<br><strong>【個人防護】</strong>化學品搬運與加藥作業時，應戴合格耐酸鹼手套、防護面罩或護目鏡。"
+                controls: "<strong>【工程控制】</strong>藥劑、溶劑堆放區設置防液堤、集液托盤或洩漏防堵欄（設施規則第25條）。<br><strong>【管理控制】</strong>張貼安全資料表（SDS）並落實危害告知，現場配置足夠防液沙包與吸液棉。<br><strong>【個人防護】</strong>化學品搬運與加藥作業時，應戴合格耐酸鹼手套、防護面罩或護目鏡。"
             }
         };
 
@@ -386,7 +385,6 @@ HTML
                         controls: "落實自主檢查與標準作業程序（SOP）。"
                     };
                     
-                    // 💡 依據第三版指引表11 重新對應5x5風險等級
                     if (rule.beforeClass === 'risk-5') {
                         maxRiskClass = 'risk-5'; maxRiskText = '極高風險 (20-25分，不可接受！須立即召開管制會議並全面暫停作業！)';
                     } else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') {
@@ -414,14 +412,16 @@ HTML
             }
         }
 
-        // ==================== 🚀 雙軌接關核心邏輯 ====================
+        // ==================== 🚀 網址安全型網址黑科技處理 ====================
         let generatedTargetUrl = ""; 
 
-        // 安全無中文字亂碼的 Base64 編碼
-        function safeBtoa(str) {
-            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+        // 💡 解決網址爆掉與亂碼的大絕招：網址安全型規格化 Base64
+        function urlSafeBtoa(str) {
+            let base64 = btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
                 return String.fromCharCode(parseInt(p1, 16));
             }));
+            // 將不安全符號置換成安全字元
+            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
 
         function generatePassData() {
@@ -446,20 +446,21 @@ HTML
                 return;
             }
 
-            // 壓縮資料打包
+            // 封裝成極精簡 JSON
             const dataToShare = {
-                jName: jobName,
-                disasters: selectedDisasters,
-                wSig: sigPads.worker.strokes 
+                j: jobName,
+                d: selectedDisasters,
+                s: sigPads.worker.strokes 
             };
 
             const jsonString = JSON.stringify(dataToShare);
-            const base64Data = safeBtoa(jsonString);
+            const base64Data = urlSafeBtoa(jsonString);
             
+            // 💡 完全屏除干擾：不再主動拼接與 LINE 瀏覽器衝突的 openExternalBrowser 參數，全走標準解析路徑
             const baseUrl = window.location.origin + window.location.pathname;
-            generatedTargetUrl = `${baseUrl}?data=${base64Data}&openExternalBrowser=1`;
+            generatedTargetUrl = `${baseUrl}?data=${base64Data}`;
 
-            // 呼叫穩定的免費圖檔 QR Code API
+            // 生成 100% 不破圖、免外聯本地套件的圖片式二維條碼
             const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(generatedTargetUrl)}`;
             document.getElementById('qrImage').src = qrApiUrl;
 
@@ -467,10 +468,10 @@ HTML
             document.getElementById('qrModal').style.display = "block";
         }
 
-        // LINE 傳送連結按鈕
+        // LINE 傳送按鈕
         document.getElementById('lineShareDirectBtn').addEventListener('click', () => {
             const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
-            const lineText = `【職安卡即時危害辨識核可申請】\n工項：${jobName}\n施工人員已簽認，請點擊連結進行外部瀏覽器核可：\n\n${generatedTargetUrl}`;
+            const lineText = `【JSA施工危害辨識核可申請】\n工項：${jobName}\n施工人員已簽認，請複製以下整串網址，貼至手機外部瀏覽器(Safari/Chrome)開啟審核簽名：\n\n${generatedTargetUrl}`;
             const lineHref = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
             window.location.href = lineHref;
         });
@@ -479,27 +480,31 @@ HTML
             document.getElementById('qrModal').style.display = "none";
         }
 
-        // 職安人員：安全解碼
-        function safeAtob(str) {
-            return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+        // 職安人員：安全反向還原解碼
+        function urlSafeAtob(str) {
+            let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4) { base64 += '='; }
+            return decodeURIComponent(Array.prototype.map.call(atob(base64), function(c) {
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
         }
 
-        // 職安人員：解析網址還原資料
+        // 職安人員：載入時自動解析與強固繪製
         window.addEventListener('load', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const rawData = urlParams.get('data');
 
             if (rawData) {
                 try {
-                    const decodedData = JSON.parse(safeAtob(rawData));
+                    const decodedData = JSON.parse(urlSafeAtob(rawData));
                     
-                    document.getElementById('jobInput').value = decodedData.jName;
+                    // 1. 還原工項名稱
+                    document.getElementById('jobInput').value = decodedData.j;
                     document.getElementById('jobInput').readOnly = true;
 
+                    // 2. 還原災害類型打勾
                     document.querySelectorAll('.condition-check').forEach(cb => {
-                        if (decodedData.disasters.includes(cb.value)) {
+                        if (decodedData.d.includes(cb.value)) {
                             cb.checked = true;
                         } else {
                             cb.closest('.col-6').classList.add('d-none');
@@ -509,13 +514,15 @@ HTML
                     document.getElementById('disasterCardSec').classList.add('d-none');
                     evaluateRisk();
 
-                    if (decodedData.wSig && decodedData.wSig.length > 0) {
+                    // 3. 還原施工人員筆跡 (加上 Canvas 防失效強固保護機制)
+                    if (decodedData.s && decodedData.s.length > 0) {
                         const canvas = sigPads.worker.canvas;
                         const ctx = sigPads.worker.ctx;
-                        sigPads.worker.strokes = decodedData.wSig; 
+                        sigPads.worker.strokes = decodedData.s; 
 
                         setTimeout(() => {
-                            decodedData.wSig.forEach(stroke => {
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            decodedData.s.forEach(stroke => {
                                 if (stroke.length > 0) {
                                     ctx.beginPath();
                                     ctx.lineWidth = 3;
@@ -527,19 +534,20 @@ HTML
                                     ctx.stroke();
                                 }
                             });
-                        }, 500); 
+                        }, 400); 
                         
                         document.getElementById('worker-clear-btn').classList.add('d-none');
                         canvas.style.pointerEvents = "none";
                     }
 
-                    // 進入職安管理員確認模式
+                    // 4. 切換至職安人員專用雙簽審核介面
                     document.getElementById('jc-alert').classList.remove('d-none'); 
                     document.getElementById('sendToSafetyBtn').classList.add('d-none'); 
                     document.getElementById('exportBtn').classList.remove('d-none'); 
 
                 } catch (e) {
-                    console.error("解析接關數據失敗", e);
+                    alert("網址資料解析失敗，請確認是否完整複製整串網址！");
+                    console.error("解碼錯誤:", e);
                 }
             }
         });
