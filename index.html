@@ -39,8 +39,8 @@ HTML
         .table td { font-size: 0.82rem; padding: 8px 6px !important; }
         .badge-risk-cell { font-size: 0.75rem; font-weight: bold; padding: 4px 2px; white-space: normal; line-height: 1.1; display: block; width: 100%; text-align: center; }
 
-        /* 導出圖片專用強制防偽區 */
-        .watermark-footer { display: none; font-size: 0.8rem; color: #94a3b8; font-weight: bold; margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+        /* 💡 依指令修改：導出圖片專用低調防偽區 */
+        .watermark-footer { display: none; font-size: 0.82rem; color: #64748b; font-weight: bold; margin-top: 20px; text-align: center; width: 100%; }
 
         /* 彈出視窗樣式 */
         .custom-modal {
@@ -102,7 +102,7 @@ HTML
 
         <div class="container px-1">
             <div id="jc-alert" class="alert alert-warning d-none text-center fw-bold shadow-sm mb-2" style="font-size:0.85rem;" role="alert">
-                ℹ️ 偵測到施工人員傳送之危害確認紀錄，請審核完畢後於右側管理人員欄位簽字核可。
+                ℹ "偵測到施工人員傳送之危害確認紀錄，請審核完畢後於右側管理人員欄位簽字核可。"
             </div>
 
             <div class="card p-3">
@@ -172,8 +172,8 @@ HTML
                 </div>
             </div>
             
-            <div id="image-watermark" class="watermark-footer text-center">
-                🛡️ 智慧型動態危害辨識與風險評估系統 115年國家參賽認證安全鎖碼防偽紀錄 / 系統著作權人：江十三 先生
+            <div id="image-watermark" class="watermark-footer">
+                江十三 著作權所有 翻印必究
             </div>
         </div>
     </div>
@@ -265,7 +265,7 @@ HTML
             "爆炸": {
                 before: "高度風險<br>(4×3=12分)", beforeClass: "risk-4",
                 after: "低度風險<br>(4×1=4分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>氧氣、乙炔氣瓶應分開直立儲存，推車需有防傾倒鏈條固定，且氣閥應加裝安全「逆火防止器」（設施規則第105條）。<br><strong>【管理控制】</strong>營建工區高壓氣瓶嚴禁接受烈日直接曝曬，現場落實密閉氣體外洩偵測。"
+                controls: "<strong>【工程控制】</strong>氧氣、乙炔氣瓶應分開立儲存，推車需有防傾倒鏈條固定，且氣閥應加裝安全「逆火防止器」（設施規則第105條）。<br><strong>【管理控制】</strong>營建工區高壓氣瓶嚴禁接受烈日直接曝曬，現場落實密閉氣體外洩偵測。"
             },
             "溺斃": {
                 before: "高度風險<br>(5×3=15分)", beforeClass: "risk-4",
@@ -317,7 +317,7 @@ HTML
         const disasterTypes = [
             "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", 
             "被夾", "被捲", "與有害物等之接觸", "跌倒", "爆炸", 
-            "溺斃", "與高溫、低溫之接觸", "衝撞", "其他交通事故", 
+            "溺斃", "與高溫、低溫之接觸", "衝裝", "其他交通事故", 
             "物體破裂", "感電", "火災", 
             "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩漏"
         ];
