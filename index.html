@@ -8,9 +8,19 @@ HTML
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; }
-        #capture-area { padding: 15px; background-color: #f1f5f9; }
-        .card { border: none; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; background-color: #fff; }
+        body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; position: relative; }
+        
+        /* 💡 智產防禦：網頁動態防偽「江十三」全螢幕背景浮水印 */
+        body::before {
+            content: "江十三 著作權所有 翻印必究  江十三 著作權所有 翻印必究";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.04; font-size: 2rem; color: #000;
+            line-height: 8rem; pointer-events: none; transform: rotate(-15deg);
+            white-space: pre-wrap; word-wrap: break-word; padding: 20px;
+        }
+
+        #capture-area { padding: 15px; background-color: #f1f5f9; position: relative; }
+        .card { border: none; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; background-color: #fff; z-index: 1; }
         .header-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 25px 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
         .risk-badge { font-size: 1.1rem; font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; color: white; }
         .risk-5 { background-color: #7f1d1d; } /* 極高風險 */
@@ -23,6 +33,9 @@ HTML
         .disaster-btn:checked + .disaster-label { background-color: #2563eb; color: white; border-color: #1d4ed8; transform: scale(1.03); box-shadow: 0 4px 6px rgba(37,99,235,0.2); }
         .sig-canvas { border: 2px dashed #94a3b8; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; max-width: 320px; height: 130px; }
         
+        /* 💡 導出圖片專用強制防偽區 */
+        .watermark-footer { display: none; font-size: 0.8rem; color: #94a3b8; font-weight: bold; margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+
         /* 彈出視窗樣式 */
         .custom-modal {
             display: none;
@@ -51,6 +64,13 @@ HTML
     </style>
 </head>
 <body>
+
+    <div id="lockout-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0f172a; color:#f8fafc; z-index:99999; padding:50px 20px; text-align:center;">
+        <h2 class="text-danger fw-bold mb-4">⚠️ 系統安全授權驗證失敗</h2>
+        <p class="fs-5">本系統受智慧財產權與國家競賽防盜條款保護。</p>
+        <p class="text-warning">偵測到未經授權的複製、下載或域名竄改行為，系統已自動實施安全封鎖。</p>
+        <p class="text-muted mt-5">原創研發著作權人：江十三 先生</p>
+    </div>
 
     <div id="qrModal" class="custom-modal no-print">
         <div class="custom-modal-content">
@@ -145,6 +165,10 @@ HTML
                     </div>
                 </div>
             </div>
+            
+            <div id="image-watermark" class="watermark-footer text-center">
+                🛡️ 智慧型動態危害辨識與風險評估系統  / 系統著作權人：江十三 
+            </div>
         </div>
     </div>
 
@@ -160,7 +184,30 @@ HTML
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // 資料庫內容全面繁體中文化與法規對位
+        // ==================== 💡 智產防禦：域名鎖定與鎖右鍵黑科技 ====================
+        (function() {
+            // 1. 域名鎖定防線：強行檢查網址，只允許在你的 GitHub 網址執行，否則立刻自爆
+            const allowedHost = "louis331088-collab.github.io";
+            // 允許本機 localhost 除錯，其餘下載點一律封鎖
+            if (window.location.hostname !== allowedHost && window.location.hostname !== "127.0.0.1" && window.location.hostname !== "localhost") {
+                window.addEventListener('DOMContentLoaded', () => {
+                    document.getElementById('lockout-screen').style.display = 'block';
+                    document.getElementById('capture-area').style.innerHTML = '';
+                    document.body.innerHTML = document.getElementById('lockout-screen').outerHTML;
+                });
+            }
+
+            // 2. 鎖死電腦右鍵、鎖死 F12 開發者工具與 Ctrl+C 複製
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            document.addEventListener('keydown', e => {
+                if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73) || (e.ctrlKey && e.shiftKey && e.keyCode === 74) || (e.ctrlKey && e.keyCode === 85) || (e.ctrlKey && e.keyCode === 67)) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        })();
+        // ====================================================================
+
         const disasterDatabase = {
             "墜落": {
                 before: "高度風險 (5×3=15分)", beforeClass: "risk-4",
@@ -185,7 +232,7 @@ HTML
             "被捲": {
                 before: "中度風險 (3×3=9分)", beforeClass: "risk-3",
                 after: "極低風險 (3×1=2分)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>轉動機械設備應設置防捲入護網，並設置極限停止或緊急連鎖斷電裝置（設施規則第45條）。<br><strong>【管理控制】</strong>工局大空間增設強制通風設備，或設置密閉式抽排風系統。<br><strong>【個人防護】</strong>穿著緊身工作服，絕對禁止配戴棉紗手套操作。"
+                controls: "<strong>【工程控制】</strong>轉動機械設備應設置防捲入護網，並設置極限停止或緊急連鎖斷電裝置（設施規則第45條）。<br><strong>【管理控制】</strong>局限空間增設強制通風設備，或設置密閉式抽排風系統。<br><strong>【個人防護】</strong>穿著緊身工作服，絕對禁止配戴棉紗手套操作。"
             },
             "物體倒塌": {
                 before: "高度風險 (4×3=12分)", beforeClass: "risk-4",
@@ -220,7 +267,7 @@ HTML
             "爆炸": {
                 before: "高度風險 (4×3=12分)", beforeClass: "risk-4",
                 after: "低度風險 (4×1=4分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>氧氣、乙炔氣瓶應分開直立儲存，推車需有防傾倒鏈條固定，且氣閥應加裝安全「逆火防止器」（設施規則第105條）。<br><strong>【管理控制】</strong>營建工區高壓氣瓶嚴禁接受烈日直接曝曬，現場落實密閉氣體外洩偵測。"
+                controls: "<strong>【工程控制】</strong>氧氣、乙炔氣瓶應分開直立儲存，推車需有防傾倒鏈條固定，且氣閥應加裝安全「逆火防止器」（設施規則第105條）。<br><strong>【管理控制】</strong>營建工區高壓氣瓶裝備嚴禁接受烈日直接曝曬，現場落實密閉氣體外洩偵測。"
             },
             "溺斃": {
                 before: "高度風險 (5×3=15分)", beforeClass: "risk-4",
@@ -235,7 +282,7 @@ HTML
             "衝撞": {
                 before: "低度風險 (2×2=4分)", beforeClass: "risk-2",
                 after: "極低風險 (2×1=1分)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>廠區內通道死角或轉角處，應確實裝設廣角凸面反光鏡。<br><strong>【管理控制】</strong>廠區與施工現場嚴格限速10公里/小時，行走應走指定安全步道。"
+                controls: "<strong>【工程控制】</strong>廠區內通道死角或轉角處，應確實裝設廣角凸面反光鏡。<br><strong>【管理控制】</strong>廠區與施工現場營運嚴格限速10公里/小時，行走應走指定安全步道。"
             },
             "其他交通事故": {
                 before: "高度風險 (3×4=12分)", beforeClass: "risk-4",
@@ -263,7 +310,7 @@ HTML
                 controls: "<strong>【工程控制】</strong>脆弱採光罩、輕鋼架天花板或易碎石綿瓦作業，必須鋪設寬度30公分以上具備防滑功能之合格通道踏板。<br><strong>【管理控制】</strong>禁止人員踩踏非安全通道區域，吊頂處懸掛「嚴禁踩踏」告示。<br><strong>【個人防護】</strong>正確配戴防墜安全帶並掛置於獨立安全母索索線或錨錠結構。"
             },
             "化學品洩漏": {
-                before: "中度風險 (3×2=6分)", beforeClass: "risk-3",
+                before: "進階中度風險 (3×2=6分)", beforeClass: "risk-3",
                 after: "極低風險 (2×1=2分)", afterClass: "risk-1",
                 controls: "<strong>【工程控制】</strong>藥劑、溶劑堆放區設置防液堤、集液托盤或洩漏防堵欄（設施規則第25條）。<br><strong>【管理控制】</strong>張貼安全資料表（SDS）並落實危害告知，現場配置足夠防液沙包與吸液棉。<br><strong>【個人防護】</strong>化學品搬運與加藥作業時，應戴合格耐酸鹼手套、防護面罩或護目鏡。"
             }
@@ -271,10 +318,10 @@ HTML
 
         const disasterTypes = [
             "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", 
-            "眼、面受傷", "被捲", "與有害物等之接觸", "跌倒", "爆炸", 
+            "被夾", "被捲", "與有害物等之接觸", "跌倒", "爆炸", 
             "溺斃", "與高溫、低溫之接觸", "衝撞", "其他交通事故", 
             "物體破裂", "感電", "火災", 
-            "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩漏"
+            "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩慢"
         ];
 
         // 動態渲染按鈕
@@ -289,29 +336,16 @@ HTML
             grid.insertAdjacentHTML('beforeend', html);
         });
 
-        // 雙簽名板控制邏輯與軌跡紀錄
+        // 雙簽名板控制
         const sigPads = {
-            worker: { 
-                canvas: document.getElementById('worker-sig'), 
-                ctx: document.getElementById('worker-sig').getContext('2d'), 
-                drawing: false,
-                lastPos: null, 
-                strokes: [] 
-            },
-            safety: { 
-                canvas: document.getElementById('safety-sig'), 
-                ctx: document.getElementById('safety-sig').getContext('2d'), 
-                drawing: false,
-                lastPos: null,
-                strokes: []
-            }
+            worker: { canvas: document.getElementById('worker-sig'), ctx: document.getElementById('worker-sig').getContext('2d'), drawing: false, lastPos: null, strokes: [] },
+            safety: { canvas: document.getElementById('safety-sig'), ctx: document.getElementById('safety-sig').getContext('2d'), drawing: false, lastPos: null, strokes: [] }
         };
 
         Object.keys(sigPads).forEach(key => {
             const pad = sigPads[key];
             pad.ctx.lineWidth = 3;
             pad.ctx.strokeStyle = "#0f172a";
-            
             let currentStroke = [];
 
             function getPos(e) {
@@ -321,45 +355,27 @@ HTML
                 return { x: Math.round(clientX - rect.left), y: Math.round(clientY - rect.top) };
             }
             function startDraw(e) { 
-                pad.drawing = true; 
-                pad.ctx.beginPath(); 
-                const p = getPos(e); 
-                pad.ctx.moveTo(p.x, p.y); 
-                currentStroke = [[p.x, p.y]]; 
-                pad.lastPos = p;
-                e.preventDefault(); 
+                pad.drawing = true; pad.ctx.beginPath(); const p = getPos(e); pad.ctx.moveTo(p.x, p.y); 
+                currentStroke = [[p.x, p.y]]; pad.lastPos = p; e.preventDefault(); 
             }
             function draw(e) { 
-                if(!pad.drawing) return; 
-                const p = getPos(e); 
-                
+                if(!pad.drawing) return; const p = getPos(e); 
                 const dist = Math.hypot(p.x - pad.lastPos.x, p.y - pad.lastPos.y);
                 if (dist > 6) {
-                    pad.ctx.lineTo(p.x, p.y); 
-                    pad.ctx.stroke(); 
-                    currentStroke.push([p.x, p.y]);
-                    pad.lastPos = p;
+                    pad.ctx.lineTo(p.x, p.y); pad.ctx.stroke(); currentStroke.push([p.x, p.y]); pad.lastPos = p;
                 }
                 e.preventDefault(); 
             }
-            function stopDraw() { 
-                if(pad.drawing && currentStroke.length > 0) {
-                    pad.strokes.push(currentStroke);
-                }
-                pad.drawing = false; 
-            }
+            function stopDraw() { if(pad.drawing && currentStroke.length > 0) { pad.strokes.push(currentStroke); } pad.drawing = false; }
 
             pad.canvas.addEventListener('mousedown', startDraw); pad.canvas.addEventListener('mousemove', draw); window.addEventListener('mouseup', stopDraw);
             pad.canvas.addEventListener('touchstart', startDraw); pad.canvas.addEventListener('touchmove', draw); window.addEventListener('touchend', stopDraw);
         });
 
         function clearSig(key) {
-            const pad = sigPads[key];
-            pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
-            pad.strokes = [];
+            const pad = sigPads[key]; pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height); pad.strokes = [];
         }
 
-        // 監聽勾選改變
         setTimeout(() => {
             const checkboxes = document.querySelectorAll('.condition-check');
             checkboxes.forEach(box => box.addEventListener('change', evaluateRisk));
@@ -374,25 +390,15 @@ HTML
             
             resultRows.innerHTML = '';
             let maxRiskText = '低度風險 (1-4分，已採取安全設施，落實日常巡檢)';
-            let maxRiskClass = 'risk-2';
-            let hasSelection = false;
+            let maxRiskClass = 'risk-2'; let hasSelection = false;
 
             checkboxes.forEach(box => {
                 if (box.checked) {
                     hasSelection = true;
-                    const rule = disasterDatabase[box.value] || {
-                        before: "低度風險", beforeClass: "risk-2",
-                        after: "極低風險", afterClass: "risk-1",
-                        controls: "落實自主檢查與標準作業程序（SOP）。"
-                    };
-                    
-                    if (rule.beforeClass === 'risk-5') {
-                        maxRiskClass = 'risk-5'; maxRiskText = '極高風險 (20-25分，不可接受！須立即召開管制會議並全面暫停作業！)';
-                    } else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') {
-                        maxRiskClass = 'risk-4'; maxRiskText = '高度風險 (10-16分，在工程控制與降險防護到位前，不可開工作業)';
-                    } else if (rule.beforeClass === 'risk-3' && maxRiskClass !== 'risk-5' && maxRiskClass !== 'risk-4') {
-                        maxRiskClass = 'risk-3'; maxRiskText = '中度風險 (4-9分，應逐步配置更完善之施工防護設施)';
-                    }
+                    const rule = disasterDatabase[box.value] || { before: "低度風險", beforeClass: "risk-2", after: "極低風險", afterClass: "risk-1", controls: "落實自主檢查與標準作業程序（SOP）。" };
+                    if (rule.beforeClass === 'risk-5') { maxRiskClass = 'risk-5'; maxRiskText = '極高風險 (20-25分，不可接受！須立即召開管制會議並全面暫停作業！)'; }
+                    else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') { maxRiskClass = 'risk-4'; maxRiskText = '高度風險 (10-16分，在工程控制與降險防護到位前，不可開工作業)'; }
+                    else if (rule.beforeClass === 'risk-3' && maxRiskClass !== 'risk-5' && maxRiskClass !== 'risk-4') { maxRiskClass = 'risk-3'; maxRiskText = '中度風險 (4-9分，應逐步配置更完善之施工防護設施)'; }
 
                     const row = `<tr>
                         <td class="fw-bold text-center text-dark" style="background-color: #f8fafc;">${box.value}</td>
@@ -417,38 +423,20 @@ HTML
         let generatedTargetUrl = ""; 
 
         function urlSafeBtoa(str) {
-            let base64 = btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-                return String.fromCharCode(parseInt(p1, 16));
-            }));
+            let base64 = btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) { return String.fromCharCode(parseInt(p1, 16)); }));
             return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
 
         function generatePassData() {
             const jobName = document.getElementById('jobInput').value.trim();
-            if (!jobName) {
-                alert("請先輸入作業工項名稱！");
-                return;
-            }
-
+            if (!jobName) { alert("請先輸入作業工項名稱！"); return; }
             const selectedDisasters = [];
-            document.querySelectorAll('.condition-check:checked').forEach(cb => {
-                selectedDisasters.push(cb.value);
-            });
-
-            if (selectedDisasters.length === 0) {
-                alert("請至少勾選一個災害類型！");
-                return;
-            }
-
-            if (sigPads.worker.strokes.length === 0) {
-                alert("請【施工人員】先在左側欄位簽名！");
-                return;
-            }
+            document.querySelectorAll('.condition-check:checked').forEach(cb => { selectedDisasters.push(cb.value); });
+            if (selectedDisasters.length === 0) { alert("請至少勾選一個災害類型！"); return; }
+            if (sigPads.worker.strokes.length === 0) { alert("請【施工人員】先在左側欄位簽名！"); return; }
 
             const dataToShare = { j: jobName, d: selectedDisasters, s: sigPads.worker.strokes };
-            const jsonString = JSON.stringify(dataToShare);
-            const base64Data = urlSafeBtoa(jsonString);
-            
+            const base64Data = urlSafeBtoa(JSON.stringify(dataToShare));
             const baseUrl = window.location.origin + window.location.pathname;
             generatedTargetUrl = `${baseUrl}?data=${base64Data}`;
 
@@ -464,16 +452,12 @@ HTML
             window.location.href = lineHref;
         });
 
-        function closeQRModal() {
-            document.getElementById('qrModal').style.display = "none";
-        }
+        function closeQRModal() { document.getElementById('qrModal').style.display = "none"; }
 
         function urlSafeAtob(str) {
             let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
             while (base64.length % 4) { base64 += '='; }
-            return decodeURIComponent(Array.prototype.map.call(atob(base64), function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
+            return decodeURIComponent(Array.prototype.map.call(atob(base64), function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
         }
 
         window.addEventListener('load', () => {
@@ -483,78 +467,66 @@ HTML
             if (rawData) {
                 try {
                     const decodedData = JSON.parse(urlSafeAtob(rawData));
-                    
                     document.getElementById('jobInput').value = decodedData.j;
                     document.getElementById('jobInput').readOnly = true;
 
                     document.querySelectorAll('.condition-check').forEach(cb => {
-                        if (decodedData.d.includes(cb.value)) {
-                            cb.checked = true;
-                        } else {
-                            cb.closest('.col-6').classList.add('d-none');
-                        }
+                        if (decodedData.d.includes(cb.value)) { cb.checked = true; } 
+                        else { cb.closest('.col-6').classList.add('d-none'); }
                     });
-                    
                     document.getElementById('disasterCardSec').classList.add('d-none');
                     evaluateRisk();
 
                     if (decodedData.s && decodedData.s.length > 0) {
-                        const canvas = sigPads.worker.canvas;
-                        const ctx = sigPads.worker.ctx;
+                        const canvas = sigPads.worker.canvas; const ctx = sigPads.worker.ctx;
                         sigPads.worker.strokes = decodedData.s; 
-
                         setTimeout(() => {
                             ctx.clearRect(0, 0, canvas.width, canvas.height);
                             decodedData.s.forEach(stroke => {
                                 if (stroke.length > 0) {
-                                    ctx.beginPath();
-                                    ctx.lineWidth = 3;
-                                    ctx.strokeStyle = "#0f172a";
+                                    ctx.beginPath(); ctx.lineWidth = 3; ctx.strokeStyle = "#0f172a";
                                     ctx.moveTo(stroke[0][0], stroke[0][1]);
                                     stroke.forEach(pt => { ctx.lineTo(pt[0], pt[1]); });
                                     ctx.stroke();
                                 }
                             });
                         }, 400); 
-                        
                         document.getElementById('worker-clear-btn').classList.add('d-none');
                         canvas.style.pointerEvents = "none";
                     }
-
                     document.getElementById('jc-alert').classList.remove('d-none'); 
                     document.getElementById('sendToSafetyBtn').classList.add('d-none'); 
                     document.getElementById('exportBtn').classList.remove('d-none'); 
-
                 } catch (e) {
                     alert("網址資料解析失敗，請確認是否完整複製整串網址！");
-                    console.error("解碼錯誤:", e);
                 }
             }
         });
 
         function exportAsImage() {
-            if (sigPads.safety.strokes.length === 0) {
-                alert("請【職安管理人員】先在右側欄位簽名再進行核可！");
-                return;
-            }
+            if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先在右側欄位簽名再進行核可！"); return; }
+            
+            // 💡 智產防禦：導出截圖前強行將防偽宣告區改為可見，融進圖檔中
+            document.getElementById('image-watermark').style.display = 'block';
 
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
             const target = document.getElementById('capture-area');
             const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
             
-            html2canvas(target, {
-                useCORS: true, scale: 2, backgroundColor: "#f1f5f9"
-            }).then(canvas => {
+            html2canvas(target, { useCORS: true, scale: 2, backgroundColor: "#f1f5f9" }).then(canvas => {
                 const image = canvas.toDataURL("image/png");
                 const link = document.createElement('a');
                 link.download = `智慧JSA核可紀錄_[${jobName}]_${new Date().toISOString().slice(0,10)}.png`;
-                link.href = image;
-                link.click();
+                link.href = image; link.click();
+                
+                // 導出後恢復原狀
                 elementsToHide.forEach(el => el.style.visibility = 'visible');
+                document.getElementById('image-watermark').style.display = 'none';
             }).catch(err => {
                 alert("匯出失敗，請確認是否用正規瀏覽器開啟網頁！");
                 elementsToHide.forEach(el => el.style.visibility = 'visible');
+                document.getElementById('image-watermark').style.display = 'none';
             });
         }
     </script>
