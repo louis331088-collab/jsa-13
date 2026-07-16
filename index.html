@@ -5,7 +5,9 @@ HTML
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智慧型動態危害辨識與風險評估系統</title>
+    <!-- 引入美觀的 CSS 框架 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入截圖套件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; position: relative; }
@@ -33,13 +35,23 @@ HTML
         .disaster-btn:checked + .disaster-label { background-color: #2563eb; color: white; border-color: #1d4ed8; transform: scale(1.02); box-shadow: 0 4px 6px rgba(37,99,235,0.15); }
         .sig-canvas { border: 2px dashed #94a3b8; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; max-width: 320px; height: 130px; }
         
-        /* ⚙️ 優化：提升行動裝置表格的可讀性，防止欄位字體過度擠壓 */
+        /* ⚙️ 行動裝置表格優化：防止欄位字體過度擠壓 */
         .table-responsive { border-radius: 8px; overflow: hidden; }
         .table th { font-size: 0.8rem; padding: 8px 4px !important; text-align: center; vertical-align: middle; }
         .table td { font-size: 0.82rem; padding: 8px 6px !important; }
         .badge-risk-cell { font-size: 0.75rem; font-weight: bold; padding: 4px 2px; white-space: normal; line-height: 1.1; display: block; width: 100%; text-align: center; }
 
-        /* 💡 依指令修改：導出圖片專用低調防偽區 */
+        /* 💡 5x5 中文風險矩陣圖專用樣式 */
+        .matrix-table { width: 100%; max-width: 450px; margin: 0 auto; border-collapse: collapse; font-size: 0.8rem; text-align: center; }
+        .matrix-table td, .matrix-table th { border: 1px solid #94a3b8; padding: 6px 2px; font-weight: bold; width: 16%; }
+        .matrix-title { font-size: 0.85rem; font-weight: bold; color: #1e3a8a; background-color: #e2e8f0; }
+        .m-crit { background-color: #7f1d1d; color: #fff; }
+        .m-extr { background-color: #b91c1c; color: #fff; }
+        .m-high { background-color: #c2410c; color: #fff; }
+        .m-mod { background-color: #eab308; color: #1e293b; }
+        .m-low { background-color: #15803d; color: #fff; }
+
+        /* 💡 導出圖片專用低調防偽區 */
         .watermark-footer { display: none; font-size: 0.82rem; color: #64748b; font-weight: bold; margin-top: 20px; text-align: center; width: 100%; }
 
         /* 彈出視窗樣式 */
@@ -71,6 +83,7 @@ HTML
 </head>
 <body>
 
+    <!-- 智產防禦：全螢幕盜用封鎖遮罩 -->
     <div id="lockout-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0f172a; color:#f8fafc; z-index:99999; padding:50px 20px; text-align:center;">
         <h2 class="text-danger fw-bold mb-4">⚠️ 系統安全授權驗證失敗</h2>
         <p class="fs-5">本系統受智慧財產權與國家競賽防盜條款保護。</p>
@@ -78,6 +91,7 @@ HTML
         <p class="text-muted mt-5">原創研發著作權人：江十三 先生</p>
     </div>
 
+    <!-- 彈出式 QR Code 視窗 -->
     <div id="qrModal" class="custom-modal no-print">
         <div class="custom-modal-content">
             <h5 class="fw-bold text-primary mb-3">📱 危害辨識核可 QR Code</h5>
@@ -95,16 +109,19 @@ HTML
     </div>
 
     <div id="capture-area">
+        <!-- 抬頭 -->
         <div class="header-banner">
             <h3>智慧型動態危害辨識與風險評估系統</h3>
             <p class="mb-0 fw-bold text-warning" style="font-size:0.9rem;">依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩陣規範設計</p>
         </div>
 
         <div class="container px-1">
+            <!-- 警示橫幅 -->
             <div id="jc-alert" class="alert alert-warning d-none text-center fw-bold shadow-sm mb-2" style="font-size:0.85rem;" role="alert">
-                ℹ "偵測到施工人員傳送之危害確認紀錄，請審核完畢後於右側管理人員欄位簽字核可。"
+                ℹ️ 偵測到施工人員傳送之危害確認紀錄，請審核完畢後於右側管理人員欄位簽字核可。
             </div>
 
+            <!-- 1. 現場工項輸入 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📋 一、作業工項登記</h5>
                 <div class="row g-3">
@@ -115,13 +132,79 @@ HTML
                 </div>
             </div>
 
+            <!-- 2. 災害類型勾選區 -->
             <div class="card p-3 no-print" id="disasterCardSec">
                 <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">⚠️ 二、辨識現場潛在災害類型 (可多選)</h5>
                 <p class="text-muted small">請職安人員或現場主管評估，此作業施工過程中可能引致哪些危害狀況：</p>
                 <div class="row g-2" id="disasterGrid">
-                    </div>
+                    <!-- 由 JS 動態產生災害類型按鈕 -->
+                </div>
             </div>
 
+            <!-- 💡 新增亮點：5x5 繁體中文標準風險評估矩陣對照圖 -->
+            <div class="card p-3 no-print">
+                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 國家標準 5x5 半定量風險評估矩陣</h5>
+                <div class="table-responsive">
+                    <table class="matrix-table">
+                        <tr>
+                            <th rowspan="2" class="matrix-title" style="width:10%;">發生<br>可能<br>性</th>
+                            <th colspan="5" class="matrix-title">後果嚴重度 (1~5 等級)</th>
+                        </tr>
+                        <tr style="background-color:#f8fafc;">
+                            <td>1<br><small>微小</small></td>
+                            <td>2<br><small>較低</small></td>
+                            <td>3<br><small>中等</small></td>
+                            <td>4<br><small>重大</small></td>
+                            <td>5<br><small>災難性</small></td>
+                        </tr>
+                        <tr>
+                            <td class="matrix-title">5<br><small>幾可確定</small></td>
+                            <td class="m-low">5<br><small>低</small></td>
+                            <td class="m-mod">10<br><small>中</small></td>
+                            <td class="m-high">15<br><small>高</small></td>
+                            <td class="m-extr">20<br><small>極高</small></td>
+                            <td class="m-crit">25<br><small>重大</small></td>
+                        </tr>
+                        <tr>
+                            <td class="matrix-title">4<br><small>極有可能</small></td>
+                            <td class="m-low">4<br><small>低</small></td>
+                            <td class="m-mod">8<br><small>中</small></td>
+                            <td class="m-high">12<br><small>高</small></td>
+                            <td class="m-extr">16<br><small>極高</small></td>
+                            <td class="m-extr">20<br><small>極高</small></td>
+                        </tr>
+                        <tr>
+                            <td class="matrix-title">3<br><small>可能</small></td>
+                            <td class="m-low">3<br><small>低</small></td>
+                            <td class="m-mod">6<br><small>中</small></td>
+                            <td class="m-high">9<br><small>高</small></td>
+                            <td class="m-high">12<br><small>高</small></td>
+                            <td class="m-high">15<br><small>高</small></td>
+                        </tr>
+                        <tr>
+                            <td class="matrix-title">2<br><small>不太可能</small></td>
+                            <td class="m-low">2<br><small>低</small></td>
+                            <td class="m-low">4<br><small>低</small></td>
+                            <td class="m-mod">6<br><small>中</small></td>
+                            <td class="m-mod">8<br><small>中</small></td>
+                            <td class="m-mod">10<br><small>中</small></td>
+                        </tr>
+                        <tr>
+                            <td class="matrix-title">1<br><small>幾乎不可能</small></td>
+                            <td class="m-low">1<br><small>低</small></td>
+                            <td class="m-low">2<br><small>低</small></td>
+                            <td class="m-low">3<br><small>低</small></td>
+                            <td class="m-low">4<br><small>低</small></td>
+                            <td class="m-mod">5<br><small>中</small></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="text-center text-muted mt-2" style="font-size:0.75rem; font-weight:bold;">
+                    風險值演算公式：風險等級值 (R) ＝ 嚴重度 (S) × 發生可能性 (P)
+                </div>
+            </div>
+
+            <!-- 3. 評估結果 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 三、危害標準風險評估結果 (半定量評估)</h5>
                 <div id="riskResultBox" class="mb-3">
@@ -145,11 +228,13 @@ HTML
                 </div>
             </div>
 
+            <!-- 4. 雙重簽名確認區 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">✍️ 四、危害告知與開工確認簽章</h5>
                 <p class="text-muted small">現場施工勞工與專職職安管理人員已確實召開工具箱會議，知悉上述危害並承諾落實防護措施：</p>
                 
                 <div class="row g-3 text-center">
+                    <!-- 左邊：已了解危害人員簽名 -->
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold text-danger" style="font-size:0.88rem;">【手寫簽名】已了解危害人員（施工人員）</label>
                         <div>
@@ -160,6 +245,7 @@ HTML
                         </div>
                     </div>
                     
+                    <!-- 右邊：職安人員簽名 -->
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold text-primary" style="font-size:0.88rem;">【手寫簽名】專職職安管理人員</label>
                         <div>
@@ -172,16 +258,20 @@ HTML
                 </div>
             </div>
             
+            <!-- 💡 智產防禦：導出圖片強制附帶江十三版權宣告 -->
             <div id="image-watermark" class="watermark-footer">
                 江十三 著作權所有 翻印必究
             </div>
         </div>
     </div>
 
+    <!-- 按鈕控制區 -->
     <div class="container mb-5 no-print">
         <div class="d-grid gap-2">
+            <!-- 施工人員使用的傳送鈕 -->
             <button id="sendToSafetyBtn" class="btn btn-primary btn-lg shadow" style="font-size:1.05rem;" onclick="generatePassData()">🚀 危害確認完成：生成 QR Code 傳送職安審核</button>
             
+            <!-- 職安人員最終核可使用的按鈕 -->
             <button id="exportBtn" class="btn btn-success btn-lg shadow d-none" style="font-size:1.05rem;" onclick="exportAsImage()">📸 現場審核通過：匯出雙簽名評估紀錄圖檔</button>
             <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ 呼叫系統列印 / 儲存為 PDF 電子檔</button>
         </div>
