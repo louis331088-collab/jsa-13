@@ -110,7 +110,7 @@ HTML
         <!-- 抬頭 -->
         <div class="header-banner">
             <h3>智慧型動態危害辨識與風險評估系統</h3>
-            <p class="mb-0 fw-bold text-warning" style="font-size:0.9rem;">依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩陣規範設計</p>
+            <p class="mb-0 fw-bold text-warning" style="font-size:0.9rem;">依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩阵規範設計</p>
         </div>
 
         <div class="container px-1">
@@ -123,7 +123,6 @@ HTML
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📋 一、作業工項與身份登記</h5>
                 <div class="row g-3">
-                    <!-- 💡 新增：人員辨識下拉式選項 -->
                     <div class="col-12">
                         <label class="form-label fw-bold text-secondary" style="font-size:0.9rem;">請選擇填報人員身份：</label>
                         <select class="form-select border-primary" id="identitySelect" onchange="toggleOtherIdentityInput()">
@@ -135,7 +134,6 @@ HTML
                             <option value="其他">其他 (可自行填寫)</option>
                         </select>
                     </div>
-                    <!-- 💡 動態填寫框：選「其他」時才會跳出來 -->
                     <div class="col-12 d-none" id="otherIdentityDiv">
                         <label class="form-label fw-bold text-danger" style="font-size:0.9rem;">請輸入自行填寫的身份名稱：</label>
                         <input type="text" class="form-control border-danger" id="otherIdentityInput" placeholder="例如：監造工程師、業主主管...">
@@ -399,16 +397,16 @@ HTML
             const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
             
             resultRows.innerHTML = '';
-            let maxRiskText = '低度風險';
+            let maxRiskText = '低度風險 (1-4分，已採取安全設施，落實日常巡檢)';
             let maxRiskClass = 'risk-2'; let hasSelection = false;
 
             checkboxes.forEach(box => {
                 if (box.checked) {
                     hasSelection = true;
                     const rule = disasterDatabase[box.value];
-                    if (rule.beforeClass === 'risk-5') { maxRiskClass = 'risk-5'; maxRiskText = '極高風險 (不可接受！須立即全面暫停作業！)'; }
-                    else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') { maxRiskClass = 'risk-4'; maxRiskText = '高度風險 (在防護到位前，不可開工作業)'; }
-                    else if (rule.beforeClass === 'risk-3' && maxRiskClass !== 'risk-5' && maxRiskClass !== 'risk-4') { maxRiskClass = 'risk-3'; maxRiskText = '中度風險 (應逐步配置更完善之施工防護設施)'; }
+                    if (rule.beforeClass === 'risk-5') { maxRiskClass = 'risk-5'; maxRiskText = '極高風險 (20-25分，不可接受！須立即召開管制會議並全面暫停作業！)'; }
+                    else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') { maxRiskClass = 'risk-4'; maxRiskText = '高度風險 (10-16分，在工程控制與降險防護到位前，不可開工作業)'; }
+                    else if (rule.beforeClass === 'risk-3' && maxRiskClass !== 'risk-5' && maxRiskClass !== 'risk-4') { maxRiskClass = 'risk-3'; maxRiskText = '中度風險 (5-10分，應逐步配置更完善之施工防護設施)'; }
 
                     const row = `<tr>
                         <td class="fw-bold text-center text-dark" style="background-color: #f8fafc;">${box.value}</td>
@@ -481,7 +479,6 @@ HTML
                     document.getElementById('jobInput').value = decodedData.j;
                     document.getElementById('jobInput').readOnly = true;
 
-                    // 還原身份欄位
                     const select = document.getElementById('identitySelect');
                     select.value = decodedData.id;
                     select.disabled = true;
