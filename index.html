@@ -68,11 +68,11 @@ HTML
         }
         .custom-modal-content {
             background-color: #fff;
-            margin: 15% auto;
+            margin: 10% auto;
             padding: 25px;
             border-radius: 14px;
-            width: 90%;
-            max-width: 400px;
+            width: 92%;
+            max-width: 450px;
             text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             position: relative;
@@ -106,11 +106,25 @@ HTML
         </div>
     </div>
 
+    <!-- 💡 全新亮點彈出視窗：專門對付 LINE 內部瀏覽器不給下載的「圖片生成檢視區」 -->
+    <div id="resultImageModal" class="custom-modal no-print">
+        <div class="custom-modal-content" style="max-width: 500px; margin: 5% auto;">
+            <h5 class="fw-bold text-success mb-2">🎉 紀錄圖檔已成功產出！</h5>
+            <p class="text-danger small fw-bold mb-3">【⚠️ 手機長按下方圖片即可直接儲存至相簿】</p>
+            <div style="max-height: 55vh; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; background: #f8fafc;">
+                <img id="finalExportedImage" src="" alt="圖片生成中..." style="width: 100%; height: auto;" />
+            </div>
+            <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-secondary" onclick="closeResultImageModal()">關閉此視窗</button>
+            </div>
+        </div>
+    </div>
+
     <div id="capture-area">
         <!-- 抬頭 -->
         <div class="header-banner">
             <h3>智慧型動態危害辨識與風險評估系統</h3>
-            <p class="mb-0 fw-bold text-warning" style="font-size:0.9rem;">依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩阵規範設計</p>
+            <p class="mb-0 fw-bold text-warning" style="font-size:0.9rem;">依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩陣規範設計</p>
         </div>
 
         <div class="container px-1">
@@ -462,6 +476,7 @@ HTML
         });
 
         function closeQRModal() { document.getElementById('qrModal').style.display = "none"; }
+        function closeResultImageModal() { document.getElementById('resultImageModal').style.display = "none"; }
 
         function urlSafeAtob(str) {
             let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -524,16 +539,25 @@ HTML
             }
         });
 
+        // 💡 終極優化：解決 LINE 不給下載的黑科技函數
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             document.getElementById('image-watermark').style.display = 'block';
+            
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
             
             html2canvas(document.getElementById('capture-area'), { useCORS: true, scale: 2, backgroundColor: "#f1f5f9" }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `智慧JSA核可紀錄_${new Date().toISOString().slice(0,10)}.png`;
-                link.href = canvas.toDataURL("image/png"); link.click();
+                const imgData = canvas.toDataURL("image/png");
+                
+                // 🚀 重大技術變更：將產出的圖檔直接塞進網頁彈出視窗，並附帶長按儲存提示，100% 繞過 LINE 限制！
+                document.getElementById('finalExportedImage').src = imgData;
+                document.getElementById('resultImageModal').style.display = "block";
+                
+                elementsToHide.forEach(el => el.style.visibility = 'visible');
+                document.getElementById('image-watermark').style.display = 'none';
+            }).catch(err => {
+                alert("產出失敗，建議點選右下角以 Safari/Chrome 外部瀏覽器開啟！");
                 elementsToHide.forEach(el => el.style.visibility = 'visible');
                 document.getElementById('image-watermark').style.display = 'none';
             });
