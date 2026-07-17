@@ -106,7 +106,7 @@ HTML
         </div>
     </div>
 
-    <!-- 💡 全新亮點彈出視窗：專門對付 LINE 內部瀏覽器不給下載的「圖片生成檢視區」 -->
+    <!-- 紀錄圖片生成檢視區 -->
     <div id="resultImageModal" class="custom-modal no-print">
         <div class="custom-modal-content" style="max-width: 500px; margin: 5% auto;">
             <h5 class="fw-bold text-success mb-2">🎉 紀錄圖檔已成功產出！</h5>
@@ -166,8 +166,8 @@ HTML
                 <div class="row g-2" id="disasterGrid"></div>
             </div>
 
-            <!-- 5x5 風險矩陣對照圖 -->
-            <div class="card p-3 no-print">
+            <!-- 💡 核心變更：拿掉 no-print，確保畫布截圖時絕對不會漏掉這張標準矩陣 -->
+            <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 國家標準 5x5 半定量風險評估矩陣</h5>
                 <div class="table-responsive">
                     <table class="matrix-table">
@@ -212,7 +212,7 @@ HTML
                             <td class="m-low">4<br><small>低</small></td>
                             <td class="m-mod">6<br><small>中</small></td>
                             <td class="m-mod">8<br><small>中</small></td>
-                            <td class="m-mod">10<br><small>中</small></td>
+                            <td class="m-mod">10<br><small>慢</small></td>
                         </tr>
                         <tr>
                             <td class="matrix-title">1<br><small>幾乎不可能</small></td>
@@ -337,7 +337,7 @@ HTML
             "衝撞": { before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>通道死角或轉角處裝設廣角凸面反光鏡。<br><strong>【管理控制】</strong>工區內嚴格限速10公里/小時，行走指定安全步道。" },
             "其他交通事故": { before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(3分)", afterClass: "risk-2", controls: "<strong>【管理控制】</strong>大門動線指派專職交管人員；落實視野死角管制；嚴禁酒後與疲勞駕駛。" },
             "物體破裂": { before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>手持砂輪機、切割機確實設置高強度防飛落安全防護罩。<br><strong>【管理控制】</strong>落實機具使用前安全檢查，嚴禁超載運轉。" },
-            "局限空間/缺氧中毒": { before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>連續強制換氣，偵測確認氧氣>18%、硫化氫<10ppm、一氧化碳<35ppm。<br><strong>【管理控制】</strong>指派局限空間作業主管在場，落實許可證核准與進出登載。<br><strong>【個人防護】</strong>備妥全身式安全帶、三腳架救援設備及緊急逃生呼吸防護具（EEBD）。" },
+            "局限空間/缺氧中毒": { before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>連續強制換氣，偵測確認氧氣>18%、硫化氫<10ppm、一氧化慢<35ppm。<br><strong>【管理控制】</strong>指派局限空間作業主管在場，落實許可證核准與進出登載。<br><strong>【個人防護】</strong>備妥全身式安全帶、三腳架救援設備及緊急逃生呼吸防護具（EEBD）。" },
             "被刺、割、擦傷": { before: "中度風險(8分)", beforeClass: "risk-3", after: "極低風險(1分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>清除突出鐵釘，機具防護罩完好。<br><strong>【管理控制】</strong>將穿刺與飛散危害公告。<br><strong>【個人防護】</strong>必備鋼頭防穿刺鞋、耐切割手套及防護眼鏡。" },
             "踩踏、踏穿": { before: "高度風險(10分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>脆弱採光罩、輕鋼架作業鋪設寬度30公分以上具防滑功能之合格通道踏板。<br><strong>【管理控制】</strong>懸掛「嚴禁踩踏」告示。<br><strong>【個人防護】</strong>正確配戴防墜安全帶並掛置於獨立安全母索。" },
             "化學品洩漏": { before: "中度風險(6分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>藥劑儲存區設置防液堤或集液托盤。<br><strong>【管理控制】</strong>張貼安全資料表（SDS），配置足夠防液沙包與吸液棉。<br><strong>【個人防護】</strong>搬運作業應戴耐酸鹼手套與防護面罩。" }
@@ -539,18 +539,17 @@ HTML
             }
         });
 
-        // 💡 終極優化：解決 LINE 不給下載的黑科技函數
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             document.getElementById('image-watermark').style.display = 'block';
             
+            // 💡 修正後邏輯：這裡只隱藏帶有 no-print 類別的純控制按鈕，不干擾 5x5 標準風險評估矩陣的圖片留軌渲染
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
             
             html2canvas(document.getElementById('capture-area'), { useCORS: true, scale: 2, backgroundColor: "#f1f5f9" }).then(canvas => {
                 const imgData = canvas.toDataURL("image/png");
                 
-                // 🚀 重大技術變更：將產出的圖檔直接塞進網頁彈出視窗，並附帶長按儲存提示，100% 繞過 LINE 限制！
                 document.getElementById('finalExportedImage').src = imgData;
                 document.getElementById('resultImageModal').style.display = "block";
                 
