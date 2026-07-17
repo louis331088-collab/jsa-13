@@ -35,13 +35,13 @@ HTML
         .disaster-btn:checked + .disaster-label { background-color: #2563eb; color: white; border-color: #1d4ed8; transform: scale(1.02); box-shadow: 0 4px 6px rgba(37,99,235,0.15); }
         .sig-canvas { border: 2px dashed #94a3b8; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; max-width: 320px; height: 130px; }
         
-        /* ⚙️ 行動裝置表格優化：防止欄位字體過度擠壓 */
+        /* 行動裝置表格優化 */
         .table-responsive { border-radius: 8px; overflow: hidden; }
         .table th { font-size: 0.8rem; padding: 8px 4px !important; text-align: center; vertical-align: middle; }
         .table td { font-size: 0.82rem; padding: 8px 6px !important; }
         .badge-risk-cell { font-size: 0.75rem; font-weight: bold; padding: 4px 2px; white-space: normal; line-height: 1.1; display: block; width: 100%; text-align: center; }
 
-        /* 💡 5x5 中文風險矩陣圖專用樣式 */
+        /* 5x5 中文風險矩陣圖專用樣式 */
         .matrix-table { width: 100%; max-width: 450px; margin: 0 auto; border-collapse: collapse; font-size: 0.8rem; text-align: center; }
         .matrix-table td, .matrix-table th { border: 1px solid #94a3b8; padding: 6px 2px; font-weight: bold; width: 16%; }
         .matrix-title { font-size: 0.85rem; font-weight: bold; color: #1e3a8a; background-color: #e2e8f0; }
@@ -51,7 +51,7 @@ HTML
         .m-mod { background-color: #eab308; color: #1e293b; }
         .m-low { background-color: #15803d; color: #fff; }
 
-        /* 💡 導出圖片專用低調防偽區 */
+        /* 導出圖片專用低調防偽區 */
         .watermark-footer { display: none; font-size: 0.82rem; color: #64748b; font-weight: bold; margin-top: 20px; text-align: center; width: 100%; }
 
         /* 彈出視窗樣式 */
@@ -83,7 +83,7 @@ HTML
 </head>
 <body>
 
-    <!-- 智產防禦：全螢幕盜用封鎖遮罩 -->
+    <!-- 智產防禦遮罩 -->
     <div id="lockout-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0f172a; color:#f8fafc; z-index:99999; padding:50px 20px; text-align:center;">
         <h2 class="text-danger fw-bold mb-4">⚠️ 系統安全授權驗證失敗</h2>
         <p class="fs-5">本系統受智慧財產權與國家競賽防盜條款保護。</p>
@@ -96,11 +96,9 @@ HTML
         <div class="custom-modal-content">
             <h5 class="fw-bold text-primary mb-3">📱 危害辨識核可 QR Code</h5>
             <p class="text-muted small text-start">1. <strong>現場面對面：</strong>請職安人員直接用手機相機掃描此碼。<br>2. <strong>遠端傳送：</strong>將此畫面截圖透過 LINE 傳給職安人員，職安人員長按即可在外部瀏覽器開啟。</p>
-            
             <div class="d-flex justify-content-center my-3">
                 <img id="qrImage" src="" alt="請稍候..." style="width: 220px; height: 220px; border: 1px solid #ddd; padding: 5px; background: white;" />
             </div>
-            
             <div class="d-grid gap-2 mt-3">
                 <button class="btn btn-primary" id="lineShareDirectBtn">📲 使用 LINE 傳送接關網址</button>
                 <button class="btn btn-secondary" onclick="closeQRModal()">關閉視窗</button>
@@ -121,13 +119,30 @@ HTML
                 ℹ️ 偵測到施工人員傳送之危害確認紀錄，請審核完畢後於右側管理人員欄位簽字核可。
             </div>
 
-            <!-- 1. 現場工項輸入 -->
+            <!-- 1. 現場身份與工項輸入 -->
             <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📋 一、作業工項登記</h5>
+                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📋 一、作業工項與身份登記</h5>
                 <div class="row g-3">
+                    <!-- 💡 新增：人員辨識下拉式選項 -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-secondary" style="font-size:0.9rem;">請選擇填報人員身份：</label>
+                        <select class="form-select border-primary" id="identitySelect" onchange="toggleOtherIdentityInput()">
+                            <option value="施工人員">施工人員</option>
+                            <option value="作業主管">作業主管</option>
+                            <option value="現場負責人">現場負責人</option>
+                            <option value="本公司同仁">本公司同仁</option>
+                            <option value="僱主">僱主</option>
+                            <option value="其他">其他 (可自行填寫)</option>
+                        </select>
+                    </div>
+                    <!-- 💡 動態填寫框：選「其他」時才會跳出來 -->
+                    <div class="col-12 d-none" id="otherIdentityDiv">
+                        <label class="form-label fw-bold text-danger" style="font-size:0.9rem;">請輸入自行填寫的身份名稱：</label>
+                        <input type="text" class="form-control border-danger" id="otherIdentityInput" placeholder="例如：監造工程師、業主主管...">
+                    </div>
                     <div class="col-12">
                         <label class="form-label fw-bold text-secondary" style="font-size:0.9rem;">請輸入目前現場施工工項名稱：</label>
-                        <input type="text" class="form-control form-control-lg border-primary" id="jobInput" style="font-size:1rem;" placeholder="例如：天花板燈泡更換作業、管線開挖作業...">
+                        <input type="text" class="form-control border-primary" id="jobInput" style="font-size:1rem;" placeholder="例如：天花板燈泡更換作業、管線開挖作業...">
                     </div>
                 </div>
             </div>
@@ -136,12 +151,10 @@ HTML
             <div class="card p-3 no-print" id="disasterCardSec">
                 <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">⚠️ 二、辨識現場潛在災害類型 (可多選)</h5>
                 <p class="text-muted small">請職安人員或現場主管評估，此作業施工過程中可能引致哪些危害狀況：</p>
-                <div class="row g-2" id="disasterGrid">
-                    <!-- 由 JS 動態產生災害類型按鈕 -->
-                </div>
+                <div class="row g-2" id="disasterGrid"></div>
             </div>
 
-            <!-- 💡 新增亮點：5x5 繁體中文標準風險評估矩陣對照圖 -->
+            <!-- 5x5 風險矩陣對照圖 -->
             <div class="card p-3 no-print">
                 <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 國家標準 5x5 半定量風險評估矩陣</h5>
                 <div class="table-responsive">
@@ -199,9 +212,6 @@ HTML
                         </tr>
                     </table>
                 </div>
-                <div class="text-center text-muted mt-2" style="font-size:0.75rem; font-weight:bold;">
-                    風險值演算公式：風險等級值 (R) ＝ 嚴重度 (S) × 發生可能性 (P)
-                </div>
             </div>
 
             <!-- 3. 評估結果 -->
@@ -210,16 +220,15 @@ HTML
                 <div id="riskResultBox" class="mb-3">
                     <div class="risk-badge risk-1">請於上方勾選潛在災害類型以啟動動態評估</div>
                 </div>
-
                 <div id="analysisDetails" style="display: none;">
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle">
                             <thead class="table-dark">
                                 <tr class="text-center">
                                     <th style="width: 18%;">災害類型</th>
-                                    <th style="width: 20%;">改善前風險等級<br>(嚴重度×可能性)</th>
-                                    <th>國家職業安全衛生法規應採行之控制措施<br>(本質安全規範對策)</th>
-                                    <th style="width: 20%;">改善後殘留風險<br>(嚴重度×可能性)</th>
+                                    <th style="width: 20%;">改善前風險等級</th>
+                                    <th>國家職業安全衛生法規應採行之控制措施</th>
+                                    <th style="width: 20%;">改善後殘留風險</th>
                                 </tr>
                             </thead>
                             <tbody id="resultRows"></tbody>
@@ -231,54 +240,37 @@ HTML
             <!-- 4. 雙重簽名確認區 -->
             <div class="card p-3">
                 <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">✍️ 四、危害告知與開工確認簽章</h5>
-                <p class="text-muted small">現場施工勞工與專職職安管理人員已確實召開工具箱會議，知悉上述危害並承諾落實防護措施：</p>
-                
+                <p class="text-muted small">現場施工人員與專職職安管理人員已確實召開工具箱會議，知悉上述危害並承諾落實防護措施：</p>
                 <div class="row g-3 text-center">
-                    <!-- 左邊：已了解危害人員簽名 -->
                     <div class="col-12 col-md-6">
-                        <label class="form-label fw-bold text-danger" style="font-size:0.88rem;">【手寫簽名】已了解危害人員（施工人員）</label>
-                        <div>
-                            <canvas id="worker-sig" class="sig-canvas" width="300" height="130"></canvas>
-                        </div>
-                        <div class="mt-1 no-print">
-                            <button id="worker-clear-btn" class="btn btn-sm btn-outline-secondary" onclick="clearSig('worker')">清除簽名</button>
-                        </div>
+                        <label class="form-label fw-bold text-danger" style="font-size:0.88rem;" id="workerSigLabel">【手寫簽名】已了解危害人員（施工人員）</label>
+                        <div><canvas id="worker-sig" class="sig-canvas" width="300" height="130"></canvas></div>
+                        <div class="mt-1 no-print"><button id="worker-clear-btn" class="btn btn-sm btn-outline-secondary" onclick="clearSig('worker')">清除簽名</button></div>
                     </div>
-                    
-                    <!-- 右邊：職安人員簽名 -->
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold text-primary" style="font-size:0.88rem;">【手寫簽名】專職職安管理人員</label>
-                        <div>
-                            <canvas id="safety-sig" class="sig-canvas" width="300" height="130"></canvas>
-                        </div>
-                        <div class="mt-1 no-print">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="clearSig('safety')">清除簽名</button>
-                        </div>
+                        <div><canvas id="safety-sig" class="sig-canvas" width="300" height="130"></canvas></div>
+                        <div class="mt-1 no-print"><button class="btn btn-sm btn-outline-secondary" onclick="clearSig('safety')">清除簽名</button></div>
                     </div>
                 </div>
             </div>
             
-            <!-- 💡 智產防禦：導出圖片強制附帶江十三版權宣告 -->
-            <div id="image-watermark" class="watermark-footer">
-                江十三 著作權所有 翻印必究
-            </div>
+            <!-- 智產防禦防偽宣告 -->
+            <div id="image-watermark" class="watermark-footer">江十三 著作權所有 翻印必究</div>
         </div>
     </div>
 
     <!-- 按鈕控制區 -->
     <div class="container mb-5 no-print">
         <div class="d-grid gap-2">
-            <!-- 施工人員使用的傳送鈕 -->
             <button id="sendToSafetyBtn" class="btn btn-primary btn-lg shadow" style="font-size:1.05rem;" onclick="generatePassData()">🚀 危害確認完成：生成 QR Code 傳送職安審核</button>
-            
-            <!-- 職安人員最終核可使用的按鈕 -->
             <button id="exportBtn" class="btn btn-success btn-lg shadow d-none" style="font-size:1.05rem;" onclick="exportAsImage()">📸 現場審核通過：匯出雙簽名評估紀錄圖檔</button>
             <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ 呼叫系統列印 / 儲存為 PDF 電子檔</button>
         </div>
     </div>
 
     <script>
-        // ==================== 💡 智產防禦：域名鎖定與鎖右鍵黑科技 ====================
+        // 智產防禦：域名鎖定
         (function() {
             const allowedHost = "louis331088-collab.github.io";
             if (window.location.hostname !== allowedHost && window.location.hostname !== "127.0.0.1" && window.location.hostname !== "localhost") {
@@ -288,127 +280,61 @@ HTML
                 });
             }
             document.addEventListener('contextmenu', e => e.preventDefault());
-            document.addEventListener('keydown', e => {
-                if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73) || (e.ctrlKey && e.shiftKey && e.keyCode === 74) || (e.ctrlKey && e.keyCode === 85) || (e.ctrlKey && e.keyCode === 67)) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
         })();
 
-        const disasterDatabase = {
-            "墜落": {
-                before: "高度風險<br>(5×3=15分)", beforeClass: "risk-4",
-                after: "低度風險<br>(5×1=5分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>作業高度大於2公尺者，應確實設置合格護欄、工作台或安全母索（營造標準第19條）。<br><strong>【管理控制】</strong>落實每日高處作業檢核，严禁不合規範之合梯充當工作台（設施規則第229條）。<br><strong>【個人防護】</strong>全程正確配戴雙大鉤背負式安全帶、防墜器及安全帽並落實高掛低用。"
-            },
-            "物體飛落": {
-                before: "中度風險<br>(3×3=9分)", beforeClass: "risk-3",
-                after: "低度風險<br>(3×1=3分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>高處作業下方設置防飛落遮欄、雙層安全防護網或物料防墜繩。<br><strong>【管理控制】</strong>劃設下方禁入投影管制區，嚴禁上、下垂直重疊作業（營造標準第23條）。<br><strong>【個人防護】</strong>現場人員必須全程配戴經合格檢驗之防護安全帽。"
-            },
-            "感電": {
-                before: "高度風險<br>(5×3=15分)", beforeClass: "risk-4",
-                after: "低度風險<br>(5×1=5分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>臨時用電迴路、手持電動機具前端，必須設置合格之高敏感度高速型漏電斷路器；電線架高或加裝護套保護（設施規則第243條）。<br><strong>【管理控制】</strong>作業前實施上鎖掛牌（LOTO）斷電確認；使用驗電筆進行驗電。<br><strong>【個人防護】</strong>穿戴完全乾燥之橡膠防電手套與絕緣鞋。"
-            },
-            "被夾": {
-                before: "中度風險<br>(3×3=9分)", beforeClass: "risk-3",
-                after: "極低風險<br>(3×1=2分)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>機械、動力設備之傳動帶、皮帶輪及齒輪等，應設置完好之安全護罩（設施規則第43條）。<br><strong>【管理控制】</strong>維修或清除故障時務必停機斷電並掛牌；嚴禁人員進入運轉界線之死角。<br><strong>【個人防護】</strong>嚴禁穿著寬鬆衣物，操作旋轉軸心設備時禁止配戴手套（設施規則第58條）。"
-            },
-            "被捲": {
-                before: "中度風險<br>(3×3=9分)", beforeClass: "risk-3",
-                after: "極低風險<br>(3×1=2分)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>轉動機械設備應設置防捲入護網，並設置極限停止或緊急連鎖斷電裝置（設施規則第45條）。<br><strong>【管理控制】</strong>作業場所及動線通道應維持良好照明與防滑防跌措施。<br><strong>【個人防護】</strong>穿著緊身工作服，絕對禁止配戴棉紗手套操作。"
-            },
-            "物體倒塌": {
-                before: "高度風險<br>(4×3=12分)", beforeClass: "risk-4",
-                after: "低度風險<br>(4×1=4分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>材料、模板及管材堆置應落實墊木、繩索繫縛防滑等防滑移措施，且堆疊高度應小於1.8公尺（設施規則第160條）。<br><strong>【管理控制】</strong>劃設物料堆放專用區，定期巡檢堆疊結構之傾斜與穩定度。"
-            },
-            "崩塌": {
-                before: "極高風險<br>(5×4=20分)", beforeClass: "risk-5",
-                after: "低度風險<br>(5×1=5分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>露天開挖深度達1.5公尺以上者，應設置擋土支撐；或採斜坡開挖法並鋪設完好之防雨塑膠布（營造標準第58、61條）。<br><strong>【管理控制】</strong>指派「露天開挖作業主管」全程在場監督，實施開工前土質邊坡巡檢。<br><strong>【個人防護】</strong>嚴禁人員進入無防護或管制之開挖軸面，配戴安全帽、安全鞋。"
-            },
-            "被撞": {
-                before: "中度風險<br>(3×3=9分)", beforeClass: "risk-3",
-                after: "低度風險<br>(3×1=3分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>人車動線、人行動線應實施分流，車輛倒車警報器與鳴聲器必須保持正常運作（設施規則第116條）。<br><strong>【管理控制】</strong>營建機械、工程車輛作業時應指派交通指揮手與引導人員。<br><strong>&nbsp;【個人防護】</strong>現場作業人員應全程正確穿著高可視度反光背心。"
-            },
-            "與有害物等之接觸": {
-                before: "高度風險<br>(4×3=12分)", beforeClass: "risk-4",
-                after: "低度風險<br>(4×1=4分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>化學品稀釋、噴塗或高溫熔融區，應設置局部排氣或通風設備。<br><strong>【管理控制】</strong>現場備妥化學品安全資料表（SDS），落實危害通識與危害安全公告。<br><strong>【個人防護】</strong>依化學品性質配戴合格之防化學手套、防毒面具或安全護目鏡。"
-            },
-            "跌倒": {
-                before: "低度風險<br>(2×2=4分)", beforeClass: "risk-2",
-                after: "極低風險<br>(2×1=1分)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>高差通道應設置安全梯階及扶手，並保持現場充足的照明強度（設施規則第21條）。<br><strong>【管理控制】</strong>徹底落實工地 5S 整理整頓，每日收工前清除地面材料，維持通道暢通。"
-            },
-            "火災": {
-                before: "高度風險<br>(4×3=12分)", beforeClass: "risk-4",
-                after: "低度風險<br>(4×1=4分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>動火作業點周遭10公尺內嚴禁堆放易燃物，並配備防火擋焰毯以遮擋熔渣。<br><strong>【管理控制】</strong>落實動火作業許可證申請制度，作業現場應指派專職「看火人」進行全程監控。<br><strong>【個人防護】</strong>動火現場應隨案配備經合格檢驗之乾粉滅火器。"
-            },
-            "爆炸": {
-                before: "高度風險<br>(4×3=12分)", beforeClass: "risk-4",
-                after: "低度風險<br>(4×1=4分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>氧氣、乙炔氣瓶應分開立儲存，推車需有防傾倒鏈條固定，且氣閥應加裝安全「逆火防止器」（設施規則第105條）。<br><strong>【管理控制】</strong>營建工區高壓氣瓶嚴禁接受烈日直接曝曬，現場落實密閉氣體外洩偵測。"
-            },
-            "溺斃": {
-                before: "高度風險<br>(5×3=15分)", beforeClass: "risk-4",
-                after: "低度風險<br>(5×1=5分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>水池、沉砂池周遭應設置防墜護欄，並架設固定式安全爬梯（營造標準第38條）。<br><strong>【管理控制】</strong>嚴禁人員單獨一人接近未設護欄之水體作業；並設定水深管制區。<br><strong>【個人防護】</strong>臨水、臨海作業人員必須全程正確穿戴合格之救生衣。"
-            },
-            "與高溫、低溫之接觸": {
-                before: "低度風險<br>(2×2=4分)", beforeClass: "risk-2",
-                after: "極低風險<br>(2×1=1分)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>高溫管線與設備表面包覆保溫棉或設置防燙隔板。<br><strong>【管理控制】</strong>焊接或動火加熱完畢後應設定設備冷卻管制期，張貼高溫警示牌。<br><strong>【個人防護】</strong>作業時穿戴隔熱服、防高溫皮革長手套及安全面罩。"
-            },
-            "衝撞": {
-                before: "低度風險<br>(2×2=4分)", beforeClass: "risk-2",
-                after: "極低風險<br>(2×1=1分)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>廠區內通道死角 or 轉角處，應確實裝設廣角凸面反光鏡。<br><strong>【管理控制】</strong>廠區與施工現場嚴格限速10公里/小時，行走應走指定安全步道。"
-            },
-            "其他交通事故": {
-                before: "高度風險<br>(3×4=12分)", beforeClass: "risk-4",
-                after: "低度風險<br>(3×1=3分)", afterClass: "risk-2",
-                controls: "<strong>【管理控制】</strong>工區大門及重車進出動線應指派專職交管人員；落實重車與大卡車視野死角管制；嚴禁人員酒後、疲勞駕駛。"
-            },
-            "物體破裂": {
-                before: "中度風險<br>(3×3=9分)", beforeClass: "risk-3",
-                after: "低度風險<br>(3×1=3分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>手持砂輪機、切割機及圓鋸機等，應確實設置高強度的防飛落安全防護罩；刀片需無過度磨損（設施規則第55條）。<br><strong>【管理控制】</strong>落實機具使用前安全檢查，嚴禁超載或超速轉動運轉設備。"
-            },
-            "局限空間/缺氧中毒": {
-                before: "極高風險<br>(5×4=20分)", beforeClass: "risk-5",
-                after: "低度風險<br>(5×1=5分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>進入前置備大風量防爆型抽排風設備，進行強制連續換氣，並使用多合一氣體偵測器量測：氧氣>18%、硫化氫<10ppm、一氧化碳<35ppm（設施規則第29條之1至之7）。<br><strong>【管理控制】</strong>指派「局限空間作業主管」在場，落實許可證核准與進出人員登載。<br><strong>【個人防護】</strong>備妥全身式安全帶、防墜器、三腳架救援設備及緊急逃生呼吸防護具（EEBD）及對講機。"
-            },
-            "被刺、割、擦傷": {
-                before: "中度風險<br>(2×4=8分)", beforeClass: "risk-3",
-                after: "極低風險<br>(2×1=1分)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>通道與施工地面加強5S整理整頓，拔除、釘平或折彎突出鐵釘及尖銳物；砂輪機切割機之高強度防護罩需完好（設施規則第55條）。<br><strong>【管理控制】</strong>落實進場自主安全檢驗，將穿刺與飛散危害公告。<br><strong>【個人防護】</strong>現場人員必備鋼頭防穿刺安全鞋、耐切割防滑工作手套及防護眼鏡/面罩。"
-            },
-            "踩踏、踏穿": {
-                before: "高度風險<br>(5×2=10分)", beforeClass: "risk-4",
-                after: "低度風險<br>(5×1=5分)", afterClass: "risk-2",
-                controls: "<strong>【工程控制】</strong>脆弱採光罩、輕鋼架天花板或易碎石綿瓦作業，必須鋪設寬度30公分以上具備防滑功能之合格通道踏板。<br><strong>【管理控制】</strong>禁止人員踩踏非安全通道區域，吊頂處懸掛「嚴禁踩踏」告示。<br><strong>【個人防護】</strong>正確配戴防墜安全帶並掛置於獨立安全母索索線或錨錠結構。"
-            },
-            "化學品洩漏": {
-                before: "中度風險<br>(3×2=6分)", beforeClass: "risk-3",
-                after: "極低風險<br>(2×1=2分)", afterClass: "risk-1",
-                controls: "<strong>【工程控制】</strong>藥劑、溶劑堆放區設置防液堤、集液托盤或洩漏防堵欄（設施規則第25條）。<br><strong>【管理控制】</strong>張貼安全資料表（SDS）並落實危害告知，現場配置足夠防液沙包與吸液棉。<br><strong>【個人防護】</strong>化學品搬運與加藥作業時，應戴合格耐酸鹼手套、防護面罩或護目鏡。"
+        // 控制「其他」身份輸入框的顯示
+        function toggleOtherIdentityInput() {
+            const select = document.getElementById('identitySelect');
+            const otherDiv = document.getElementById('otherIdentityDiv');
+            if (select.value === '其他') {
+                otherDiv.classList.remove('d-none');
+            } else {
+                otherDiv.classList.add('d-none');
+                document.getElementById('otherIdentityInput').value = '';
             }
+            updateSignatureLabel();
+        }
+
+        // 動態更新簽名欄位的標籤名稱
+        function updateSignatureLabel() {
+            const select = document.getElementById('identitySelect');
+            const otherInput = document.getElementById('otherIdentityInput').value.trim();
+            let identityName = select.value;
+            if (identityName === '其他') {
+                identityName = otherInput || "自訂身份";
+            }
+            document.getElementById('workerSigLabel').innerText = `【手寫簽名】已了解危害人員（${identityName}）`;
+        }
+        document.getElementById('otherIdentityInput').addEventListener('input', updateSignatureLabel);
+
+        const disasterDatabase = {
+            "墜落": { before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>設置合格護欄、工作台或安全母索。<br><strong>【管理控制】</strong>落實高處作業檢核。<br><strong>【個人防護】</strong>正確配戴雙大鉤背負式安全帶及安全帽。" },
+            "物體飛落": { before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>設置防飛落遮欄或雙層安全網。<br><strong>【管理控制】</strong>劃設下方禁入管制區，嚴禁垂直重疊作業。<br><strong>【個人防護】</strong>全程配戴防護安全帽。" },
+            "感電": { before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>加裝漏電斷路器，電線架高保護。<br><strong>【管理控制】</strong>作業前實施上鎖掛牌（LOTO）與驗電。<br><strong>【個人防護】</strong>穿戴絕緣手套與絕緣鞋。" },
+            "被夾": { before: "中度風險(9分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>設置傳動帶與齒輪安全護罩。<br><strong>【管理控制】</strong>維修清除故障時務必停機斷電掛牌。<br><strong>【個人防護】</strong>嚴禁穿著寬鬆衣物，操作旋轉軸禁止戴棉紗手套。" },
+            "被捲": { before: "中度風險(9分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>設置防捲入護網與緊急連鎖斷電裝置。<br><strong>【管理控制】</strong>維持良好照明與防滑措施。<br><strong>【個人防護】</strong>穿著緊身工作服，禁止戴棉紗手套操作。" },
+            "物體倒塌": { before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>落實墊木、繩索繫縛防滑移措施，堆疊高度應小於1.8公尺。<br><strong>【管理控制】</strong>劃設物料堆放專用區，定期巡檢結構穩定度。" },
+            "崩塌": { before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>深度達1.5公尺以上設置擋土支撐或採斜坡開挖。<br><strong>【管理控制】</strong>指派「露天開挖作業主管」全程在場監督。<br><strong>【個人防護】</strong>配戴安全帽、安全鞋，嚴禁進入無防護區域。" },
+            "被撞": { before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>人車動線分流，車輛倒車警報器維持正常。<br><strong>【管理控制】</strong>營建機械作業時指派交通指揮手。<br><strong>【個人防護】</strong>全程正確穿著高可視度反光背心。" },
+            "與有害物等之接觸": { before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>設置局部排氣或通風設備。<br><strong>【管理控制】</strong>備妥安全資料表（SDS），落實危害通識。<br><strong>【個人防護】</strong>配戴合格之防化學手套、防毒面具或安全護目鏡。" },
+            "跌倒": { before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>高差通道設置安全扶手，保持充足照明。<br><strong>【管理控制】</strong>徹底落實工地 5S 整理整頓，維持通道暢通。" },
+            "火災": { before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>動火點周遭10公尺內嚴禁堆放易燃物，配備防火擋焰毯。<br><strong>【管理控制】</strong>落實動火作業許可制度，指派專職看火人。<br><strong>【個人防護】</strong>隨案配備合格之乾粉滅火器。" },
+            "爆炸": { before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>氣瓶分開直立儲存，加裝防傾倒鏈條與安全「逆火防止器」。<br><strong>【管理控制】</strong>嚴禁烈日曝曬，現場落實密閉氣體外洩偵測。" },
+            "溺斃": { before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>水池周遭設置防墜護欄，架設固定式安全爬梯。<br><strong>【管理控制】</strong>嚴禁單獨接近未設護欄之水體作業。<br><strong>【個人防護】</strong>臨水作業人員全程穿戴合格之救生衣。" },
+            "與高溫、低溫之接觸": { before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>高溫管線包覆保溫棉或設置防燙隔板。<br><strong>【管理控制】</strong>張貼高溫警示牌，設定設備冷卻管制期。<br><strong>【個人防護】</strong>穿戴隔熱服與防高溫皮革長手套。" },
+            "衝撞": { before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>通道死角或轉角處裝設廣角凸面反光鏡。<br><strong>【管理控制】</strong>工區內嚴格限速10公里/小時，行走指定安全步道。" },
+            "其他交通事故": { before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(3分)", afterClass: "risk-2", controls: "<strong>【管理控制】</strong>大門動線指派專職交管人員；落實視野死角管制；嚴禁酒後與疲勞駕駛。" },
+            "物體破裂": { before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>手持砂輪機、切割機確實設置高強度防飛落安全防護罩。<br><strong>【管理控制】</strong>落實機具使用前安全檢查，嚴禁超載運轉。" },
+            "局限空間/缺氧中毒": { before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>連續強制換氣，偵測確認氧氣>18%、硫化氫<10ppm、一氧化碳<35ppm。<br><strong>【管理控制】</strong>指派局限空間作業主管在場，落實許可證核准與進出登載。<br><strong>【個人防護】</strong>備妥全身式安全帶、三腳架救援設備及緊急逃生呼吸防護具（EEBD）。" },
+            "被刺、割、擦傷": { before: "中度風險(8分)", beforeClass: "risk-3", after: "極低風險(1分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>清除突出鐵釘，機具防護罩完好。<br><strong>【管理控制】</strong>將穿刺與飛散危害公告。<br><strong>【個人防護】</strong>必備鋼頭防穿刺鞋、耐切割手套及防護眼鏡。" },
+            "踩踏、踏穿": { before: "高度風險(10分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", controls: "<strong>【工程控制】</strong>脆弱採光罩、輕鋼架作業鋪設寬度30公分以上具防滑功能之合格通道踏板。<br><strong>【管理控制】</strong>懸掛「嚴禁踩踏」告示。<br><strong>【個人防護】</strong>正確配戴防墜安全帶並掛置於獨立安全母索。" },
+            "化學品洩漏": { before: "中度風險(6分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", controls: "<strong>【工程控制】</strong>藥劑儲存區設置防液堤或集液托盤。<br><strong>【管理控制】</strong>張貼安全資料表（SDS），配置足夠防液沙包與吸液棉。<br><strong>【個人防護】</strong>搬運作業應戴耐酸鹼手套與防護面罩。" }
         };
 
         const disasterTypes = [
-            "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", 
-            "被夾", "被捲", "與有害物等之接觸", "跌倒", "爆炸", 
-            "溺斃", "與高溫、低溫之接觸", "衝裝", "其他交通事故", 
-            "物體破裂", "感電", "火災", 
+            "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", "被夾", "被捲", 
+            "與有害物等之接觸", "跌倒", "爆炸", "溺斃", "與高溫、低溫之接觸", 
+            "衝撞", "其他交通事故", "物體破裂", "感電", "火災", 
             "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩漏"
         ];
 
@@ -473,16 +399,16 @@ HTML
             const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
             
             resultRows.innerHTML = '';
-            let maxRiskText = '低度風險 (1-4分，已採取安全設施，落實日常巡檢)';
+            let maxRiskText = '低度風險';
             let maxRiskClass = 'risk-2'; let hasSelection = false;
 
             checkboxes.forEach(box => {
                 if (box.checked) {
                     hasSelection = true;
-                    const rule = disasterDatabase[box.value] || { before: "低度風險", beforeClass: "risk-2", after: "極低風險", afterClass: "risk-1", controls: "落實自主檢查與標準作業程序（SOP）。" };
-                    if (rule.beforeClass === 'risk-5') { maxRiskClass = 'risk-5'; maxRiskText = '極高風險 (20-25分，不可接受！須立即召開管制會議並全面暫停作業！)'; }
-                    else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') { maxRiskClass = 'risk-4'; maxRiskText = '高度風險 (10-16分，在工程控制與降險防護到位前，不可開工作業)'; }
-                    else if (rule.beforeClass === 'risk-3' && maxRiskClass !== 'risk-5' && maxRiskClass !== 'risk-4') { maxRiskClass = 'risk-3'; maxRiskText = '中度風險 (4-9分，應逐步配置更完善之施工防護設施)'; }
+                    const rule = disasterDatabase[box.value];
+                    if (rule.beforeClass === 'risk-5') { maxRiskClass = 'risk-5'; maxRiskText = '極高風險 (不可接受！須立即全面暫停作業！)'; }
+                    else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') { maxRiskClass = 'risk-4'; maxRiskText = '高度風險 (在防護到位前，不可開工作業)'; }
+                    else if (rule.beforeClass === 'risk-3' && maxRiskClass !== 'risk-5' && maxRiskClass !== 'risk-4') { maxRiskClass = 'risk-3'; maxRiskText = '中度風險 (應逐步配置更完善之施工防護設施)'; }
 
                     const row = `<tr>
                         <td class="fw-bold text-center text-dark" style="background-color: #f8fafc;">${box.value}</td>
@@ -516,9 +442,12 @@ HTML
             const selectedDisasters = [];
             document.querySelectorAll('.condition-check:checked').forEach(cb => { selectedDisasters.push(cb.value); });
             if (selectedDisasters.length === 0) { alert("請至少勾選一個災害類型！"); return; }
-            if (sigPads.worker.strokes.length === 0) { alert("請【施工人員】先在左側欄位簽名！"); return; }
+            if (sigPads.worker.strokes.length === 0) { alert("請填報人員先在左側欄位簽名！"); return; }
 
-            const dataToShare = { j: jobName, d: selectedDisasters, s: sigPads.worker.strokes };
+            const idSelect = document.getElementById('identitySelect').value;
+            const idOther = document.getElementById('otherIdentityInput').value.trim();
+
+            const dataToShare = { j: jobName, d: selectedDisasters, s: sigPads.worker.strokes, id: idSelect, ido: idOther };
             const base64Data = urlSafeBtoa(JSON.stringify(dataToShare));
             const baseUrl = window.location.origin + window.location.pathname;
             generatedTargetUrl = `${baseUrl}?data=${base64Data}`;
@@ -530,9 +459,8 @@ HTML
 
         document.getElementById('lineShareDirectBtn').addEventListener('click', () => {
             const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
-            const lineText = `【JSA施工危害辨識核可申請】\n工項：${jobName}\n施工人員已簽認，請複製以下整串網址，貼至手機外部瀏覽器(Safari/Chrome)開啟審核簽名：\n\n${generatedTargetUrl}`;
-            const lineHref = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
-            window.location.href = lineHref;
+            const lineText = `【JSA施工危害辨識核可申請】\n工項：${jobName}\n施工人員已簽認，請複製以下網址至瀏覽器審核簽名：\n\n${generatedTargetUrl}`;
+            window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
         });
 
         function closeQRModal() { document.getElementById('qrModal').style.display = "none"; }
@@ -552,6 +480,19 @@ HTML
                     const decodedData = JSON.parse(urlSafeAtob(rawData));
                     document.getElementById('jobInput').value = decodedData.j;
                     document.getElementById('jobInput').readOnly = true;
+
+                    // 還原身份欄位
+                    const select = document.getElementById('identitySelect');
+                    select.value = decodedData.id;
+                    select.disabled = true;
+                    if (decodedData.id === '其他') {
+                        const otherDiv = document.getElementById('otherIdentityDiv');
+                        otherDiv.classList.remove('d-none');
+                        const otherInput = document.getElementById('otherIdentityInput');
+                        otherInput.value = decodedData.ido;
+                        otherInput.readOnly = true;
+                    }
+                    updateSignatureLabel();
 
                     document.querySelectorAll('.condition-check').forEach(cb => {
                         if (decodedData.d.includes(cb.value)) { cb.checked = true; } 
@@ -581,30 +522,21 @@ HTML
                     document.getElementById('sendToSafetyBtn').classList.add('d-none'); 
                     document.getElementById('exportBtn').classList.remove('d-none'); 
                 } catch (e) {
-                    alert("網址資料解析失敗，請確認是否完整複製整串網址！");
+                    alert("網址資料解析失敗！");
                 }
             }
         });
 
         function exportAsImage() {
-            if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先在右側欄位簽名再進行核可！"); return; }
+            if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             document.getElementById('image-watermark').style.display = 'block';
-
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
-            const target = document.getElementById('capture-area');
-            const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
             
-            html2canvas(target, { useCORS: true, scale: 2, backgroundColor: "#f1f5f9" }).then(canvas => {
-                const image = canvas.toDataURL("image/png");
+            html2canvas(document.getElementById('capture-area'), { useCORS: true, scale: 2, backgroundColor: "#f1f5f9" }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `智慧JSA核可紀錄_[${jobName}]_${new Date().toISOString().slice(0,10)}.png`;
-                link.href = image; link.click();
-                
-                elementsToHide.forEach(el => el.style.visibility = 'visible');
-                document.getElementById('image-watermark').style.display = 'none';
-            }).catch(err => {
-                alert("匯出失敗，請確認是否用正規瀏覽器開啟網頁！");
+                link.download = `智慧JSA核可紀錄_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL("image/png"); link.click();
                 elementsToHide.forEach(el => el.style.visibility = 'visible');
                 document.getElementById('image-watermark').style.display = 'none';
             });
