@@ -7,8 +7,9 @@ HTML
     <title>智慧型動態危害辨識與風險評估系統</title>
     <!-- 引入美觀的 CSS 框架 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入截圖套件 -->
+    <!-- 引入截圖套件與純前端 QR Code 生成套件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; position: relative; }
         
@@ -70,7 +71,7 @@ HTML
         }
         .custom-modal-content {
             background-color: #fff;
-            margin: 10% auto;
+            margin: 8% auto;
             padding: 20px;
             border-radius: 14px;
             width: 92%;
@@ -97,9 +98,9 @@ HTML
     <div id="qrModal" class="custom-modal no-print">
         <div class="custom-modal-content">
             <h5 class="fw-bold text-primary mb-3">📱 危害辨識核可 QR Code</h5>
-            <p class="text-muted small text-start">1. <strong>現場面對面：</strong>請職安人員直接用手機相機掃描此碼。<br>2. <strong>遠端傳送：</strong>將此畫面截圖透過 LINE 傳給職安人員，職安人員長按即可在外部瀏覽器開啟。</p>
+            <p class="text-muted small text-start">1. <strong>現場面對面：</strong>請職安人員直接用手機相機掃描此碼。<br>2. <strong>遠端傳送：</strong>點擊下方按鈕直接開啟 LINE 傳送給職安主管審核。</p>
             <div class="d-flex justify-content-center my-3">
-                <img id="qrImage" src="" alt="請稍候..." style="width: 220px; height: 220px; border: 1px solid #ddd; padding: 5px; background: white;" />
+                <div id="qrcodeCanvas" style="padding: 10px; background: white; border: 1px solid #ddd;"></div>
             </div>
             <div class="d-grid gap-2 mt-3">
                 <button class="btn btn-primary" id="lineShareDirectBtn">📲 使用 LINE 傳送接關網址</button>
@@ -635,8 +636,14 @@ HTML
             const baseUrl = window.location.origin + window.location.pathname;
             generatedTargetUrl = `${baseUrl}?data=${base64Data}`;
 
-            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(generatedTargetUrl)}`;
-            document.getElementById('qrImage').src = qrApiUrl;
+            const qrContainer = document.getElementById('qrcodeCanvas');
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: generatedTargetUrl,
+                width: 200,
+                height: 200
+            });
+
             document.getElementById('qrModal').style.display = "block";
         }
 
@@ -727,34 +734,40 @@ HTML
             }
         });
 
-        // 💡 終極優化：完美相容 LINE Webview 記憶體與 Canvas 渲染之匯出黑科技
+        // 💡 終極優化：相容 iOS Safari 畫布截圖之高相容性函數
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
+            
+            // 1. 強制讓頁面滾回最頂端，解決 iOS Safari 滾動軸導致 Canvas 計算錯位問題
+            window.scrollTo(0, 0);
+            
             document.getElementById('image-watermark').style.display = 'block';
             
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
             
-            // 🚀 核心優化：scale 設為 1，並啟用 allowTaint 徹底防範 LINE WebView 記憶體溢出
-            html2canvas(document.getElementById('capture-area'), {
-                useCORS: true,
-                allowTaint: true,
-                scale: 1,
-                backgroundColor: "#f1f5f9",
-                logging: false
-            }).then(canvas => {
-                const imgData = canvas.toDataURL("image/png");
-                
-                document.getElementById('finalExportedImage').src = imgData;
-                document.getElementById('resultImageModal').style.display = "block";
-                
-                elementsToHide.forEach(el => el.style.visibility = 'visible');
-                document.getElementById('image-watermark').style.display = 'none';
-            }).catch(err => {
-                alert("產出失敗，請點選右下角以 Safari/Chrome 外部瀏覽器開啟！");
-                elementsToHide.forEach(el => el.style.visibility = 'visible');
-                document.getElementById('image-watermark').style.display = 'none';
-            });
+            // 2. 採用專為 Safari 優化的相容設定
+            setTimeout(() => {
+                html2canvas(document.getElementById('capture-area'), {
+                    useCORS: true,
+                    scale: 1,
+                    backgroundColor: "#f1f5f9",
+                    logging: false,
+                    foreignObjectRendering: false // 關閉此選項防範 Safari 繪圖報錯
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL("image/png");
+                    
+                    document.getElementById('finalExportedImage').src = imgData;
+                    document.getElementById('resultImageModal').style.display = "block";
+                    
+                    elementsToHide.forEach(el => el.style.visibility = 'visible');
+                    document.getElementById('image-watermark').style.display = 'none';
+                }).catch(err => {
+                    alert("產出圖片過程發生錯誤，請重新再試一次！");
+                    elementsToHide.forEach(el => el.style.visibility = 'visible');
+                    document.getElementById('image-watermark').style.display = 'none';
+                });
+            }, 300);
         }
     </script>
 </body>
