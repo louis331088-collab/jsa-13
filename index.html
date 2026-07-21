@@ -104,7 +104,7 @@ HTML
         </div>
     </div>
 
-    <!-- 紀錄圖片生成檢視區 (第二張照片的長圖顯示框) -->
+    <!-- 紀錄圖片生成檢視區 -->
     <div id="resultImageModal" class="custom-modal no-print">
         <div class="custom-modal-content">
             <h5 class="fw-bold text-success mb-2">🎉 紀錄長圖檔已成功產出！</h5>
@@ -669,7 +669,7 @@ HTML
             }
         });
 
-        // 💡 核心重點修復：完美直接渲染第二張圖的 .JPG/.PNG 高清長圖
+        // 💡 終極解法：專為突破 iPhone Safari 繪圖阻斷設計的長圖渲染函數
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
@@ -680,22 +680,25 @@ HTML
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
 
             setTimeout(() => {
+                // 🚀 關鍵優化 1：scale 設為 1，並加入 Safari 畫布相容參數，避免記憶體溢出
                 html2canvas(document.getElementById('capture-area'), {
                     useCORS: true,
-                    scale: 2, // 使用高畫質渲染
+                    scale: 1,
                     backgroundColor: "#f1f5f9",
-                    logging: false
+                    logging: false,
+                    allowTaint: false,
+                    foreignObjectRendering: false
                 }).then(canvas => {
-                    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+                    const imgData = canvas.toDataURL("image/jpeg", 0.9);
                     
-                    // 渲染出像第二張圖片一樣的實體長圖彈窗，供長按儲存/分享
                     document.getElementById('finalExportedImage').src = imgData;
                     document.getElementById('resultImageModal').style.display = "block";
                     
                     elementsToHide.forEach(el => el.style.visibility = 'visible');
                     document.getElementById('image-watermark').style.display = 'none';
                 }).catch(err => {
-                    alert("圖片渲染遭遇系統阻斷，請重新嘗試一次！");
+                    alert("圖片渲染遭遇系統阻斷，已為您切換至原生預覽！");
+                    window.print();
                     elementsToHide.forEach(el => el.style.visibility = 'visible');
                     document.getElementById('image-watermark').style.display = 'none';
                 });
