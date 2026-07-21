@@ -7,8 +7,7 @@ HTML
     <title>智慧型動態危害辨識與風險評估系統</title>
     <!-- 引入美觀的 CSS 框架 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入截圖套件與純前端 QR Code 生成套件 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- 引入純前端 QR Code 生成套件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; position: relative; }
@@ -24,7 +23,7 @@ HTML
 
         #capture-area { padding: 12px 8px; background-color: #f1f5f9; position: relative; }
         .card { border: none; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; background-color: #fff; z-index: 1; }
-        .header-banner { background: #0f172a; color: white; padding: 22px 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
+        .header-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 22px 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
         .risk-badge { font-size: 1.05rem; font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; color: white; }
         .risk-5 { background-color: #7f1d1d; } /* 極高風險 */
         .risk-4 { background-color: #b91c1c; } /* 高度風險 */
@@ -47,10 +46,6 @@ HTML
 
         /* 導出圖片專用低調防偽區 */
         .watermark-footer { display: none; font-size: 0.82rem; color: #64748b; font-weight: bold; margin-top: 20px; text-align: center; width: 100%; }
-
-        /* 專利防卡死 CSS：截圖時暫時去除陰影與複雜背景 */
-        .capturing-mode .card { box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
-        .capturing-mode body::before { display: none !important; }
 
         /* 彈出視窗樣式 */
         .custom-modal {
@@ -303,107 +298,107 @@ HTML
         const disasterDatabase = {
             "墜落": { 
                 before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>設置合格護欄、工作台或安全母索。<br><strong>【管理控制】</strong>落實高處作業檢核。<br><strong>【個人防護】</strong>正確配戴雙大鉤背負式安全帶及安全帽。",
+                controls: "【工程控制】設置合格護欄、工作台或安全母索。\n【管理控制】落實高處作業檢核。\n【個人防護】正確配戴雙大鉤背負式安全帶及安全帽。",
                 checkItems: ["【工程控制】已確認作業高處設置合格護欄、工作台或獨立安全母索", "【管理控制】已確實執行高處作業開工前安全檢查", "【個人防護】作業人員已全程正確配戴雙大鉤背負式安全帶與安全帽"]
             },
             "物體飛落": { 
                 before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>設置防飛落遮欄或雙層安全網。<br><strong>【管理控制】</strong>劃設下方禁入管制區，嚴禁垂直重疊作業。<br><strong>【個人防護】</strong>全程配戴防護安全帽。",
+                controls: "【工程控制】設置防飛落遮欄或雙層安全網。\n【管理控制】劃設下方禁入管制區，嚴禁垂直重疊作業。\n【個人防護】全程配戴防護安全帽。",
                 checkItems: ["【工程控制】高處作業下方已設置防飛落遮欄或雙層安全防護網", "【管理控制】下方投影區已劃設禁入管制線，嚴禁垂直重疊作業", "【個人防護】現場人員已確實配戴合格防護安全帽"]
             },
             "感電": { 
                 before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>加裝漏電斷路器，電線架高保護。<br><strong>【管理控制】</strong>作業前實施上鎖掛牌（LOTO）與驗電。<br><strong>【個人防護】</strong>穿戴絕緣手套與絕緣鞋。",
+                controls: "【工程控制】加裝漏電斷路器，電線架高保護。\n【管理控制】作業前實施上鎖掛牌（LOTO）與驗電。\n【個人防護】穿戴絕緣手套與絕緣鞋。",
                 checkItems: ["【工程控制】臨時用電迴路已安裝高敏感度漏電斷路器，電線已架高", "【管理控制】作業前已完成上鎖掛牌（LOTO）並以驗電筆確認無電", "【個人防護】已正確穿戴完全乾燥之絕緣手套與絕緣鞋"]
             },
             "被夾": { 
                 before: "中度風險(9分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", 
-                controls: "<strong>【工程控制】</strong>設置傳動帶與齒輪安全護罩。<br><strong>【管理控制】</strong>維修清除故障時務必停機斷電掛牌。<br><strong>【個人防護】</strong>嚴禁穿著寬鬆衣物，操作旋轉軸禁止戴棉紗手套。",
+                controls: "【工程控制】設置傳動帶與齒輪安全護罩。\n【管理控制】維修清除故障時務必停機斷電掛牌。\n【個人防護】嚴禁穿著寬鬆衣物，操作旋轉軸禁止戴棉紗手套。",
                 checkItems: ["【工程控制】機械設備運轉傳動部位已裝設完好安全護罩", "【管理控制】維修清理時已停機斷電並掛牌管制", "【個人防護】人員服裝合身，操作旋轉設備已禁止配戴手套"]
             },
             "被捲": { 
                 before: "中度風險(9分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", 
-                controls: "<strong>【工程控制】</strong>設置防捲入護網與緊急連鎖斷電裝置。<br><strong>【管理控制】</strong>維持良好照明與防滑措施。<br><strong>【個人防護】</strong>穿著緊身工作服，禁止戴棉紗手套操作。",
+                controls: "【工程控制】設置防捲入護網與緊急連鎖斷電裝置。\n【管理控制】維持良好照明與防滑措施。\n【個人防護】穿著緊身工作服，禁止戴棉紗手套操作。",
                 checkItems: ["【工程控制】旋轉區域已設置防捲入護網與緊急停機裝置", "【管理控制】作業周遭保持充足照明與地面乾爽防滑", "【個人防護】作業人員穿著緊身工作服，禁止配戴棉紗手套"]
             },
             "物體倒塌": { 
                 before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>落實墊木、繩索繫縛防滑移措施，堆疊高度應小於1.8公尺。<br><strong>【管理控制】</strong>劃設物料堆放專用區，定期巡檢結構穩定度。",
+                controls: "【工程控制】落實墊木、繩索繫縛防滑移措施，堆疊高度應小於1.8公尺。\n【管理控制】劃設物料堆放專用區，定期巡檢結構穩定度。",
                 checkItems: ["【工程控制】材料堆置已放置墊木與繩索繫縛，堆疊高度低於1.8公尺", "【管理控制】已劃設物料專用區，並完成堆疊結構穩定度巡檢"]
             },
             "崩塌": { 
                 before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>深度達1.5公尺以上設置擋土支撐或採斜坡開挖。<br><strong>【管理控制】</strong>指派「露天開挖作業主管」全程在場監督。<br><strong>【個人防護】</strong>配戴安全帽、安全鞋，嚴禁進入無防護區域。",
+                controls: "【工程控制】深度達1.5公尺以上設置擋土支撐或採斜坡開挖。\n【管理控制】指派「露天開挖作業主管」全程在場監督。\n【個人防護】配戴安全帽、安全鞋，嚴禁進入無防護區域。",
                 checkItems: ["【工程控制】開挖深度達1.5公尺以上已確實設置擋土支撐或安全斜坡", "【管理控制】已指派合格露天開挖作業主管全程在場監督", "【個人防護】人員已配戴安全帽與安全鞋，嚴禁進入無防護區域"]
             },
             "被撞": { 
                 before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>人車動線分流，車輛倒車警報器維持正常。<br><strong>【管理控制】</strong>營建機械作業時指派交通指揮手。<br><strong>【個人防護】</strong>全程正確穿著高可視度反光背心。",
+                controls: "【工程控制】人車動線分流，車輛倒車警報器維持正常。\n【管理控制】營建機械作業時指派交通指揮手。\n【個人防護】全程正確穿著高可視度反光背心。",
                 checkItems: ["【工程控制】現場人車動線已明確分流，工程車倒車警報器正常", "【管理控制】營建機械作業現場已指派專職交通指揮手", "【個人防護】作業人員已全程穿著高可視度反光背心"]
             },
             "與有害物等之接觸": { 
                 before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>設置局部排氣或通風設備。<br><strong>【管理控制】</strong>備妥安全資料表（SDS），落實危害通識。<br><strong>【個人防護】</strong>配戴合格之防化學手套、防毒面具或安全護目鏡。",
+                controls: "【工程控制】設置局部排氣或通風設備。\n【管理控制】備妥安全資料表（SDS），落實危害通識。\n【個人防護】配戴合格之防化學手套、防毒面具或安全護目鏡。",
                 checkItems: ["【工程控制】作業區已配置運轉正常之局部抽排風通風設備", "【管理控制】現場已備妥化學品安全資料表（SDS）並完成危害宣導", "【個人防護】人員已配戴防化學手套、防毒面具或護目鏡"]
             },
             "跌倒": { 
                 before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", 
-                controls: "<strong>【工程控制】</strong>高差通道設置安全扶手，保持充足照明。<br><strong>【管理控制】</strong>徹底落實工地 5S 整理整頓，維持通道暢通。",
+                controls: "【工程控制】高差通道設置安全扶手，保持充足照明。\n【管理控制】徹底落實工地 5S 整理整頓，維持通道暢通。",
                 checkItems: ["【工程控制】高差通行處已設置防滑梯階與安全扶手", "【管理控制】現場已落實 5S 整理整頓，保持通道清潔暢通"]
             },
             "火災": { 
                 before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>動火點周遭10公尺內嚴禁堆放易燃物，配備防火擋焰毯。<br><strong>【管理控制】</strong>落實動火作業許可制度，指派專職看火人。<br><strong>【個人防護】</strong>隨案配備合格之乾粉滅火器。",
+                controls: "【工程控制】動火點周遭10公尺內嚴禁堆放易燃物，配備防火擋焰毯。\n【管理控制】落實動火作業許可制度，指派專職看火人。\n【個人防護】隨案配備合格之乾粉滅火器。",
                 checkItems: ["【工程控制】動火點周遭10公尺內已清除易燃物，並架設防火毯", "【管理控制】已取得動火作業許可證，並指派專職看火人在場", "【個人防護】動火作業點已隨案配備合格效期內之滅火器"]
             },
             "爆炸": { 
                 before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>氣瓶分開直立儲存，加裝防傾倒鏈條與安全「逆火防止器」。<br><strong>【管理控制】</strong>嚴禁烈日曝曬，現場落實密閉氣體外洩偵測。",
+                controls: "【工程控制】氣瓶分開直立儲存，加裝防傾倒鏈條與安全「逆火防止器」。\n【管理控制】嚴禁烈日曝曬，現場落實密閉氣體外洩偵測。",
                 checkItems: ["【工程控制】氧氣乙炔氣瓶已直立固定，並加裝逆火防止器", "【管理控制】高壓氣瓶已設置遮陽防曝曬，現場無氣體外洩"]
             },
             "溺斃": { 
                 before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>水池周遭設置防墜護欄，架設固定式安全爬梯。<br><strong>【管理控制】</strong>嚴禁單獨接近未設護欄之水體作業。<br><strong>【個人防護】</strong>臨水作業人員全程穿戴合格之救生衣。",
+                controls: "【工程控制】水池周遭設置防墜護欄，架設固定式安全爬梯。\n【管理控制】嚴禁單獨接近未設護欄之水體作業。\n【個人防護】臨水作業人員全程穿戴合格之救生衣。",
                 checkItems: ["【工程控制】開放水池周遭已架設高 1.1 公尺以上防墜護欄", "【管理控制】嚴禁單人單獨臨水作業，並劃設防溺警示區", "【個人防護】臨水作業人員已全程正確穿戴合格救生衣"]
             },
             "與高溫、低溫之接觸": { 
                 before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", 
-                controls: "<strong>【工程控制】</strong>高溫管線包覆保溫棉或設置防燙隔板。<br><strong>【管理控制】</strong>張貼高溫警示牌，設定設備冷卻管制期。<br><strong>【個人防護】</strong>穿戴隔熱服與防高溫皮革長手套。",
+                controls: "【工程控制】高溫管線包覆保溫棉或設置防燙隔板。\n【管理控制】張貼高溫警示牌，設定設備冷卻管制期。\n【個人防護】穿戴隔熱服與防高溫皮革長手套。",
                 checkItems: ["【工程控制】高溫管線或設備表面已裝設隔熱包覆與防燙隔板", "【個人防護】作業人員已配戴防高溫隔熱手套與防護面罩"]
             },
             "衝撞": { 
                 before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", 
-                controls: "<strong>【工程控制】</strong>通道死角或轉角處裝設廣角凸面反光鏡。<br><strong>【管理控制】</strong>工區內嚴格限速10公里/小時，行走指定安全步道。",
+                controls: "【工程控制】通道死角或轉角處裝設廣角凸面反光鏡。\n【管理控制】工區內嚴格限速10公里/小時，行走指定安全步道。",
                 checkItems: ["【工程控制】工區轉角視線死角處已裝設凸面反光鏡", "【管理控制】車輛嚴格限速 10 km/h，人員行走於指定安全步道"]
             },
             "其他交通事故": { 
                 before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(3分)", afterClass: "risk-2", 
-                controls: "<strong>【管理控制】</strong>大門動線指派專職交管人員；落實視野死角管制；嚴禁酒後與疲勞駕駛。",
+                controls: "【管理控制】大門動線指派專職交管人員；落實視野死角管制；嚴禁酒後與疲勞駕駛。",
                 checkItems: ["【管理控制】大門及主要動線已配置專職交管，嚴禁酒後疲勞駕駛"]
             },
             "物體破裂": { 
                 before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>手持砂輪機、切割機確實設置高強度防飛落安全防護罩。<br><strong>【管理控制】</strong>落實機具使用前安全檢查，嚴禁超載運轉。",
+                controls: "【工程控制】手持砂輪機、切割機確實設置高強度防飛落安全防護罩。\n【管理控制】落實機具使用前安全檢查，嚴禁超載運轉。",
                 checkItems: ["【工程控制】手持砂輪機與切割機防護罩完好無鬆脫", "【管理控制】作業前已完成電動機具自主安全檢查"]
             },
             "局限空間/缺氧中毒": { 
                 before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>連續強制換氣，偵測確認氧氣>18%、硫化氫<10ppm、一氧化碳<35ppm。<br><strong>【管理控制】</strong>指派局限空間作業主管在場，落實許可證核准與進出登載。<br><strong>【個人防護】</strong>備妥全身式安全帶、三腳架救援設備及緊急逃生呼吸防護具（EEBD）。",
+                controls: "【工程控制】連續強制換氣，偵測確認氧氣>18%、硫化氫<10ppm、一氧化碳<35ppm。\n【管理控制】指派局限空間作業主管在場，落實許可證核准與進出登載。\n【個人防護】備妥全身式安全帶、三腳架救援設備及緊急逃生呼吸防護具（EEBD）。",
                 checkItems: ["【工程控制】進入前已連續強制通風，氣體偵測結果合格（O2>18%）", "【管理控制】局限空間作業主管在場監督，許可證已簽核並完成人員登載", "【個人防護】現場已備妥三腳架救援設備與緊急逃生呼吸防護具（EEBD）"]
             },
             "被刺、割、擦傷": { 
                 before: "中度風險(8分)", beforeClass: "risk-3", after: "極低風險(1分)", afterClass: "risk-1", 
-                controls: "<strong>【工程控制】</strong>清除突出鐵釘，機具防護罩完好。<br><strong>【管理控制】</strong>將穿刺與飛散危害公告。<br><strong>【個人防護】</strong>必備鋼頭防穿刺鞋、耐切割手套及防護眼鏡。",
+                controls: "【工程控制】清除突出鐵釘，機具防護罩完好。\n【管理控制】將穿刺與飛散危害公告。\n【個人防護】必備鋼頭防穿刺鞋、耐切割手套及防護眼鏡。",
                 checkItems: ["【工程控制】作業地面已完成整理，無突出鐵釘或尖銳飛散物", "【個人防護】人員已穿著鋼頭防穿刺安全鞋與耐切割工作手套"]
             },
             "踩踏、踏穿": { 
                 before: "高度風險(10分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "<strong>【工程控制】</strong>脆弱採光罩、輕鋼架作業鋪設寬度30公分以上具防滑功能之合格通道踏板。<br><strong>【管理控制】</strong>懸掛「嚴禁踩踏」告示。<br><strong>【個人防護】</strong>正確配戴防墜安全帶並掛置於獨立安全母索。",
+                controls: "【工程控制】脆弱採光罩、輕鋼架作業鋪設寬度30公分以上具防滑功能之合格通道踏板。\n【管理控制】懸掛「嚴禁踩踏」告示。\n【個人防護】正確配戴防墜安全帶並掛置於獨立安全母索。",
                 checkItems: ["【工程控制】脆弱屋頂採光罩處已鋪設寬 30cm 以上合格通道踏板", "【管理控制】易踏穿區域已懸掛警告標示，人員安全帶已掛置於母索"]
             },
             "化學品洩漏": { 
                 before: "中度風險(6分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", 
-                controls: "<strong>【工程控制】</strong>藥劑儲存區設置防液堤或集液托盤。<br><strong>【管理控制】</strong>張貼安全資料表（SDS），配置足夠防液沙包與吸液棉。",
+                controls: "【工程控制】藥劑儲存區設置防液堤或集液托盤。\n【管理控制】張貼安全資料表（SDS），配置足夠防液沙包與吸液棉。",
                 checkItems: ["【工程控制】化學品儲存區已設置防液堤與盛漏托盤", "【管理控制】現場已配置洩漏緊急應變防液沙包與吸液棉"]
             }
         };
@@ -491,10 +486,11 @@ HTML
                     else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') { maxRiskClass = 'risk-4'; maxRiskText = '高度風險 (10-16分，在工程控制與降險防護到位前，不可開工作業)'; }
                     else if (rule.beforeClass === 'risk-3' && maxRiskClass !== 'risk-5' && maxRiskClass !== 'risk-4') { maxRiskClass = 'risk-3'; maxRiskText = '中度風險 (5-10分，應逐步配置更完善之施工防護設施)'; }
 
+                    const formattedControls = rule.controls.replace(/\n/g, '<br>');
                     const row = `<tr>
                         <td class="fw-bold text-center text-dark" style="background-color: #f8fafc;">${box.value}</td>
                         <td class="text-center"><span class="badge-risk-cell badge ${rule.beforeClass}">${rule.before}</span></td>
-                        <td>${rule.controls}</td>
+                        <td>${formattedControls}</td>
                         <td class="text-center"><span class="badge-risk-cell badge ${rule.afterClass}">${rule.after}</span></td>
                     </tr>`;
                     resultRows.insertAdjacentHTML('beforeend', row);
@@ -673,72 +669,182 @@ HTML
             }
         });
 
-        // 💡 終極突破：輕量化防卡死 iOS 長圖產出函數
+        // 🚀 黑科技重構：原生 HTML5 畫布直接繪製合成圖 (完全摒棄第三方 html2canvas，100% 不受 Safari 安全鎖阻斷)
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
-            window.scrollTo(0, 0);
-            document.getElementById('image-watermark').style.display = 'block';
-            document.body.classList.add('capturing-mode'); // 啟用極輕量 CSS 模式
-            
-            const elementsToHide = document.querySelectorAll('.no-print');
-            elementsToHide.forEach(el => el.style.visibility = 'hidden');
+            const deptSel = document.getElementById('deptSelect').value;
+            const deptOther = document.getElementById('otherDeptInput').value.trim();
+            const idSel = document.getElementById('identitySelect').value;
+            const idOther = document.getElementById('otherIdentityInput').value.trim();
+            let deptName = (deptSel === '其他') ? (deptOther || "自訂公司") : deptSel;
+            let idName = (idSel === '其他') ? (idOther || "自訂身份") : idSel;
+            const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
 
-            // 1. 把手寫 Canvas 轉成靜態圖片
+            // 建立高解析度原生 Canvas 畫布
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 抓取勾選的危害
+            const selectedDisasters = [];
+            document.querySelectorAll('.condition-check:checked').forEach(cb => { selectedDisasters.push(cb.value); });
+
+            // 抓取現場控制措施
+            const checkItemsText = [];
+            document.querySelectorAll('.control-checkbox').forEach(chk => {
+                const label = chk.nextElementSibling.innerText.trim();
+                checkItemsText.push(label);
+            });
+
+            // 計算畫布總高度
+            let totalHeight = 620 + (selectedDisasters.length * 130) + (checkItemsText.length * 35) + 380;
+            canvas.width = 750;
+            canvas.height = totalHeight;
+
+            // 1. 繪製底色
+            ctx.fillStyle = "#f1f5f9";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. 繪製藍色抬頭橫幅
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(20, 20, 710, 110);
+            
+            ctx.fillStyle = "#38bdf8";
+            ctx.font = "bold 20px Microsoft JhengHei";
+            ctx.textAlign = "center";
+            ctx.fillText("山林水環境工程股份有限公司", 375, 50);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 24px Microsoft JhengHei";
+            ctx.fillText("智慧型動態危害辨識與風險評估系統", 375, 82);
+
+            ctx.fillStyle = "#facc15";
+            ctx.font = "bold 13px Microsoft JhengHei";
+            ctx.fillText("依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩陣規範設計", 375, 110);
+
+            // 3. 一、作業工項與身份
+            let currentY = 150;
+            drawCardBox(ctx, 20, currentY, 710, 130);
+            ctx.fillStyle = "#1e40af";
+            ctx.font = "bold 18px Microsoft JhengHei";
+            ctx.textAlign = "left";
+            ctx.fillText("📋 一、作業工項與身份登記", 40, currentY + 35);
+
+            ctx.fillStyle = "#334155";
+            ctx.font = "bold 16px Microsoft JhengHei";
+            ctx.fillText(`部門 / 公司： ${deptName}`, 40, currentY + 70);
+            ctx.fillText(`填報人身份： ${idName}`, 40, currentY + 95);
+            ctx.fillText(`施工工項： ${jobName}`, 380, currentY + 70);
+
+            // 4. 二、危害評估結果
+            currentY += 150;
+            drawCardBox(ctx, 20, currentY, 710, 80 + (selectedDisasters.length * 130));
+            ctx.fillStyle = "#1e40af";
+            ctx.font = "bold 18px Microsoft JhengHei";
+            ctx.fillText("📊 二、危害標準風險評估結果 (半定量評估)", 40, currentY + 35);
+
+            // 風險警示條
+            ctx.fillStyle = "#b91c1c";
+            ctx.fillRect(40, currentY + 50, 670, 35);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 14px Microsoft JhengHei";
+            ctx.textAlign = "center";
+            ctx.fillText(`針對【${jobName}】評估最高初始風險：高度風險 (10-16分，在工程控制到位前不可開工)`, 375, currentY + 73);
+
+            let tableY = currentY + 100;
+            selectedDisasters.forEach(disaster => {
+                const rule = disasterDatabase[disaster];
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(40, tableY, 670, 115);
+                ctx.strokeStyle = "#cbd5e1";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(40, tableY, 670, 115);
+
+                // 災害名稱與風險標籤
+                ctx.fillStyle = "#0f172a";
+                ctx.font = "bold 16px Microsoft JhengHei";
+                ctx.textAlign = "left";
+                ctx.fillText(`【${disaster}】`, 55, tableY + 30);
+
+                ctx.fillStyle = "#dc2626";
+                ctx.font = "bold 13px Microsoft JhengHei";
+                ctx.fillText(`改善前：${rule.before}`, 55, tableY + 60);
+
+                ctx.fillStyle = "#16a34a";
+                ctx.fillText(`改善後：${rule.after}`, 55, tableY + 90);
+
+                // 防護對策文字
+                ctx.fillStyle = "#334155";
+                ctx.font = "12px Microsoft JhengHei";
+                const lines = rule.controls.split('\n');
+                lines.forEach((line, lIdx) => {
+                    ctx.fillText(line, 220, tableY + 30 + (lIdx * 25));
+                });
+
+                tableY += 125;
+            });
+
+            // 5. 三、現場已採行控制措施
+            currentY = tableY + 20;
+            drawCardBox(ctx, 20, currentY, 710, 60 + (checkItemsText.length * 35));
+            ctx.fillStyle = "#15803d";
+            ctx.font = "bold 18px Microsoft JhengHei";
+            ctx.textAlign = "left";
+            ctx.fillText("✅ 三、現場已採行控制措施 (勾稽確認)", 40, currentY + 35);
+
+            let checkY = currentY + 65;
+            checkItemsText.forEach(chkText => {
+                ctx.fillStyle = "#16a34a";
+                ctx.font = "bold 16px Microsoft JhengHei";
+                ctx.fillText("☑", 40, checkY);
+                ctx.fillStyle = "#1e293b";
+                ctx.font = "14px Microsoft JhengHei";
+                ctx.fillText(chkText, 65, checkY);
+                checkY += 32;
+            });
+
+            // 6. 四、簽名確認區
+            currentY = checkY + 20;
+            drawCardBox(ctx, 20, currentY, 710, 220);
+            ctx.fillStyle = "#1e40af";
+            ctx.font = "bold 18px Microsoft JhengHei";
+            ctx.fillText("✍️ 四、危害告知與開工確認簽章", 40, currentY + 35);
+
+            ctx.fillStyle = "#dc2626";
+            ctx.font = "bold 13px Microsoft JhengHei";
+            ctx.fillText(`【手寫簽名】已了解危害人員（${deptName} - ${idName}）`, 40, currentY + 65);
+
+            ctx.fillStyle = "#2563eb";
+            ctx.fillText("【手寫簽名】專職職安管理人員", 390, currentY + 65);
+
+            // 貼上手寫簽名圖片
             const workerCanvas = document.getElementById('worker-sig');
             const safetyCanvas = document.getElementById('safety-sig');
-            
-            const workerImg = document.createElement('img');
-            workerImg.src = workerCanvas.toDataURL("image/png");
-            workerImg.style.cssText = 'border:2px dashed #94a3b8; background:#fff; border-radius:8px; width:100%; max-width:320px; height:130px;';
 
-            const safetyImg = document.createElement('img');
-            safetyImg.src = safetyCanvas.toDataURL("image/png");
-            safetyImg.style.cssText = 'border:2px dashed #94a3b8; background:#fff; border-radius:8px; width:100%; max-width:320px; height:130px;';
+            ctx.drawImage(workerCanvas, 40, currentY + 75, 310, 110);
+            ctx.drawImage(safetyCanvas, 390, currentY + 75, 310, 110);
 
-            workerCanvas.style.display = 'none';
-            safetyCanvas.style.display = 'none';
-            
-            workerCanvas.parentNode.appendChild(workerImg);
-            safetyCanvas.parentNode.appendChild(safetyImg);
+            // 水印防偽
+            ctx.fillStyle = "#64748b";
+            ctx.font = "bold 14px Microsoft JhengHei";
+            ctx.textAlign = "center";
+            ctx.fillText("江十三 著作權所有 翻印必究", 375, currentY + 205);
 
-            // 2. 輕量化渲染長圖
-            setTimeout(() => {
-                html2canvas(document.getElementById('capture-area'), {
-                    useCORS: false,
-                    scale: 1,
-                    backgroundColor: "#f1f5f9",
-                    logging: false,
-                    allowTaint: true
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL("image/jpeg", 0.85);
-                    
-                    // 還原 DOM
-                    workerCanvas.style.display = 'block';
-                    safetyCanvas.style.display = 'block';
-                    if (workerImg.parentNode) workerImg.parentNode.removeChild(workerImg);
-                    if (safetyImg.parentNode) safetyImg.parentNode.removeChild(safetyImg);
-                    document.body.classList.remove('capturing-mode');
+            // 🚀 原生極速轉碼，100% 跳出長圖彈窗！
+            const imgData = canvas.toDataURL("image/jpeg", 0.92);
+            document.getElementById('finalExportedImage').src = imgData;
+            document.getElementById('resultImageModal').style.display = "block";
+        }
 
-                    // 彈出長圖供儲存
-                    document.getElementById('finalExportedImage').src = imgData;
-                    document.getElementById('resultImageModal').style.display = "block";
-                    
-                    elementsToHide.forEach(el => el.style.visibility = 'visible');
-                    document.getElementById('image-watermark').style.display = 'none';
-                }).catch(err => {
-                    // 還原 DOM
-                    workerCanvas.style.display = 'block';
-                    safetyCanvas.style.display = 'block';
-                    if (workerImg.parentNode) workerImg.parentNode.removeChild(workerImg);
-                    if (safetyImg.parentNode) safetyImg.parentNode.removeChild(safetyImg);
-                    document.body.classList.remove('capturing-mode');
-                    
-                    alert("產出長圖失敗，請重新整理網頁後重試！");
-                    elementsToHide.forEach(el => el.style.visibility = 'visible');
-                    document.getElementById('image-watermark').style.display = 'none';
-                });
-            }, 300);
+        // 圓角卡片繪製輔助函式
+        function drawCardBox(ctx, x, y, width, height) {
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.roundRect(x, y, width, height, 12);
+            ctx.fill();
+            ctx.strokeStyle = "#e2e8f0";
+            ctx.lineWidth = 1;
+            ctx.stroke();
         }
     </script>
 </body>
