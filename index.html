@@ -104,7 +104,7 @@ HTML
         </div>
     </div>
 
-    <!-- 紀錄圖片生成檢視區 -->
+    <!-- 紀錄圖片生成檢視區 (.JPG 長圖彈窗) -->
     <div id="resultImageModal" class="custom-modal no-print">
         <div class="custom-modal-content">
             <h5 class="fw-bold text-success mb-2">🎉 紀錄長圖檔已成功產出！</h5>
@@ -219,12 +219,12 @@ HTML
                 <div class="row g-3 text-center">
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold text-danger" style="font-size:0.88rem;" id="workerSigLabel">【手寫簽名】已了解危害人員</label>
-                        <div><canvas id="worker-sig" class="sig-canvas" width="300" height="130"></canvas></div>
+                        <div id="worker-sig-container"><canvas id="worker-sig" class="sig-canvas" width="300" height="130"></canvas></div>
                         <div class="mt-1 no-print"><button id="worker-clear-btn" class="btn btn-sm btn-outline-secondary" onclick="clearSig('worker')">清除簽名</button></div>
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-bold text-primary" style="font-size:0.88rem;">【手寫簽名】專職職安管理人員</label>
-                        <div><canvas id="safety-sig" class="sig-canvas" width="300" height="130"></canvas></div>
+                        <div id="safety-sig-container"><canvas id="safety-sig" class="sig-canvas" width="300" height="130"></canvas></div>
                         <div class="mt-1 no-print"><button class="btn btn-sm btn-outline-secondary" onclick="clearSig('safety')">清除簽名</button></div>
                     </div>
                 </div>
@@ -669,7 +669,7 @@ HTML
             }
         });
 
-        // 💡 終極解法：專為突破 iPhone Safari 繪圖阻斷設計的長圖渲染函數
+        // 💡 破解黑科技：將 Canvas 暫時轉為一般 <img>，100% 避開 Safari 安全鎖阻斷
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
@@ -679,26 +679,58 @@ HTML
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
 
+            // 🚀 關鍵步驟：把兩個手寫 Canvas 轉成純圖片 <img>，徹底化解 Safari Canvas 限制
+            const workerCanvas = document.getElementById('worker-sig');
+            const safetyCanvas = document.getElementById('safety-sig');
+            
+            const workerImgData = workerCanvas.toDataURL("image/png");
+            const safetyImgData = safetyCanvas.toDataURL("image/png");
+
+            const workerImg = document.createElement('img');
+            workerImg.src = workerImgData;
+            workerImg.className = 'sig-canvasTemp';
+            workerImg.style.cssText = 'border:2px dashed #94a3b8; background:#fff; border-radius:8px; width:100%; max-width:320px; height:130px;';
+
+            const safetyImg = document.createElement('img');
+            safetyImg.src = safetyImgData;
+            safetyImg.className = 'sig-canvasTemp';
+            safetyImg.style.cssText = 'border:2px dashed #94a3b8; background:#fff; border-radius:8px; width:100%; max-width:320px; height:130px;';
+
+            workerCanvas.style.display = 'none';
+            safetyCanvas.style.display = 'none';
+            
+            workerCanvas.parentNode.appendChild(workerImg);
+            safetyCanvas.parentNode.appendChild(safetyImg);
+
             setTimeout(() => {
-                // 🚀 關鍵優化 1：scale 設為 1，並加入 Safari 畫布相容參數，避免記憶體溢出
                 html2canvas(document.getElementById('capture-area'), {
                     useCORS: true,
                     scale: 1,
                     backgroundColor: "#f1f5f9",
-                    logging: false,
-                    allowTaint: false,
-                    foreignObjectRendering: false
+                    logging: false
                 }).then(canvas => {
                     const imgData = canvas.toDataURL("image/jpeg", 0.9);
                     
+                    // 還原簽名 Canvas
+                    workerCanvas.style.display = 'block';
+                    safetyCanvas.style.display = 'block';
+                    if (workerImg.parentNode) workerImg.parentNode.removeChild(workerImg);
+                    if (safetyImg.parentNode) safetyImg.parentNode.removeChild(safetyImg);
+
+                    // 彈出長圖視窗
                     document.getElementById('finalExportedImage').src = imgData;
                     document.getElementById('resultImageModal').style.display = "block";
                     
                     elementsToHide.forEach(el => el.style.visibility = 'visible');
                     document.getElementById('image-watermark').style.display = 'none';
                 }).catch(err => {
-                    alert("圖片渲染遭遇系統阻斷，已為您切換至原生預覽！");
-                    window.print();
+                    // 還原 DOM
+                    workerCanvas.style.display = 'block';
+                    safetyCanvas.style.display = 'block';
+                    if (workerImg.parentNode) workerImg.parentNode.removeChild(workerImg);
+                    if (safetyImg.parentNode) safetyImg.parentNode.removeChild(safetyImg);
+                    
+                    alert("產出圖片遭遇系統阻斷，請嘗試將網頁重新整理後再試一次！");
                     elementsToHide.forEach(el => el.style.visibility = 'visible');
                     document.getElementById('image-watermark').style.display = 'none';
                 });
