@@ -42,16 +42,6 @@ HTML
         .table td { font-size: 0.82rem; padding: 8px 6px !important; }
         .badge-risk-cell { font-size: 0.75rem; font-weight: bold; padding: 4px 2px; white-space: normal; line-height: 1.1; display: block; width: 100%; text-align: center; }
 
-        /* 5x5 中文風險矩陣圖專用樣式 */
-        .matrix-table { width: 100%; max-width: 450px; margin: 0 auto; border-collapse: collapse; font-size: 0.8rem; text-align: center; }
-        .matrix-table td, .matrix-table th { border: 1px solid #94a3b8; padding: 6px 2px; font-weight: bold; width: 16%; }
-        .matrix-title { font-size: 0.85rem; font-weight: bold; color: #1e3a8a; background-color: #e2e8f0; }
-        .m-crit { background-color: #7f1d1d; color: #fff; }
-        .m-extr { background-color: #b91c1c; color: #fff; }
-        .m-high { background-color: #c2410c; color: #fff; }
-        .m-mod { background-color: #eab308; color: #1e293b; }
-        .m-low { background-color: #15803d; color: #fff; }
-
         /* 控制措施勾稽卡片專用 */
         .control-check-item { background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 10px; margin-bottom: 8px; border-radius: 4px; }
 
@@ -110,20 +100,6 @@ HTML
             <div class="d-grid gap-2 mt-3">
                 <button class="btn btn-primary" id="lineShareDirectBtn">📲 使用 LINE 傳送接關網址</button>
                 <button class="btn btn-secondary" onclick="closeQRModal()">關閉視窗</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 紀錄圖片生成檢視區 -->
-    <div id="resultImageModal" class="custom-modal no-print">
-        <div class="custom-modal-content" style="max-width: 500px; margin: 5% auto;">
-            <h5 class="fw-bold text-success mb-2">🎉 紀錄圖檔已成功產出！</h5>
-            <p class="text-danger small fw-bold mb-3">【⚠️ 手機長按下方圖片即可直接儲存至相簿】</p>
-            <div style="max-height: 55vh; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; background: #f8fafc;">
-                <img id="finalExportedImage" src="" alt="圖片生成中..." style="width: 100%; height: auto;" />
-            </div>
-            <div class="d-grid gap-2 mt-3">
-                <button class="btn btn-secondary" onclick="closeResultImageModal()">關閉此視窗</button>
             </div>
         </div>
     </div>
@@ -189,69 +165,9 @@ HTML
                 <div class="row g-2" id="disasterGrid"></div>
             </div>
 
-            <!-- 5x5 風險矩陣對照圖 -->
-            <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 國家標準 5x5 半定量風險評估矩陣</h5>
-                <div class="table-responsive">
-                    <table class="matrix-table">
-                        <tr>
-                            <th rowspan="2" class="matrix-title" style="width:10%;">發生<br>可能<br>性</th>
-                            <th colspan="5" class="matrix-title">後果嚴重度 (1~5 等級)</th>
-                        </tr>
-                        <tr style="background-color:#f8fafc;">
-                            <td>1<br><small>微小</small></td>
-                            <td>2<br><small>較低</small></td>
-                            <td>3<br><small>中等</small></td>
-                            <td>4<br><small>重大</small></td>
-                            <td>5<br><small>災難性</small></td>
-                        </tr>
-                        <tr>
-                            <td class="matrix-title">5<br><small>幾可確定</small></td>
-                            <td class="m-low">5<br><small>低</small></td>
-                            <td class="m-mod">10<br><small>中</small></td>
-                            <td class="m-high">15<br><small>高</small></td>
-                            <td class="m-extr">20<br><small>極高</small></td>
-                            <td class="m-crit">25<br><small>重大</small></td>
-                        </tr>
-                        <tr>
-                            <td class="matrix-title">4<br><small>極有可能</small></td>
-                            <td class="m-low">4<br><small>低</small></td>
-                            <td class="m-mod">8<br><small>中</small></td>
-                            <td class="m-high">12<br><small>高</small></td>
-                            <td class="m-extr">16<br><small>極高</small></td>
-                            <td class="m-extr">20<br><small>極高</small></td>
-                        </tr>
-                        <tr>
-                            <td class="matrix-title">3<br><small>可能</small></td>
-                            <td class="m-low">3<br><small>低</small></td>
-                            <td class="m-mod">6<br><small>中</small></td>
-                            <td class="m-high">9<br><small>高</small></td>
-                            <td class="m-high">12<br><small>高</small></td>
-                            <td class="m-high">15<br><small>高</small></td>
-                        </tr>
-                        <tr>
-                            <td class="matrix-title">2<br><small>不太可能</small></td>
-                            <td class="m-low">2<br><small>低</small></td>
-                            <td class="m-low">4<br><small>低</small></td>
-                            <td class="m-mod">6<br><small>中</small></td>
-                            <td class="m-mod">8<br><small>中</small></td>
-                            <td class="m-mod">10<br><small>中</small></td>
-                        </tr>
-                        <tr>
-                            <td class="matrix-title">1<br><small>幾乎不可能</small></td>
-                            <td class="m-low">1<br><small>低</small></td>
-                            <td class="m-low">2<br><small>低</small></td>
-                            <td class="m-low">3<br><small>低</small></td>
-                            <td class="m-low">4<br><small>低</small></td>
-                            <td class="m-mod">5<br><small>中</small></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
             <!-- 3. 評估結果 -->
             <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 三、危害標準風險評估結果 (半定量評估)</h5>
+                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 二、危害標準風險評估結果 (半定量評估)</h5>
                 <div id="riskResultBox" class="mb-3">
                     <div class="risk-badge risk-1">請於上方勾選潛在災害類型以啟動動態評估</div>
                 </div>
@@ -274,7 +190,7 @@ HTML
 
             <!-- 4. 勾稽確認卡片 -->
             <div class="card p-3 d-none" id="controlCheckSec">
-                <h5 class="text-success border-bottom pb-2" style="font-size:1.05rem;">✅ 四、現場已採行控制措施 (勾稽確認)</h5>
+                <h5 class="text-success border-bottom pb-2" style="font-size:1.05rem;">✅ 三、現場已採行控制措施 (勾稽確認)</h5>
                 <p class="text-muted small">請作業人員逐項確認現場是否已確實落實以下控制對策，勾選完畢方可進行簽章：</p>
                 <div id="controlCheckList"></div>
                 <div class="alert alert-info mt-2 mb-0 py-2 text-center small fw-bold" id="checkStatusMsg">
@@ -284,7 +200,7 @@ HTML
 
             <!-- 5. 簽名確認區 -->
             <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">✍️ 五、危害告知與開工確認簽章</h5>
+                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">✍️ 四、危害告知與開工確認簽章</h5>
                 <p class="text-muted small">現場施工人員與專職職安管理人員已確實召開工具箱會議，知悉上述危害並承諾落實防護措施：</p>
                 <div class="row g-3 text-center">
                     <div class="col-12 col-md-6">
@@ -625,7 +541,7 @@ HTML
             const allChecks = document.querySelectorAll('.control-checkbox');
             const checkedCount = document.querySelectorAll('.control-checkbox:checked').length;
             if (allChecks.length > 0 && checkedCount < allChecks.length) {
-                alert("請先將「四、現場已採行控制措施」全部勾選確認，以實證風險降低！");
+                alert("請先將「三、現場已採行控制措施」全部勾選確認，以實證風險降低！");
                 return;
             }
 
@@ -659,7 +575,6 @@ HTML
         });
 
         function closeQRModal() { document.getElementById('qrModal').style.display = "none"; }
-        function closeResultImageModal() { document.getElementById('resultImageModal').style.display = "none"; }
 
         function urlSafeAtob(str) {
             let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -739,7 +654,7 @@ HTML
             }
         });
 
-        // 💡 終極進化：相容私密瀏覽與全平台之雙軌安全匯出函數
+        // 💡 恢復原原生直接下載圖檔模式（極速、免彈窗）
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
@@ -749,43 +664,34 @@ HTML
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
             
+            const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
+
             setTimeout(() => {
-                try {
-                    html2canvas(document.getElementById('capture-area'), {
-                        useCORS: true,
-                        scale: 1,
-                        backgroundColor: "#f1f5f9",
-                        logging: false,
-                        foreignObjectRendering: false
-                    }).then(canvas => {
-                        const imgData = canvas.toDataURL("image/png");
-                        
-                        // 驗證 Base64 數據是否被 Safari 私密模式破壞
-                        if(!imgData || imgData.length < 500) {
-                            throw new Error("Private Mode Restriction");
-                        }
-
-                        document.getElementById('finalExportedImage').src = imgData;
-                        document.getElementById('resultImageModal').style.display = "block";
-                        
-                        elementsToHide.forEach(el => el.style.visibility = 'visible');
-                        document.getElementById('image-watermark').style.display = 'none';
-                    }).catch(err => {
-                        // 🚀 備援安全對策：當私密模式阻斷 Base64 產出時，自動轉為「原生乾淨列印/儲存頁面」
-                        fallbackToPrintMode(elementsToHide);
-                    });
-                } catch(e) {
-                    fallbackToPrintMode(elementsToHide);
-                }
-            }, 300);
-        }
-
-        // 💡 原生乾淨預覽模式（專治私密瀏覽封鎖）
-        function fallbackToPrintMode(elementsToHide) {
-            alert("💡 已為您啟動 iOS 私密模式專用預覽！請於下一頁直接『手動截圖』或選擇『儲存為 PDF』備份。");
-            window.print();
-            elementsToHide.forEach(el => el.style.visibility = 'visible');
-            document.getElementById('image-watermark').style.display = 'none';
+                html2canvas(document.getElementById('capture-area'), {
+                    useCORS: true,
+                    scale: 1,
+                    backgroundColor: "#f1f5f9",
+                    logging: false
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL("image/png");
+                    
+                    // 🚀 建立自動下載連結直接儲存圖檔
+                    const link = document.createElement('a');
+                    link.download = `智慧JSA核可紀錄_[${jobName}]_${new Date().toISOString().slice(0,10)}.png`;
+                    link.href = imgData;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    elementsToHide.forEach(el => el.style.visibility = 'visible');
+                    document.getElementById('image-watermark').style.display = 'none';
+                }).catch(err => {
+                    // 若遇特殊阻斷，一鍵切換原生乾淨預覽備援
+                    window.print();
+                    elementsToHide.forEach(el => el.style.visibility = 'visible');
+                    document.getElementById('image-watermark').style.display = 'none';
+                });
+            }, 250);
         }
     </script>
 </body>
