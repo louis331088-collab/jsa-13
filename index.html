@@ -61,7 +61,7 @@ HTML
         }
         .custom-modal-content {
             background-color: #fff;
-            margin: 8% auto;
+            margin: 5% auto;
             padding: 20px;
             border-radius: 14px;
             width: 92%;
@@ -100,6 +100,20 @@ HTML
             <div class="d-grid gap-2 mt-3">
                 <button class="btn btn-primary" id="lineShareDirectBtn">📲 使用 LINE 傳送接關網址</button>
                 <button class="btn btn-secondary" onclick="closeQRModal()">關閉視窗</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 紀錄圖片生成檢視區 (第二張照片的長圖顯示框) -->
+    <div id="resultImageModal" class="custom-modal no-print">
+        <div class="custom-modal-content">
+            <h5 class="fw-bold text-success mb-2">🎉 紀錄長圖檔已成功產出！</h5>
+            <p class="text-danger small fw-bold mb-2">【⚠️ 請長按下方圖片即可儲存至手機相簿】</p>
+            <div style="max-height: 60vh; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; background: #f8fafc;">
+                <img id="finalExportedImage" src="" alt="圖檔生成中..." style="width: 100%; height: auto;" />
+            </div>
+            <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-secondary" onclick="closeResultImageModal()">關閉此視窗</button>
             </div>
         </div>
     </div>
@@ -575,6 +589,7 @@ HTML
         });
 
         function closeQRModal() { document.getElementById('qrModal').style.display = "none"; }
+        function closeResultImageModal() { document.getElementById('resultImageModal').style.display = "none"; }
 
         function urlSafeAtob(str) {
             let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -654,7 +669,7 @@ HTML
             }
         });
 
-        // 💡 恢復原原生直接下載圖檔模式（極速、免彈窗）
+        // 💡 核心重點修復：完美直接渲染第二張圖的 .JPG/.PNG 高清長圖
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
@@ -663,35 +678,28 @@ HTML
             
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
-            
-            const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
 
             setTimeout(() => {
                 html2canvas(document.getElementById('capture-area'), {
                     useCORS: true,
-                    scale: 1,
+                    scale: 2, // 使用高畫質渲染
                     backgroundColor: "#f1f5f9",
                     logging: false
                 }).then(canvas => {
-                    const imgData = canvas.toDataURL("image/png");
+                    const imgData = canvas.toDataURL("image/jpeg", 0.95);
                     
-                    // 🚀 建立自動下載連結直接儲存圖檔
-                    const link = document.createElement('a');
-                    link.download = `智慧JSA核可紀錄_[${jobName}]_${new Date().toISOString().slice(0,10)}.png`;
-                    link.href = imgData;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                    // 渲染出像第二張圖片一樣的實體長圖彈窗，供長按儲存/分享
+                    document.getElementById('finalExportedImage').src = imgData;
+                    document.getElementById('resultImageModal').style.display = "block";
                     
                     elementsToHide.forEach(el => el.style.visibility = 'visible');
                     document.getElementById('image-watermark').style.display = 'none';
                 }).catch(err => {
-                    // 若遇特殊阻斷，一鍵切換原生乾淨預覽備援
-                    window.print();
+                    alert("圖片渲染遭遇系統阻斷，請重新嘗試一次！");
                     elementsToHide.forEach(el => el.style.visibility = 'visible');
                     document.getElementById('image-watermark').style.display = 'none';
                 });
-            }, 250);
+            }, 300);
         }
     </script>
 </body>
