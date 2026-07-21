@@ -669,10 +669,21 @@ HTML
             }
         });
 
-        // 🚀 黑科技重構：原生 HTML5 畫布直接繪製合成圖 (完全摒棄第三方 html2canvas，100% 不受 Safari 安全鎖阻斷)
+        // 🚀 智慧分流匯出核心：5 項以下吐長圖，6 項以上自動切換 PDF
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
+            const selectedDisasters = [];
+            document.querySelectorAll('.condition-check:checked').forEach(cb => { selectedDisasters.push(cb.value); });
+
+            // 💡 智慧判斷：若災害數量大於等於 6 種，自動轉為多頁 A4/PDF 模式
+            if (selectedDisasters.length >= 6) {
+                alert(`ℹ️ 偵測到本作業辨識危害項目較多 (共 ${selectedDisasters.length} 項)，已為您自動優化為 A4 多頁 PDF / 列印格式！`);
+                window.print();
+                return;
+            }
+
+            // 5 項以下：執行極速原生 Canvas 長圖繪製
             const deptSel = document.getElementById('deptSelect').value;
             const deptOther = document.getElementById('otherDeptInput').value.trim();
             const idSel = document.getElementById('identitySelect').value;
@@ -681,31 +692,24 @@ HTML
             let idName = (idSel === '其他') ? (idOther || "自訂身份") : idSel;
             const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
 
-            // 建立高解析度原生 Canvas 畫布
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            // 抓取勾選的危害
-            const selectedDisasters = [];
-            document.querySelectorAll('.condition-check:checked').forEach(cb => { selectedDisasters.push(cb.value); });
-
-            // 抓取現場控制措施
             const checkItemsText = [];
             document.querySelectorAll('.control-checkbox').forEach(chk => {
                 const label = chk.nextElementSibling.innerText.trim();
                 checkItemsText.push(label);
             });
 
-            // 計算畫布總高度
             let totalHeight = 620 + (selectedDisasters.length * 130) + (checkItemsText.length * 35) + 380;
             canvas.width = 750;
             canvas.height = totalHeight;
 
-            // 1. 繪製底色
+            // 1. 底色
             ctx.fillStyle = "#f1f5f9";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 2. 繪製藍色抬頭橫幅
+            // 2. 抬頭
             ctx.fillStyle = "#0f172a";
             ctx.fillRect(20, 20, 710, 110);
             
@@ -722,7 +726,7 @@ HTML
             ctx.font = "bold 13px Microsoft JhengHei";
             ctx.fillText("依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩陣規範設計", 375, 110);
 
-            // 3. 一、作業工項與身份
+            // 3. 一、身份與工項
             let currentY = 150;
             drawCardBox(ctx, 20, currentY, 710, 130);
             ctx.fillStyle = "#1e40af";
@@ -743,7 +747,6 @@ HTML
             ctx.font = "bold 18px Microsoft JhengHei";
             ctx.fillText("📊 二、危害標準風險評估結果 (半定量評估)", 40, currentY + 35);
 
-            // 風險警示條
             ctx.fillStyle = "#b91c1c";
             ctx.fillRect(40, currentY + 50, 670, 35);
             ctx.fillStyle = "#ffffff";
@@ -760,7 +763,6 @@ HTML
                 ctx.lineWidth = 1;
                 ctx.strokeRect(40, tableY, 670, 115);
 
-                // 災害名稱與風險標籤
                 ctx.fillStyle = "#0f172a";
                 ctx.font = "bold 16px Microsoft JhengHei";
                 ctx.textAlign = "left";
@@ -773,7 +775,6 @@ HTML
                 ctx.fillStyle = "#16a34a";
                 ctx.fillText(`改善後：${rule.after}`, 55, tableY + 90);
 
-                // 防護對策文字
                 ctx.fillStyle = "#334155";
                 ctx.font = "12px Microsoft JhengHei";
                 const lines = rule.controls.split('\n');
@@ -784,7 +785,7 @@ HTML
                 tableY += 125;
             });
 
-            // 5. 三、現場已採行控制措施
+            // 5. 三、控制措施
             currentY = tableY + 20;
             drawCardBox(ctx, 20, currentY, 710, 60 + (checkItemsText.length * 35));
             ctx.fillStyle = "#15803d";
@@ -803,7 +804,7 @@ HTML
                 checkY += 32;
             });
 
-            // 6. 四、簽名確認區
+            // 6. 四、雙簽名
             currentY = checkY + 20;
             drawCardBox(ctx, 20, currentY, 710, 220);
             ctx.fillStyle = "#1e40af";
@@ -817,26 +818,22 @@ HTML
             ctx.fillStyle = "#2563eb";
             ctx.fillText("【手寫簽名】專職職安管理人員", 390, currentY + 65);
 
-            // 貼上手寫簽名圖片
             const workerCanvas = document.getElementById('worker-sig');
             const safetyCanvas = document.getElementById('safety-sig');
 
             ctx.drawImage(workerCanvas, 40, currentY + 75, 310, 110);
             ctx.drawImage(safetyCanvas, 390, currentY + 75, 310, 110);
 
-            // 水印防偽
             ctx.fillStyle = "#64748b";
             ctx.font = "bold 14px Microsoft JhengHei";
             ctx.textAlign = "center";
             ctx.fillText("江十三 著作權所有 翻印必究", 375, currentY + 205);
 
-            // 🚀 原生極速轉碼，100% 跳出長圖彈窗！
             const imgData = canvas.toDataURL("image/jpeg", 0.92);
             document.getElementById('finalExportedImage').src = imgData;
             document.getElementById('resultImageModal').style.display = "block";
         }
 
-        // 圓角卡片繪製輔助函式
         function drawCardBox(ctx, x, y, width, height) {
             ctx.fillStyle = "#ffffff";
             ctx.beginPath();
