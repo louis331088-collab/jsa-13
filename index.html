@@ -81,7 +81,12 @@ HTML
             position: relative;
         }
 
-        @media print { .no-print { display: none !important; } body, #capture-area { background-color: #fff; padding: 0; } .card { box-shadow: none; margin-bottom: 10px; } }
+        @media print { 
+            .no-print { display: none !important; } 
+            body, #capture-area { background-color: #fff; padding: 0; } 
+            .card { box-shadow: none; margin-bottom: 10px; border: 1px solid #ddd; } 
+            .watermark-footer { display: block !important; }
+        }
     </style>
 </head>
 <body>
@@ -464,7 +469,7 @@ HTML
             },
             "化學品洩漏": { 
                 before: "中度風險(6分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", 
-                controls: "<strong>【工程控制】</strong>藥劑儲存區設置防液堤或集液托盤。<br><strong>【管理控制】</strong>張貼安全資料表（SDS），配置足夠防液沙包與吸液棉。<br><strong>【個人防護】</strong>搬運作業應戴耐酸鹼手套與防護面罩。",
+                controls: "<strong>【工程控制】</strong>藥劑儲存區設置防液堤或集液托盤。<br><strong>【管理控制】</strong>張貼安全資料表（SDS），配置足夠防液沙包與吸液棉。",
                 checkItems: ["【工程控制】化學品儲存區已設置防液堤與盛漏托盤", "【管理控制】現場已配置洩漏緊急應變防液沙包與吸液棉"]
             }
         };
@@ -734,40 +739,53 @@ HTML
             }
         });
 
-        // 💡 終極優化：相容 iOS Safari 畫布截圖之高相容性函數
+        // 💡 終極進化：相容私密瀏覽與全平台之雙軌安全匯出函數
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
-            // 1. 強制讓頁面滾回最頂端，解決 iOS Safari 滾動軸導致 Canvas 計算錯位問題
             window.scrollTo(0, 0);
-            
             document.getElementById('image-watermark').style.display = 'block';
             
             const elementsToHide = document.querySelectorAll('.no-print');
             elementsToHide.forEach(el => el.style.visibility = 'hidden');
             
-            // 2. 採用專為 Safari 優化的相容設定
             setTimeout(() => {
-                html2canvas(document.getElementById('capture-area'), {
-                    useCORS: true,
-                    scale: 1,
-                    backgroundColor: "#f1f5f9",
-                    logging: false,
-                    foreignObjectRendering: false // 關閉此選項防範 Safari 繪圖報錯
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL("image/png");
-                    
-                    document.getElementById('finalExportedImage').src = imgData;
-                    document.getElementById('resultImageModal').style.display = "block";
-                    
-                    elementsToHide.forEach(el => el.style.visibility = 'visible');
-                    document.getElementById('image-watermark').style.display = 'none';
-                }).catch(err => {
-                    alert("產出圖片過程發生錯誤，請重新再試一次！");
-                    elementsToHide.forEach(el => el.style.visibility = 'visible');
-                    document.getElementById('image-watermark').style.display = 'none';
-                });
+                try {
+                    html2canvas(document.getElementById('capture-area'), {
+                        useCORS: true,
+                        scale: 1,
+                        backgroundColor: "#f1f5f9",
+                        logging: false,
+                        foreignObjectRendering: false
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL("image/png");
+                        
+                        // 驗證 Base64 數據是否被 Safari 私密模式破壞
+                        if(!imgData || imgData.length < 500) {
+                            throw new Error("Private Mode Restriction");
+                        }
+
+                        document.getElementById('finalExportedImage').src = imgData;
+                        document.getElementById('resultImageModal').style.display = "block";
+                        
+                        elementsToHide.forEach(el => el.style.visibility = 'visible');
+                        document.getElementById('image-watermark').style.display = 'none';
+                    }).catch(err => {
+                        // 🚀 備援安全對策：當私密模式阻斷 Base64 產出時，自動轉為「原生乾淨列印/儲存頁面」
+                        fallbackToPrintMode(elementsToHide);
+                    });
+                } catch(e) {
+                    fallbackToPrintMode(elementsToHide);
+                }
             }, 300);
+        }
+
+        // 💡 原生乾淨預覽模式（專治私密瀏覽封鎖）
+        function fallbackToPrintMode(elementsToHide) {
+            alert("💡 已為您啟動 iOS 私密模式專用預覽！請於下一頁直接『手動截圖』或選擇『儲存為 PDF』備份。");
+            window.print();
+            elementsToHide.forEach(el => el.style.visibility = 'visible');
+            document.getElementById('image-watermark').style.display = 'none';
         }
     </script>
 </body>
