@@ -180,7 +180,7 @@ HTML
 
             <!-- 3. 評估結果 -->
             <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 二、危害標準風險評估結果 (半定量評估)</h5>
+                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 三、危害標準風險評估結果 (半定量評估)</h5>
                 <div id="riskResultBox" class="mb-3">
                     <div class="risk-badge risk-1">請於上方勾選潛在災害類型以啟動動態評估</div>
                 </div>
@@ -203,7 +203,7 @@ HTML
 
             <!-- 4. 勾稽確認卡片 -->
             <div class="card p-3 d-none" id="controlCheckSec">
-                <h5 class="text-success border-bottom pb-2" style="font-size:1.05rem;">✅ 三、現場已採行控制措施 (勾稽確認)</h5>
+                <h5 class="text-success border-bottom pb-2" style="font-size:1.05rem;">✅ 四、現場已採行控制措施 (勾稽確認)</h5>
                 <p class="text-muted small">請作業人員逐項確認現場是否已確實落實以下控制對策，勾選完畢方可進行簽章：</p>
                 <div id="controlCheckList"></div>
                 <div class="alert alert-info mt-2 mb-0 py-2 text-center small fw-bold" id="checkStatusMsg">
@@ -213,7 +213,7 @@ HTML
 
             <!-- 5. 簽名確認區 -->
             <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">✍️ 四、危害告知與開工確認簽章</h5>
+                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">✍️ 五、危害告知與開工確認簽章</h5>
                 <p class="text-muted small">現場施工人員與專職職安管理人員已確實召開工具箱會議，知悉上述危害並承諾落實防護措施：</p>
                 <div class="row g-3 text-center">
                     <div class="col-12 col-md-6">
@@ -296,6 +296,16 @@ HTML
         document.getElementById('otherIdentityInput').addEventListener('input', updateSignatureLabel);
 
         const disasterDatabase = {
+            "熱危害": { 
+                before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", 
+                controls: "【工程控制】設置遮陽場所、通風設備或細水霧，監力/現場記錄熱指數。\n【管理控制】適度調配高氣溫作業時間，規律每15~20分鐘補充150-200ml水與鹽分，新進勞工實施熱適應管理，採團隊作業(至少2人1組)互相照應。\n【個人防護】提供淺色透氣工作服與通風帽子，必要時配戴冰背心。",
+                checkItems: [
+                    "【工程控制】已設置具遮陽/風扇/空調之休息場所，並配置清涼飲用水與電解質",
+                    "【管理控制】已落實熱適應規劃、避開極高溫時段，並指派專人定期巡檢與體溫血壓量測",
+                    "【管理控制】已落實團隊作業（至少2人1組），宣導每15~20分鐘規律補充水分鹽分",
+                    "【個人防護】作業人員穿著淺色透氣工作服與通風帽子，已建立熱疾病緊急通報就醫流程"
+                ]
+            },
             "墜落": { 
                 before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", 
                 controls: "【工程控制】設置合格護欄、工作台或安全母索。\n【管理控制】落實高處作業檢核。\n【個人防護】正確配戴雙大鉤背負式安全帶及安全帽。",
@@ -404,7 +414,7 @@ HTML
         };
 
         const disasterTypes = [
-            "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", "被夾", "被捲", 
+            "熱危害", "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", "被夾", "被捲", 
             "與有害物等之接觸", "跌倒", "爆炸", "溺斃", "與高溫、低溫之接觸", 
             "衝撞", "其他交通事故", "物體破裂", "感電", "火災", 
             "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩漏"
@@ -412,10 +422,11 @@ HTML
 
         const grid = document.getElementById('disasterGrid');
         disasterTypes.forEach((type, index) => {
+            const isHot = type === "熱危害" ? "border-danger text-danger" : "";
             const html = `
                 <div class="col-6 col-md-3">
                     <input type="checkbox" class="disaster-btn condition-check" id="dis_${index}" value="${type}">
-                    <label class="disaster-label" for="dis_${index}">${type}</label>
+                    <label class="disaster-label ${isHot}" for="dis_${index}">${type === "熱危害" ? "🔥 熱危害" : type}</label>
                 </div>
             `;
             grid.insertAdjacentHTML('beforeend', html);
@@ -669,7 +680,7 @@ HTML
             }
         });
 
-        // 🚀 智慧分流匯出核心：5 項以下吐長圖，6 項以上自動切換 PDF
+        // 🚀 智慧分流匯出核心（支援熱危害與動態多頁）
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
@@ -701,7 +712,7 @@ HTML
                 checkItemsText.push(label);
             });
 
-            let totalHeight = 620 + (selectedDisasters.length * 130) + (checkItemsText.length * 35) + 380;
+            let totalHeight = 620 + (selectedDisasters.length * 135) + (checkItemsText.length * 35) + 380;
             canvas.width = 750;
             canvas.height = totalHeight;
 
@@ -742,7 +753,7 @@ HTML
 
             // 4. 二、危害評估結果
             currentY += 150;
-            drawCardBox(ctx, 20, currentY, 710, 80 + (selectedDisasters.length * 130));
+            drawCardBox(ctx, 20, currentY, 710, 80 + (selectedDisasters.length * 135));
             ctx.fillStyle = "#1e40af";
             ctx.font = "bold 18px Microsoft JhengHei";
             ctx.fillText("📊 二、危害標準風險評估結果 (半定量評估)", 40, currentY + 35);
@@ -752,16 +763,16 @@ HTML
             ctx.fillStyle = "#ffffff";
             ctx.font = "bold 14px Microsoft JhengHei";
             ctx.textAlign = "center";
-            ctx.fillText(`針對【${jobName}】評估最高初始風險：高度風險 (10-16分，在工程控制到位前不可開工)`, 375, currentY + 73);
+            ctx.fillText(`針對【${jobName}】評估最高初始風險：高度/極高風險 (在降險防護到位前不可開工)`, 375, currentY + 73);
 
             let tableY = currentY + 100;
             selectedDisasters.forEach(disaster => {
                 const rule = disasterDatabase[disaster];
                 ctx.fillStyle = "#ffffff";
-                ctx.fillRect(40, tableY, 670, 115);
+                ctx.fillRect(40, tableY, 670, 120);
                 ctx.strokeStyle = "#cbd5e1";
                 ctx.lineWidth = 1;
-                ctx.strokeRect(40, tableY, 670, 115);
+                ctx.strokeRect(40, tableY, 670, 120);
 
                 ctx.fillStyle = "#0f172a";
                 ctx.font = "bold 16px Microsoft JhengHei";
@@ -779,10 +790,10 @@ HTML
                 ctx.font = "12px Microsoft JhengHei";
                 const lines = rule.controls.split('\n');
                 lines.forEach((line, lIdx) => {
-                    ctx.fillText(line, 220, tableY + 30 + (lIdx * 25));
+                    ctx.fillText(line, 220, tableY + 28 + (lIdx * 25));
                 });
 
-                tableY += 125;
+                tableY += 130;
             });
 
             // 5. 三、控制措施
