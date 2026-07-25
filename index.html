@@ -298,7 +298,7 @@ HTML
         const disasterDatabase = {
             "熱危害": { 
                 before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "【工程控制】設置遮陽場所、通風設備或細水霧，監力/現場記錄熱指數。\n【管理控制】適度調配高氣溫作業時間，規律每15~20分鐘補充150-200ml水與鹽分，新進勞工實施熱適應管理，採團隊作業(至少2人1組)互相照應。\n【個人防護】提供淺色透氣工作服與通風帽子，必要時配戴冰背心。",
+                controls: "【工程控制】設置遮陽場所、通風設備或細水霧，監測/現場記錄熱指數。\n【管理控制】適度調配高氣溫作業時間，規律每15~20分鐘補充150-200ml水與鹽分，新進勞工實施熱適應管理，採團隊作業(至少2人1組)互相照應。\n【個人防護】提供淺色透氣工作服與通風帽子，必要時配戴冰背心。",
                 checkItems: [
                     "【工程控制】已設置具遮陽/風扇/空調之休息場所，並配置清涼飲用水與電解質",
                     "【管理控制】已落實熱適應規劃、避開極高溫時段，並指派專人定期巡檢與體溫血壓量測",
@@ -680,21 +680,43 @@ HTML
             }
         });
 
-        // 🚀 智慧分流匯出核心（支援熱危害與動態多頁）
+        // 💡 繪製長文字並自動換行 (Auto Wrap) 演算法
+        function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+            const words = text.split('');
+            let line = '';
+            let currentY = y;
+            let lineCount = 0;
+
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n];
+                let metrics = ctx.measureText(testLine);
+                let testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    ctx.fillText(line, x, currentY);
+                    line = words[n];
+                    currentY += lineHeight;
+                    lineCount++;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, x, currentY);
+            return (lineCount + 1) * lineHeight;
+        }
+
+        // 🚀 原生 Canvas 合成與動態自動換行長圖產出
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
             const selectedDisasters = [];
             document.querySelectorAll('.condition-check:checked').forEach(cb => { selectedDisasters.push(cb.value); });
 
-            // 💡 智慧判斷：若災害數量大於等於 6 種，自動轉為多頁 A4/PDF 模式
             if (selectedDisasters.length >= 6) {
                 alert(`ℹ️ 偵測到本作業辨識危害項目較多 (共 ${selectedDisasters.length} 項)，已為您自動優化為 A4 多頁 PDF / 列印格式！`);
                 window.print();
                 return;
             }
 
-            // 5 項以下：執行極速原生 Canvas 長圖繪製
             const deptSel = document.getElementById('deptSelect').value;
             const deptOther = document.getElementById('otherDeptInput').value.trim();
             const idSel = document.getElementById('identitySelect').value;
@@ -712,7 +734,21 @@ HTML
                 checkItemsText.push(label);
             });
 
-            let totalHeight = 620 + (selectedDisasters.length * 135) + (checkItemsText.length * 35) + 380;
+            // 預先計算災害表格所需的高度的精準總合
+            let tableTotalHeight = 0;
+            ctx.font = "12px Microsoft JhengHei";
+            selectedDisasters.forEach(disaster => {
+                const rule = disasterDatabase[disaster];
+                const lines = rule.controls.split('\n');
+                let cardH = 30;
+                lines.forEach(line => {
+                    const wordsCount = Math.ceil(ctx.measureText(line).width / 440);
+                    cardH += Math.max(1, wordsCount) * 22;
+                });
+                tableTotalHeight += Math.max(120, cardH + 20);
+            });
+
+            let totalHeight = 620 + tableTotalHeight + (checkItemsText.length * 35) + 380;
             canvas.width = 750;
             canvas.height = totalHeight;
 
@@ -753,7 +789,7 @@ HTML
 
             // 4. 二、危害評估結果
             currentY += 150;
-            drawCardBox(ctx, 20, currentY, 710, 80 + (selectedDisasters.length * 135));
+            drawCardBox(ctx, 20, currentY, 710, 80 + tableTotalHeight);
             ctx.fillStyle = "#1e40af";
             ctx.font = "bold 18px Microsoft JhengHei";
             ctx.fillText("📊 二、危害標準風險評估結果 (半定量評估)", 40, currentY + 35);
@@ -768,12 +804,24 @@ HTML
             let tableY = currentY + 100;
             selectedDisasters.forEach(disaster => {
                 const rule = disasterDatabase[disaster];
+                
+                // 動態計算此單一災害卡片高度
+                ctx.font = "12px Microsoft JhengHei";
+                const lines = rule.controls.split('\n');
+                let textHeightAcc = 0;
+                lines.forEach(line => {
+                    const wordsCount = Math.ceil(ctx.measureText(line).width / 440);
+                    textHeightAcc += Math.max(1, wordsCount) * 22;
+                });
+                let singleCardH = Math.max(115, textHeightAcc + 25);
+
                 ctx.fillStyle = "#ffffff";
-                ctx.fillRect(40, tableY, 670, 120);
+                ctx.fillRect(40, tableY, 670, singleCardH);
                 ctx.strokeStyle = "#cbd5e1";
                 ctx.lineWidth = 1;
-                ctx.strokeRect(40, tableY, 670, 120);
+                ctx.strokeRect(40, tableY, 670, singleCardH);
 
+                // 災害名稱與風險標籤
                 ctx.fillStyle = "#0f172a";
                 ctx.font = "bold 16px Microsoft JhengHei";
                 ctx.textAlign = "left";
@@ -786,18 +834,20 @@ HTML
                 ctx.fillStyle = "#16a34a";
                 ctx.fillText(`改善後：${rule.after}`, 55, tableY + 90);
 
+                // 自動換行繪製控制措施
                 ctx.fillStyle = "#334155";
                 ctx.font = "12px Microsoft JhengHei";
-                const lines = rule.controls.split('\n');
-                lines.forEach((line, lIdx) => {
-                    ctx.fillText(line, 220, tableY + 28 + (lIdx * 25));
+                let textY = tableY + 25;
+                lines.forEach((line) => {
+                    let drawnH = drawWrappedText(ctx, line, 215, textY, 470, 22);
+                    textY += drawnH;
                 });
 
-                tableY += 130;
+                tableY += singleCardH + 15;
             });
 
             // 5. 三、控制措施
-            currentY = tableY + 20;
+            currentY = tableY + 10;
             drawCardBox(ctx, 20, currentY, 710, 60 + (checkItemsText.length * 35));
             ctx.fillStyle = "#15803d";
             ctx.font = "bold 18px Microsoft JhengHei";
