@@ -139,7 +139,7 @@ HTML
                         <label class="form-label fw-bold text-secondary" style="font-size:0.9rem;">請選擇所屬部門：</label>
                         <select class="form-select border-primary" id="deptSelect" onchange="toggleOtherDeptInput()">
                             <option value="工程部">工程部</option>
-                            <option value="營運部">營運部</option>
+                            <option value="營運部">營運部 (污水廠/代操作)</option>
                             <option value="其他">其他 (下包商可自行填寫公司名稱)</option>
                         </select>
                     </div>
@@ -166,7 +166,7 @@ HTML
 
                     <div class="col-12">
                         <label class="form-label fw-bold text-secondary" style="font-size:0.9rem;">請輸入目前現場施工工項名稱：</label>
-                        <input type="text" class="form-control border-primary" id="jobInput" style="font-size:1rem;" placeholder="例如：天花板燈泡更換作業、管線開挖作業...">
+                        <input type="text" class="form-control border-primary" id="jobInput" style="font-size:1rem;" placeholder="例如：鼓風機檢修、大池巡檢、管線開挖作業...">
                     </div>
                 </div>
             </div>
@@ -287,7 +287,7 @@ HTML
             const idOther = document.getElementById('otherIdentityInput').value.trim();
 
             let deptName = (deptSel === '其他') ? (deptOther || "自訂公司") : deptSel;
-            let idName = (idSel === '其他') ? (idOther || "自訂身份") : idSel;
+            let idName = (idSel === '網絡') ? (idOther || "自訂身份") : idSel;
 
             document.getElementById('workerSigLabel').innerText = `【手寫簽名】已了解危害人員（${deptName} - ${idName}）`;
         }
@@ -304,6 +304,40 @@ HTML
                     "【管理控制】已落實熱適應規劃、避開極高溫時段，並指派專人定期巡檢與體溫血壓量測",
                     "【管理控制】已落實團隊作業（至少2人1組），宣導每15~20分鐘規律補充水分鹽分",
                     "【個人防護】作業人員穿著淺色透氣工作服與通風帽子，已建立熱疾病緊急通報就醫流程"
+                ]
+            },
+            "噪音": {
+                before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(3分)", afterClass: "risk-2",
+                controls: "【工程控制】鼓風機/泵浦區等高噪音設備加裝隔音罩、吸音材或隔音牆。\n【管理控制】標示噪音危害公告，實施噪音檢測與聽力保護計畫，採取作業輪調分散暴露。\n【個人防護】全程正確配戴合格之防音耳塞或防音耳罩。",
+                checkItems: [
+                    "【工程控制】高噪音機房或設備已裝設防音隔音罩、消音器與吸音板",
+                    "【管理控制】已於高噪音區域張貼警示告示，並控制作業人員連續暴露時間",
+                    "【個人防護】人員進入高噪音作業區已全程正確配戴合格耳塞或耳罩"
+                ]
+            },
+            "蟲害(蛇、蜂、鼠、火蟻等)": {
+                before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2",
+                controls: "【環境管理】定期割除廠區草叢、清理積水與環境死角，避免堆放廢棄物引致鼠害。\n【管理控制】戶外草叢作業前執行「打草驚蛇」，避免使用香水與鮮艷衣物；備妥蜂蛇咬傷急救資訊與抗蛇毒血清醫療路線。\n【個人防護】穿著長袖長褲、厚高筒安全鞋或長統膠鞋。",
+                checkItems: [
+                    "【環境管理】廠區周遭已完成雜草割除與死角清理，無可疑蜂巢或害蟲孳生",
+                    "【管理控制】戶外草叢區域作業前已執行打草驚蛇，並確認緊急送醫聯絡資訊",
+                    "【個人防護】作業人員已穿著淺色長袖長褲、厚高筒鞋或高統長膠鞋"
+                ]
+            },
+            "照明不足": {
+                before: "中度風險(8分)", beforeClass: "risk-3", after: "極低風險(1分)", afterClass: "risk-1",
+                controls: "【工程控制】地下管廊、水池深槽等暗處架設固定式防爆照明，確保通道照度>50Lux、檢修區>300Lux。\n【管理控制】定期巡檢維護燈具完好，嚴禁單人在完全無照明區作業。\n【個人防護】配備高亮度防爆手電筒或高照度頭燈。",
+                checkItems: [
+                    "【工程控制】暗處通道及水池巡檢區已架設充足照度之固定式防爆燈具",
+                    "【個人防護】進入地下管廊或夜間巡檢人員已隨身攜帶高亮度防爆頭燈或手電筒"
+                ]
+            },
+            "人因工程": {
+                before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2",
+                controls: "【工程控制】重物搬運(>40kg)優先使用天車、吊具、電動油壓車或手推車輔助。\n【管理控制】改善閥門與設備操作高度，避免長時間彎腰或過度扭轉；實施搬運姿勢訓練，每小時給予伸展休息時間。\n【個人防護】配戴護腰帶及防滑工作手套。",
+                checkItems: [
+                    "【工程控制】重物搬運與閥門開關已優先使用天車、手推車或專用加力槓桿",
+                    "【管理控制】單人搬運已控制在40kg以下，並落實正確彎膝搬運與適時伸展休息"
                 ]
             },
             "墜落": { 
@@ -414,7 +448,8 @@ HTML
         };
 
         const disasterTypes = [
-            "熱危害", "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", "被夾", "被捲", 
+            "熱危害", "噪音", "蟲害(蛇、蜂、鼠、火蟻等)", "照明不足", "人因工程",
+            "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", "被夾", "被捲", 
             "與有害物等之接觸", "跌倒", "爆炸", "溺斃", "與高溫、低溫之接觸", 
             "衝撞", "其他交通事故", "物體破裂", "感電", "火災", 
             "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩漏"
@@ -422,11 +457,14 @@ HTML
 
         const grid = document.getElementById('disasterGrid');
         disasterTypes.forEach((type, index) => {
-            const isHot = type === "熱危害" ? "border-danger text-danger" : "";
+            let labelClass = "";
+            if(type === "熱危害") labelClass = "border-danger text-danger";
+            else if(["噪音", "蟲害(蛇、蜂、鼠、火蟻等)", "照明不足", "人因工程"].includes(type)) labelClass = "border-primary text-primary";
+
             const html = `
                 <div class="col-6 col-md-3">
                     <input type="checkbox" class="disaster-btn condition-check" id="dis_${index}" value="${type}">
-                    <label class="disaster-label ${isHot}" for="dis_${index}">${type === "熱危害" ? "🔥 熱危害" : type}</label>
+                    <label class="disaster-label ${labelClass}" for="dis_${index}">${type === "熱危害" ? "🔥 熱危害" : type}</label>
                 </div>
             `;
             grid.insertAdjacentHTML('beforeend', html);
@@ -566,7 +604,7 @@ HTML
             const allChecks = document.querySelectorAll('.control-checkbox');
             const checkedCount = document.querySelectorAll('.control-checkbox:checked').length;
             if (allChecks.length > 0 && checkedCount < allChecks.length) {
-                alert("請先將「三、現場已採行控制措施」全部勾選確認，以實證風險降低！");
+                alert("請先將「四、現場已採行控制措施」全部勾選確認，以實證風險降低！");
                 return;
             }
 
@@ -680,7 +718,7 @@ HTML
             }
         });
 
-        // 💡 繪製長文字並自動換行 (Auto Wrap) 演算法
+        // 💡 繪製長文字並精準自動換行 (Auto Wrap) 演算法
         function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
             const words = text.split('');
             let line = '';
@@ -704,7 +742,7 @@ HTML
             return (lineCount + 1) * lineHeight;
         }
 
-        // 🚀 原生 Canvas 合成與動態自動換行長圖產出
+        // 🚀 原生 Canvas 合成與自動換行長圖產出（完美支援廠區營運4大新危害）
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
@@ -734,7 +772,7 @@ HTML
                 checkItemsText.push(label);
             });
 
-            // 預先計算災害表格所需的高度的精準總合
+            // 精準預算動態畫布高度
             let tableTotalHeight = 0;
             ctx.font = "12px Microsoft JhengHei";
             selectedDisasters.forEach(disaster => {
@@ -792,7 +830,7 @@ HTML
             drawCardBox(ctx, 20, currentY, 710, 80 + tableTotalHeight);
             ctx.fillStyle = "#1e40af";
             ctx.font = "bold 18px Microsoft JhengHei";
-            ctx.fillText("📊 二、危害標準風險評估結果 (半定量評估)", 40, currentY + 35);
+            ctx.fillText("📊 三、危害標準風險評估結果 (半定量評估)", 40, currentY + 35);
 
             ctx.fillStyle = "#b91c1c";
             ctx.fillRect(40, currentY + 50, 670, 35);
@@ -805,7 +843,6 @@ HTML
             selectedDisasters.forEach(disaster => {
                 const rule = disasterDatabase[disaster];
                 
-                // 動態計算此單一災害卡片高度
                 ctx.font = "12px Microsoft JhengHei";
                 const lines = rule.controls.split('\n');
                 let textHeightAcc = 0;
@@ -821,7 +858,6 @@ HTML
                 ctx.lineWidth = 1;
                 ctx.strokeRect(40, tableY, 670, singleCardH);
 
-                // 災害名稱與風險標籤
                 ctx.fillStyle = "#0f172a";
                 ctx.font = "bold 16px Microsoft JhengHei";
                 ctx.textAlign = "left";
@@ -834,12 +870,11 @@ HTML
                 ctx.fillStyle = "#16a34a";
                 ctx.fillText(`改善後：${rule.after}`, 55, tableY + 90);
 
-                // 自動換行繪製控制措施
                 ctx.fillStyle = "#334155";
                 ctx.font = "12px Microsoft JhengHei";
                 let textY = tableY + 25;
                 lines.forEach((line) => {
-                    let drawnH = drawWrappedText(ctx, line, 215, textY, 470, 22);
+                    let drawnH = drawWrappedText(ctx, line, 215, textY, 440, 22);
                     textY += drawnH;
                 });
 
@@ -852,7 +887,7 @@ HTML
             ctx.fillStyle = "#15803d";
             ctx.font = "bold 18px Microsoft JhengHei";
             ctx.textAlign = "left";
-            ctx.fillText("✅ 三、現場已採行控制措施 (勾稽確認)", 40, currentY + 35);
+            ctx.fillText("✅ 四、現場已採行控制措施 (勾稽確認)", 40, currentY + 35);
 
             let checkY = currentY + 65;
             checkItemsText.forEach(chkText => {
@@ -870,7 +905,7 @@ HTML
             drawCardBox(ctx, 20, currentY, 710, 220);
             ctx.fillStyle = "#1e40af";
             ctx.font = "bold 18px Microsoft JhengHei";
-            ctx.fillText("✍️ 四、危害告知與開工確認簽章", 40, currentY + 35);
+            ctx.fillText("✍️ 五、危害告知與開工確認簽章", 40, currentY + 35);
 
             ctx.fillStyle = "#dc2626";
             ctx.font = "bold 13px Microsoft JhengHei";
