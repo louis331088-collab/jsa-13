@@ -287,7 +287,7 @@ HTML
             const idOther = document.getElementById('otherIdentityInput').value.trim();
 
             let deptName = (deptSel === '其他') ? (deptOther || "自訂公司") : deptSel;
-            let idName = (idSel === '網絡') ? (idOther || "自訂身份") : idSel;
+            let idName = (idSel === '其他') ? (idOther || "自訂身份") : idSel;
 
             document.getElementById('workerSigLabel').innerText = `【手寫簽名】已了解危害人員（${deptName} - ${idName}）`;
         }
@@ -718,31 +718,31 @@ HTML
             }
         });
 
-        // 💡 繪製長文字並精準自動換行 (Auto Wrap) 演算法
-        function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+        // 💡 精準自動折行 (Auto-Wrap) 演算法：支援自訂 X 軸與動態最大寬度
+        function drawWrappedText(ctx, text, startX, startY, maxWidth, lineHeight) {
             const words = text.split('');
             let line = '';
-            let currentY = y;
-            let lineCount = 0;
+            let currentY = startY;
+            let totalHeightAcc = 0;
 
             for (let n = 0; n < words.length; n++) {
                 let testLine = line + words[n];
                 let metrics = ctx.measureText(testLine);
-                let testWidth = metrics.width;
-                if (testWidth > maxWidth && n > 0) {
-                    ctx.fillText(line, x, currentY);
+                if (metrics.width > maxWidth && n > 0) {
+                    ctx.fillText(line, startX, currentY);
                     line = words[n];
                     currentY += lineHeight;
-                    lineCount++;
+                    totalHeightAcc += lineHeight;
                 } else {
                     line = testLine;
                 }
             }
-            ctx.fillText(line, x, currentY);
-            return (lineCount + 1) * lineHeight;
+            ctx.fillText(line, startX, currentY);
+            totalHeightAcc += lineHeight;
+            return totalHeightAcc;
         }
 
-        // 🚀 原生 Canvas 合成與自動換行長圖產出（完美支援廠區營運4大新危害）
+        // 🚀 原生 Canvas 合成：防重疊、精準佈局長圖產出
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
@@ -772,18 +772,34 @@ HTML
                 checkItemsText.push(label);
             });
 
-            // 精準預算動態畫布高度
+            // 💡 預先精準計算每一張危害卡片的「實際所需高度」
             let tableTotalHeight = 0;
+            const cardHeightList = [];
+
             ctx.font = "12px Microsoft JhengHei";
             selectedDisasters.forEach(disaster => {
                 const rule = disasterDatabase[disaster];
                 const lines = rule.controls.split('\n');
-                let cardH = 30;
+                let singleCardTextH = 15;
+                
                 lines.forEach(line => {
-                    const wordsCount = Math.ceil(ctx.measureText(line).width / 440);
-                    cardH += Math.max(1, wordsCount) * 22;
+                    const words = line.split('');
+                    let tempLine = '';
+                    let lineCount = 1;
+                    for (let w = 0; w < words.length; w++) {
+                        if (ctx.measureText(tempLine + words[w]).width > 420 && w > 0) {
+                            lineCount++;
+                            tempLine = words[w];
+                        } else {
+                            tempLine += words[w];
+                        }
+                    }
+                    singleCardTextH += lineCount * 22;
                 });
-                tableTotalHeight += Math.max(120, cardH + 20);
+
+                let calcH = Math.max(125, singleCardTextH + 20);
+                cardHeightList.push(calcH);
+                tableTotalHeight += calcH + 15;
             });
 
             let totalHeight = 620 + tableTotalHeight + (checkItemsText.length * 35) + 380;
@@ -825,7 +841,7 @@ HTML
             ctx.fillText(`填報人身份： ${idName}`, 40, currentY + 95);
             ctx.fillText(`施工工項： ${jobName}`, 380, currentY + 70);
 
-            // 4. 二、危害評估結果
+            // 4. 三、危害評估結果
             currentY += 150;
             drawCardBox(ctx, 20, currentY, 710, 80 + tableTotalHeight);
             ctx.fillStyle = "#1e40af";
@@ -840,48 +856,46 @@ HTML
             ctx.fillText(`針對【${jobName}】評估最高初始風險：高度/極高風險 (在降險防護到位前不可開工)`, 375, currentY + 73);
 
             let tableY = currentY + 100;
-            selectedDisasters.forEach(disaster => {
+            selectedDisasters.forEach((disaster, idx) => {
                 const rule = disasterDatabase[disaster];
-                
-                ctx.font = "12px Microsoft JhengHei";
-                const lines = rule.controls.split('\n');
-                let textHeightAcc = 0;
-                lines.forEach(line => {
-                    const wordsCount = Math.ceil(ctx.measureText(line).width / 440);
-                    textHeightAcc += Math.max(1, wordsCount) * 22;
-                });
-                let singleCardH = Math.max(115, textHeightAcc + 25);
+                const singleCardH = cardHeightList[idx];
 
+                // 畫白色內卡片框
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(40, tableY, 670, singleCardH);
                 ctx.strokeStyle = "#cbd5e1";
                 ctx.lineWidth = 1;
                 ctx.strokeRect(40, tableY, 670, singleCardH);
 
+                // 💡 關鍵修正：左側災害標題如果字數較多 (例如蟲害)，採用動態折行，並把右側對策起點拉遠至 260px，絕不重疊！
                 ctx.fillStyle = "#0f172a";
-                ctx.font = "bold 16px Microsoft JhengHei";
+                ctx.font = "bold 15px Microsoft JhengHei";
                 ctx.textAlign = "left";
-                ctx.fillText(`【${disaster}】`, 55, tableY + 30);
+                
+                // 畫左側危害名稱與風險標籤
+                drawWrappedText(ctx, `【${disaster}】`, 50, tableY + 28, 200, 20);
 
                 ctx.fillStyle = "#dc2626";
-                ctx.font = "bold 13px Microsoft JhengHei";
-                ctx.fillText(`改善前：${rule.before}`, 55, tableY + 60);
+                ctx.font = "bold 12px Microsoft JhengHei";
+                ctx.fillText(`改善前：${rule.before}`, 50, tableY + 68);
 
                 ctx.fillStyle = "#16a34a";
-                ctx.fillText(`改善後：${rule.after}`, 55, tableY + 90);
+                ctx.fillText(`改善後：${rule.after}`, 50, tableY + 92);
 
+                // 💡 右側控制措施：起點設定為 260px，給予 420px 寬度，徹底防重疊
                 ctx.fillStyle = "#334155";
                 ctx.font = "12px Microsoft JhengHei";
+                const lines = rule.controls.split('\n');
                 let textY = tableY + 25;
                 lines.forEach((line) => {
-                    let drawnH = drawWrappedText(ctx, line, 215, textY, 440, 22);
+                    let drawnH = drawWrappedText(ctx, line, 260, textY, 430, 22);
                     textY += drawnH;
                 });
 
                 tableY += singleCardH + 15;
             });
 
-            // 5. 三、控制措施
+            // 5. 四、現場已採行控制措施
             currentY = tableY + 10;
             drawCardBox(ctx, 20, currentY, 710, 60 + (checkItemsText.length * 35));
             ctx.fillStyle = "#15803d";
@@ -900,7 +914,7 @@ HTML
                 checkY += 32;
             });
 
-            // 6. 四、雙簽名
+            // 6. 五、雙簽名
             currentY = checkY + 20;
             drawCardBox(ctx, 20, currentY, 710, 220);
             ctx.fillStyle = "#1e40af";
