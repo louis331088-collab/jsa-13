@@ -103,10 +103,10 @@ HTML
         </div>
     </div>
 
-    <!-- 紀錄圖片生成檢視區 (.JPG 長圖彈窗) -->
+    <!-- 紀錄圖片與告示牌生成檢視區 -->
     <div id="resultImageModal" class="custom-modal no-print">
         <div class="custom-modal-content">
-            <h5 class="fw-bold text-success mb-2">🎉 紀錄長圖檔已成功產出！</h5>
+            <h5 class="fw-bold text-success mb-2" id="modalTitle">🎉 圖檔已成功產出！</h5>
             <p class="text-danger small fw-bold mb-2">【⚠️ 請長按下方圖片即可儲存至手機相簿】</p>
             <div style="max-height: 60vh; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; background: #f8fafc;">
                 <img id="finalExportedImage" src="" alt="圖檔生成中..." style="width: 100%; height: auto;" />
@@ -239,6 +239,7 @@ HTML
         <div class="d-grid gap-2">
             <button id="sendToSafetyBtn" class="btn btn-primary btn-lg shadow" style="font-size:1.05rem;" onclick="generatePassData()">🚀 危害確認完成：生成 QR Code 傳送職安審核</button>
             <button id="exportBtn" class="btn btn-success btn-lg shadow d-none" style="font-size:1.05rem;" onclick="exportAsImage()">📸 現場審核通過：匯出雙簽名評估紀錄圖檔</button>
+            <button class="btn btn-info btn-lg text-white shadow" style="font-size:1.05rem;" onclick="generatePosterQR()">🖼️ 匯出山林水專屬告示牌 QR Code 圖檔</button>
             <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ 呼叫系統列印 / 儲存為 PDF 電子檔</button>
         </div>
     </div>
@@ -882,7 +883,7 @@ HTML
                 ctx.fillStyle = "#16a34a";
                 ctx.fillText(`改善後：${rule.after}`, 50, tableY + 92);
 
-                // 💡 右側控制措施：起點設定為 260px，給予 420px 寬度，徹底防重疊
+                // 💡 右側控制措施：起點設定為 260px，給予 430px 寬度，徹底防重疊
                 ctx.fillStyle = "#334155";
                 ctx.font = "12px Microsoft JhengHei";
                 const lines = rule.controls.split('\n');
@@ -939,9 +940,86 @@ HTML
             ctx.textAlign = "center";
             ctx.fillText("江十三 著作權所有 翻印必究", 375, currentY + 205);
 
+            document.getElementById('modalTitle').innerText = "🎉 紀錄長圖檔已成功產出！";
             const imgData = canvas.toDataURL("image/jpeg", 0.92);
             document.getElementById('finalExportedImage').src = imgData;
             document.getElementById('resultImageModal').style.display = "block";
+        }
+
+        // 🚀 繪製「山林水專屬告示牌 QR Code 圖檔」函數
+        function generatePosterQR() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 600;
+            canvas.height = 780;
+
+            // 底色
+            ctx.fillStyle = "#f8fafc";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 頂部深藍標題
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, 0, 600, 150);
+
+            ctx.fillStyle = "#38bdf8";
+            ctx.font = "bold 22px Microsoft JhengHei";
+            ctx.textAlign = "center";
+            ctx.fillText("山林水環境工程股份有限公司", 300, 50);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 26px Microsoft JhengHei";
+            ctx.fillText("智慧型動態危害辨識與風險評估系統", 300, 92);
+
+            ctx.fillStyle = "#facc15";
+            ctx.font = "bold 14px Microsoft JhengHei";
+            ctx.fillText("開工前危害告知與雙簽名管制入口", 300, 125);
+
+            // 白色中心卡片
+            drawCardBox(ctx, 40, 180, 520, 550);
+
+            ctx.fillStyle = "#1e40af";
+            ctx.font = "bold 20px Microsoft JhengHei";
+            ctx.fillText("📱 請使用手機相機掃描 QR Code 啟動", 300, 225);
+
+            // 臨時生成 300x300 QR Code 畫至中心
+            const tempDiv = document.createElement('div');
+            tempDiv.style.display = 'none';
+            document.body.appendChild(tempDiv);
+            
+            const targetUrl = window.location.origin + window.location.pathname;
+
+            new QRCode(tempDiv, {
+                text: targetUrl,
+                width: 280,
+                height: 280
+            });
+
+            setTimeout(() => {
+                const qrImg = tempDiv.querySelector('img') || tempDiv.querySelector('canvas');
+                ctx.drawImage(qrImg, 160, 250, 280, 280);
+                document.body.removeChild(tempDiv);
+
+                // 說明提示
+                ctx.fillStyle = "#475569";
+                ctx.font = "15px Microsoft JhengHei";
+                ctx.fillText("👉 支援現場危害辨識、對策勾稽與即時雙簽名", 300, 570);
+                ctx.fillText("👉 免下載 App，手機掃碼即刻進行開工核可", 300, 600);
+
+                ctx.fillStyle = "#2563eb";
+                ctx.font = "bold 15px Microsoft JhengHei";
+                ctx.fillText(`網址：${targetUrl}`, 300, 635);
+
+                // 防偽標籤
+                ctx.fillStyle = "#94a3b8";
+                ctx.font = "bold 13px Microsoft JhengHei";
+                ctx.fillText("江十三 著作權所有 翻印必究", 300, 700);
+
+                // 彈出視窗
+                document.getElementById('modalTitle').innerText = "🖼️ 山林水專屬告示牌 QR Code";
+                const posterData = canvas.toDataURL("image/jpeg", 0.92);
+                document.getElementById('finalExportedImage').src = posterData;
+                document.getElementById('resultImageModal').style.display = "block";
+            }, 200);
         }
 
         function drawCardBox(ctx, x, y, width, height) {
