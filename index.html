@@ -165,12 +165,12 @@ HTML
                     <button class="btn btn-sm btn-outline-secondary" onclick="toggleApiKeyInput()">⚙️ 設定 API Key</button>
                 </div>
                 <div id="apiKeySection" class="mt-2 d-none">
-                    <label class="form-label small fw-bold text-muted">Gemini API Key (應為 AIzaSy 開頭)：</label>
+                    <label class="form-label small fw-bold text-muted">Gemini API Key：</label>
                     <div class="input-group">
-                        <input type="password" class="form-control form-control-sm" id="apiKeyInput" placeholder="請輸入以 AIzaSy 開頭的 API Key">
+                        <input type="password" class="form-control form-control-sm" id="apiKeyInput" placeholder="請貼上完整的 API Key">
                         <button class="btn btn-sm btn-primary" onclick="saveApiKey()">儲存</button>
                     </div>
-                    <div class="form-text x-small text-muted">金鑰只會保存在手機本機瀏覽器中。</div>
+                    <div class="form-text x-small text-muted">已完整支援新版 AQ.Ab8... 與舊版 AIzaSy... 格式金鑰。</div>
                 </div>
                 <p class="text-muted small mt-2 mb-2">拍攝或上傳現場施工環境照片，AI 將自動辨識作業環境並建議潛在危害：</p>
                 <div class="row g-2">
@@ -620,7 +620,7 @@ HTML
             }
         }
 
-        /* 現場照片壓縮與 AI 辨識 */
+        /* 現場照片壓縮與 AI 辨識（支援新版 AQ. 開頭金鑰） */
         function previewAndAnalyzePhoto() {
             const fileInput = document.getElementById('sitePhotoInput');
             const file = fileInput.files[0];
@@ -628,7 +628,7 @@ HTML
 
             const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
             if (!apiKey) {
-                alert("請先點選右上角『⚙️ 設定 API Key』輸入您的 Gemini API Key (以 AIzaSy 開頭)！");
+                alert("請先點選右上角『⚙️ 設定 API Key』輸入您的 Gemini API Key！");
                 toggleApiKeyInput();
                 fileInput.value = '';
                 return;
@@ -643,7 +643,6 @@ HTML
             aiLoading.classList.remove('d-none');
             aiResultText.classList.add('d-none');
 
-            // 自動將圖片壓縮至 800px 最佳解析度，避免手機原圖過大導致請求失敗
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
@@ -692,7 +691,7 @@ HTML
   "analysisSummary": "針對現場危害的簡要說明與分析理由（80字以內）"
 }`;
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
             const requestBody = {
                 contents: [{
@@ -709,7 +708,10 @@ HTML
             try {
                 const response = await fetch(url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKey
+                    },
                     body: JSON.stringify(requestBody)
                 });
 
@@ -739,7 +741,7 @@ HTML
                 aiLoading.classList.add('d-none');
                 aiResultText.classList.remove('d-none');
                 aiResultText.className = "alert alert-danger mt-2 py-2 small text-start";
-                aiResultText.innerHTML = `❌ AI 辨識失敗：${err.message}<br><small>請確認金鑰是否為以 <strong>AIzaSy</strong> 開頭的有效金鑰。</small>`;
+                aiResultText.innerHTML = `❌ AI 辨識失敗：${err.message}`;
             }
         }
 
