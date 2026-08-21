@@ -165,12 +165,12 @@ HTML
                     <button class="btn btn-sm btn-outline-secondary" onclick="toggleApiKeyInput()">⚙️ 設定 API Key</button>
                 </div>
                 <div id="apiKeySection" class="mt-2 d-none">
-                    <label class="form-label small fw-bold text-muted">Gemini API Key：</label>
+                    <label class="form-label small fw-bold text-muted">Gemini API Key (應為 AIzaSy 開頭)：</label>
                     <div class="input-group">
-                        <input type="password" class="form-control form-control-sm" id="apiKeyInput" placeholder="請輸入 Google AI Studio 的 API Key">
+                        <input type="password" class="form-control form-control-sm" id="apiKeyInput" placeholder="請輸入以 AIzaSy 開頭的 API Key">
                         <button class="btn btn-sm btn-primary" onclick="saveApiKey()">儲存</button>
                     </div>
-                    <div class="form-text x-small">金鑰僅存於您的手機瀏覽器中，不會上傳至任何伺服器。</div>
+                    <div class="form-text x-small text-muted">金鑰只會保存在手機本機瀏覽器中。</div>
                 </div>
                 <p class="text-muted small mt-2 mb-2">拍攝或上傳現場施工環境照片，AI 將自動辨識作業環境並建議潛在危害：</p>
                 <div class="row g-2">
@@ -180,7 +180,7 @@ HTML
                     <div id="photoPreviewContainer" class="col-12 text-center d-none mt-2">
                         <img id="photoPreview" class="img-fluid rounded border" style="max-height: 200px;" alt="現場照片預覽">
                         <div id="aiLoading" class="mt-2 text-primary fw-bold d-none">
-                            <span class="spinner-border spinner-border-sm me-1"></span> AI 正分析施工現場潛在危害中...
+                            <span class="spinner-border spinner-border-sm me-1"></span> AI 正在分析現場潛在危害中...
                         </div>
                         <div id="aiResultText" class="alert alert-success mt-2 py-2 small d-none text-start"></div>
                     </div>
@@ -620,7 +620,7 @@ HTML
             }
         }
 
-        /* AI 現場照片視覺辨識核心函式 */
+        /* 現場照片壓縮與 AI 辨識 */
         function previewAndAnalyzePhoto() {
             const fileInput = document.getElementById('sitePhotoInput');
             const file = fileInput.files[0];
@@ -628,7 +628,7 @@ HTML
 
             const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
             if (!apiKey) {
-                alert("請先點選右上角『⚙️ 設定 API Key』輸入您的 Gemini API Key！");
+                alert("請先點選右上角『⚙️ 設定 API Key』輸入您的 Gemini API Key (以 AIzaSy 開頭)！");
                 toggleApiKeyInput();
                 fileInput.value = '';
                 return;
@@ -643,11 +643,35 @@ HTML
             aiLoading.classList.remove('d-none');
             aiResultText.classList.add('d-none');
 
+            // 自動將圖片壓縮至 800px 最佳解析度，避免手機原圖過大導致請求失敗
             const reader = new FileReader();
             reader.onload = function(e) {
-                previewImg.src = e.target.result;
-                const base64Data = e.target.result.split(',')[1];
-                analyzeImageWithGemini(apiKey, base64Data, file.type);
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 800;
+
+                    if (width > height && width > maxDim) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else if (height > maxDim) {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                    previewImg.src = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    analyzeImageWithGemini(apiKey, compressedBase64, 'image/jpeg');
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -662,13 +686,13 @@ HTML
 2. 必須從以下標準危害清單中挑選符合的項目（請只選取照片中真正存在的項目）：
 ["熱危害", "噪音", "蟲害(蛇、蜂、鼠、火蟻等)", "照明不足", "人因工程", "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", "被夾", "被捲", "與有害物等之接觸", "跌倒", "爆炸", "溺斃", "與高溫、低溫之接觸", "衝撞", "其他交通事故", "物體破裂", "感電", "火災", "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩漏"]
 
-請輸出嚴格的 JSON 格式，格式如下：
+請輸出嚴格的 JSON 格式，不要包含任何 markdown 標記：
 {
   "detectedDisasters": ["危害1", "危害2"],
   "analysisSummary": "針對現場危害的簡要說明與分析理由（80字以內）"
 }`;
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             const requestBody = {
                 contents: [{
@@ -690,7 +714,8 @@ HTML
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API 請求失敗: ${response.status}`);
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error?.message || `HTTP ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -698,6 +723,7 @@ HTML
                 const result = JSON.parse(jsonText);
 
                 aiLoading.classList.add('d-none');
+                aiResultText.className = "alert alert-success mt-2 py-2 small text-start";
                 aiResultText.classList.remove('d-none');
                 aiResultText.innerHTML = `<strong>🤖 AI 危害辨識結論：</strong><br>${result.analysisSummary}<br><span class="text-primary fw-bold">已自動為您勾選：${result.detectedDisasters.join('、')}</span>`;
 
@@ -713,7 +739,7 @@ HTML
                 aiLoading.classList.add('d-none');
                 aiResultText.classList.remove('d-none');
                 aiResultText.className = "alert alert-danger mt-2 py-2 small text-start";
-                aiResultText.innerText = "❌ AI 辨識失敗，請檢查 API Key 是否正確或網路連線狀態。";
+                aiResultText.innerHTML = `❌ AI 辨識失敗：${err.message}<br><small>請確認金鑰是否為以 <strong>AIzaSy</strong> 開頭的有效金鑰。</small>`;
             }
         }
 
