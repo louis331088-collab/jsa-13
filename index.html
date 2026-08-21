@@ -161,7 +161,7 @@ HTML
             <!-- AI 視覺辨識卡片 -->
             <div class="card p-3 no-print border border-info bg-light">
                 <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
-                    <h5 class="text-primary mb-0" style="font-size:1.05rem;">🤖 現場照片 AI 智慧危害辨識 (Vision API)</h5>
+                    <h5 class="text-primary mb-0" style="font-size:1.05rem;">🤖 現場照片 AI 智慧危害辨識 (Vision AI)</h5>
                     <button class="btn btn-sm btn-outline-secondary" onclick="toggleApiKeyInput()">⚙️ 設定 API Key</button>
                 </div>
                 <div id="apiKeySection" class="mt-2 d-none">
@@ -170,7 +170,7 @@ HTML
                         <input type="password" class="form-control form-control-sm" id="apiKeyInput" placeholder="請貼上完整的 API Key">
                         <button class="btn btn-sm btn-primary" onclick="saveApiKey()">儲存</button>
                     </div>
-                    <div class="form-text x-small text-muted">已完整支援新版 AQ.Ab8... 與舊版 AIzaSy... 格式金鑰。</div>
+                    <div class="form-text x-small text-muted">支援新版 AQ.Ab8... 格式金鑰。</div>
                 </div>
                 <p class="text-muted small mt-2 mb-2">拍攝或上傳現場施工環境照片，AI 將自動辨識作業環境並建議潛在危害：</p>
                 <div class="row g-2">
@@ -620,7 +620,7 @@ HTML
             }
         }
 
-        /* 現場照片壓縮與 AI 辨識（支援新版 AQ. 開頭金鑰） */
+        /* 現場照片壓縮與 AI 辨識（採用最新版 gemini-3.6-flash 端點） */
         function previewAndAnalyzePhoto() {
             const fileInput = document.getElementById('sitePhotoInput');
             const file = fileInput.files[0];
@@ -691,7 +691,8 @@ HTML
   "analysisSummary": "針對現場危害的簡要說明與分析理由（80字以內）"
 }`;
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            // 使用官方最新指定的 gemini-3.6-flash 端點
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
             const requestBody = {
                 contents: [{
