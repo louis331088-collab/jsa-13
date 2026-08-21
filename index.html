@@ -5,14 +5,11 @@ HTML
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智慧型動態危害辨識與風險評估系統</title>
-    <!-- 引入美觀的 CSS 框架 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入純前端 QR Code 生成套件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; position: relative; }
         
-        /* 💡 智產防禦：網頁動態防偽「江十三」全螢幕背景浮水印 */
         body::before {
             content: "江十三 著作權所有 翻印必究  江十三 著作權所有 翻印必究";
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -25,29 +22,24 @@ HTML
         .card { border: none; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; background-color: #fff; z-index: 1; }
         .header-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 22px 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
         .risk-badge { font-size: 1.05rem; font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; color: white; }
-        .risk-5 { background-color: #7f1d1d; } /* 極高風險 */
-        .risk-4 { background-color: #b91c1c; } /* 高度風險 */
-        .risk-3 { background-color: #c2410c; } /* 中度風險 */
-        .risk-2 { background-color: #eab308; color: #1e293b; } /* 低度風險 */
-        .risk-1 { background-color: #15803d; } /* 極低風險 */
+        .risk-5 { background-color: #7f1d1d; }
+        .risk-4 { background-color: #b91c1c; }
+        .risk-3 { background-color: #c2410c; }
+        .risk-2 { background-color: #eab308; color: #1e293b; }
+        .risk-1 { background-color: #15803d; }
         .disaster-btn { display: none; }
         .disaster-label { display: block; padding: 10px 4px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: all 0.2s; background-color: #fff; }
         .disaster-btn:checked + .disaster-label { background-color: #2563eb; color: white; border-color: #1d4ed8; transform: scale(1.02); }
         .sig-canvas { border: 2px dashed #94a3b8; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; max-width: 320px; height: 130px; }
         
-        /* 行動裝置表格優化 */
         .table-responsive { border-radius: 8px; overflow: hidden; }
         .table th { font-size: 0.8rem; padding: 8px 4px !important; text-align: center; vertical-align: middle; }
         .table td { font-size: 0.82rem; padding: 8px 6px !important; }
         .badge-risk-cell { font-size: 0.75rem; font-weight: bold; padding: 4px 2px; white-space: normal; line-height: 1.1; display: block; width: 100%; text-align: center; }
 
-        /* 控制措施勾稽卡片專用 */
         .control-check-item { background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 10px; margin-bottom: 8px; border-radius: 4px; }
-
-        /* 導出圖片專用低調防偽區 */
         .watermark-footer { display: none; font-size: 0.82rem; color: #64748b; font-weight: bold; margin-top: 20px; text-align: center; width: 100%; }
 
-        /* 彈出視窗樣式 */
         .custom-modal {
             display: none;
             position: fixed;
@@ -80,7 +72,6 @@ HTML
 </head>
 <body>
 
-    <!-- 智產防禦遮罩 -->
     <div id="lockout-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0f172a; color:#f8fafc; z-index:99999; padding:50px 20px; text-align:center;">
         <h2 class="text-danger fw-bold mb-4">⚠️ 系統安全授權驗證失敗</h2>
         <p class="fs-5">本系統受智慧財產權與國家競賽防盜條款保護。</p>
@@ -88,7 +79,6 @@ HTML
         <p class="text-muted mt-5">原創研發著作權人：江十三 先生</p>
     </div>
 
-    <!-- 彈出式 QR Code 視窗 -->
     <div id="qrModal" class="custom-modal no-print">
         <div class="custom-modal-content">
             <h5 class="fw-bold text-primary mb-3">📱 危害辨識核可 QR Code</h5>
@@ -103,10 +93,9 @@ HTML
         </div>
     </div>
 
-    <!-- 紀錄圖片與告示牌生成檢視區 -->
     <div id="resultImageModal" class="custom-modal no-print">
         <div class="custom-modal-content">
-            <h5 class="fw-bold text-success mb-2" id="modalTitle">🎉 圖檔已成功產出！</h5>
+            <h5 class="fw-bold text-success mb-2" id="modalTitle">🎉 紀錄長圖檔已成功產出！</h5>
             <p class="text-danger small fw-bold mb-2">【⚠️ 請長按下方圖片即可儲存至手機相簿】</p>
             <div style="max-height: 60vh; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; background: #f8fafc;">
                 <img id="finalExportedImage" src="" alt="圖檔生成中..." style="width: 100%; height: auto;" />
@@ -118,7 +107,6 @@ HTML
     </div>
 
     <div id="capture-area">
-        <!-- 抬頭 -->
         <div class="header-banner">
             <div class="fw-bold text-info mb-1" style="font-size: 1.1rem; letter-spacing: 2px;">山林水環境工程股份有限公司</div>
             <h3>智慧型動態危害辨識與風險評估系統</h3>
@@ -126,7 +114,6 @@ HTML
         </div>
 
         <div class="container px-1">
-            <!-- 警示橫幅 -->
             <div id="jc-alert" class="alert alert-warning d-none text-center fw-bold shadow-sm mb-2" style="font-size:0.85rem;" role="alert">
                 ℹ️ 偵測到施工人員傳送之危害確認紀錄，請審核完畢後於右側管理人員欄位簽字核可。
             </div>
@@ -167,6 +154,35 @@ HTML
                     <div class="col-12">
                         <label class="form-label fw-bold text-secondary" style="font-size:0.9rem;">請輸入目前現場施工工項名稱：</label>
                         <input type="text" class="form-control border-primary" id="jobInput" style="font-size:1rem;" placeholder="例如：鼓風機檢修、大池巡檢、管線開挖作業...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI 視覺辨識卡片 -->
+            <div class="card p-3 no-print border border-info bg-light">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                    <h5 class="text-primary mb-0" style="font-size:1.05rem;">🤖 現場照片 AI 智慧危害辨識 (Vision API)</h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleApiKeyInput()">⚙️ 設定 API Key</button>
+                </div>
+                <div id="apiKeySection" class="mt-2 d-none">
+                    <label class="form-label small fw-bold text-muted">Gemini API Key：</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control form-control-sm" id="apiKeyInput" placeholder="請輸入 Google AI Studio 的 API Key">
+                        <button class="btn btn-sm btn-primary" onclick="saveApiKey()">儲存</button>
+                    </div>
+                    <div class="form-text x-small">金鑰僅存於您的手機瀏覽器中，不會上傳至任何伺服器。</div>
+                </div>
+                <p class="text-muted small mt-2 mb-2">拍攝或上傳現場施工環境照片，AI 將自動辨識作業環境並建議潛在危害：</p>
+                <div class="row g-2">
+                    <div class="col-12">
+                        <input type="file" class="form-control border-info" id="sitePhotoInput" accept="image/*" capture="environment" onchange="previewAndAnalyzePhoto()">
+                    </div>
+                    <div id="photoPreviewContainer" class="col-12 text-center d-none mt-2">
+                        <img id="photoPreview" class="img-fluid rounded border" style="max-height: 200px;" alt="現場照片預覽">
+                        <div id="aiLoading" class="mt-2 text-primary fw-bold d-none">
+                            <span class="spinner-border spinner-border-sm me-1"></span> AI 正分析施工現場潛在危害中...
+                        </div>
+                        <div id="aiResultText" class="alert alert-success mt-2 py-2 small d-none text-start"></div>
                     </div>
                 </div>
             </div>
@@ -229,7 +245,6 @@ HTML
                 </div>
             </div>
             
-            <!-- 智產防禦防偽宣告 -->
             <div id="image-watermark" class="watermark-footer">江十三 著作權所有 翻印必究</div>
         </div>
     </div>
@@ -245,7 +260,6 @@ HTML
     </div>
 
     <script>
-        // 智產防禦：域名鎖定
         (function() {
             const allowedHost = "louis331088-collab.github.io";
             if (window.location.hostname !== allowedHost && window.location.hostname !== "127.0.0.1" && window.location.hostname !== "localhost") {
@@ -256,6 +270,24 @@ HTML
             }
             document.addEventListener('contextmenu', e => e.preventDefault());
         })();
+
+        function toggleApiKeyInput() {
+            const sec = document.getElementById('apiKeySection');
+            sec.classList.toggle('d-none');
+            const savedKey = localStorage.getItem('GEMINI_API_KEY');
+            if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key) {
+                localStorage.setItem('GEMINI_API_KEY', key);
+                alert("Gemini API Key 已儲存！");
+                document.getElementById('apiKeySection').classList.add('d-none');
+            } else {
+                alert("請輸入有效的 API Key！");
+            }
+        }
 
         function toggleOtherDeptInput() {
             const select = document.getElementById('deptSelect');
@@ -588,6 +620,103 @@ HTML
             }
         }
 
+        /* AI 現場照片視覺辨識核心函式 */
+        function previewAndAnalyzePhoto() {
+            const fileInput = document.getElementById('sitePhotoInput');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                alert("請先點選右上角『⚙️ 設定 API Key』輸入您的 Gemini API Key！");
+                toggleApiKeyInput();
+                fileInput.value = '';
+                return;
+            }
+
+            const previewContainer = document.getElementById('photoPreviewContainer');
+            const previewImg = document.getElementById('photoPreview');
+            const aiLoading = document.getElementById('aiLoading');
+            const aiResultText = document.getElementById('aiResultText');
+
+            previewContainer.classList.remove('d-none');
+            aiLoading.classList.remove('d-none');
+            aiResultText.classList.add('d-none');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                const base64Data = e.target.result.split(',')[1];
+                analyzeImageWithGemini(apiKey, base64Data, file.type);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function analyzeImageWithGemini(apiKey, base64Data, mimeType) {
+            const aiLoading = document.getElementById('aiLoading');
+            const aiResultText = document.getElementById('aiResultText');
+
+            const systemPrompt = `你是一位具備甲種職業安全衛生業務主管資格的專業稽核專家。
+請仔細審視這張施工或廠區現場照片，根據台灣《職業安全衛生設施規則》與營造安全指引：
+1. 辨識照片中的作業環境與潛在危害。
+2. 必須從以下標準危害清單中挑選符合的項目（請只選取照片中真正存在的項目）：
+["熱危害", "噪音", "蟲害(蛇、蜂、鼠、火蟻等)", "照明不足", "人因工程", "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", "被夾", "被捲", "與有害物等之接觸", "跌倒", "爆炸", "溺斃", "與高溫、低溫之接觸", "衝撞", "其他交通事故", "物體破裂", "感電", "火災", "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩漏"]
+
+請輸出嚴格的 JSON 格式，格式如下：
+{
+  "detectedDisasters": ["危害1", "危害2"],
+  "analysisSummary": "針對現場危害的簡要說明與分析理由（80字以內）"
+}`;
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+            const requestBody = {
+                contents: [{
+                    parts: [
+                        { text: systemPrompt },
+                        { inline_data: { mime_type: mimeType, data: base64Data } }
+                    ]
+                }],
+                generationConfig: {
+                    response_mime_type: "application/json"
+                }
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API 請求失敗: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const jsonText = data.candidates[0].content.parts[0].text;
+                const result = JSON.parse(jsonText);
+
+                aiLoading.classList.add('d-none');
+                aiResultText.classList.remove('d-none');
+                aiResultText.innerHTML = `<strong>🤖 AI 危害辨識結論：</strong><br>${result.analysisSummary}<br><span class="text-primary fw-bold">已自動為您勾選：${result.detectedDisasters.join('、')}</span>`;
+
+                document.querySelectorAll('.condition-check').forEach(cb => {
+                    if (result.detectedDisasters.includes(cb.value)) {
+                        cb.checked = true;
+                    }
+                });
+
+                evaluateRisk();
+
+            } catch (err) {
+                aiLoading.classList.add('d-none');
+                aiResultText.classList.remove('d-none');
+                aiResultText.className = "alert alert-danger mt-2 py-2 small text-start";
+                aiResultText.innerText = "❌ AI 辨識失敗，請檢查 API Key 是否正確或網路連線狀態。";
+            }
+        }
+
         let generatedTargetUrl = ""; 
 
         function urlSafeBtoa(str) {
@@ -648,6 +777,9 @@ HTML
         }
 
         window.addEventListener('load', () => {
+            const savedKey = localStorage.getItem('GEMINI_API_KEY');
+            if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+
             const urlParams = new URLSearchParams(window.location.search);
             const rawData = urlParams.get('data');
 
@@ -719,7 +851,6 @@ HTML
             }
         });
 
-        // 💡 精準自動折行 (Auto-Wrap) 演算法：支援自訂 X 軸與動態最大寬度
         function drawWrappedText(ctx, text, startX, startY, maxWidth, lineHeight) {
             const words = text.split('');
             let line = '';
@@ -743,7 +874,6 @@ HTML
             return totalHeightAcc;
         }
 
-        // 🚀 原生 Canvas 合成：防重疊、精準佈局長圖產出
         function exportAsImage() {
             if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
             
@@ -773,7 +903,6 @@ HTML
                 checkItemsText.push(label);
             });
 
-            // 💡 預先精準計算每一張危害卡片的「實際所需高度」
             let tableTotalHeight = 0;
             const cardHeightList = [];
 
@@ -807,11 +936,9 @@ HTML
             canvas.width = 750;
             canvas.height = totalHeight;
 
-            // 1. 底色
             ctx.fillStyle = "#f1f5f9";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 2. 抬頭
             ctx.fillStyle = "#0f172a";
             ctx.fillRect(20, 20, 710, 110);
             
@@ -828,7 +955,6 @@ HTML
             ctx.font = "bold 13px Microsoft JhengHei";
             ctx.fillText("依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩陣規範設計", 375, 110);
 
-            // 3. 一、身份與工項
             let currentY = 150;
             drawCardBox(ctx, 20, currentY, 710, 130);
             ctx.fillStyle = "#1e40af";
@@ -842,7 +968,6 @@ HTML
             ctx.fillText(`填報人身份： ${idName}`, 40, currentY + 95);
             ctx.fillText(`施工工項： ${jobName}`, 380, currentY + 70);
 
-            // 4. 三、危害評估結果
             currentY += 150;
             drawCardBox(ctx, 20, currentY, 710, 80 + tableTotalHeight);
             ctx.fillStyle = "#1e40af";
@@ -861,19 +986,16 @@ HTML
                 const rule = disasterDatabase[disaster];
                 const singleCardH = cardHeightList[idx];
 
-                // 畫白色內卡片框
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(40, tableY, 670, singleCardH);
                 ctx.strokeStyle = "#cbd5e1";
                 ctx.lineWidth = 1;
                 ctx.strokeRect(40, tableY, 670, singleCardH);
 
-                // 💡 關鍵修正：左側災害標題如果字數較多 (例如蟲害)，採用動態折行，並把右側對策起點拉遠至 260px，絕不重疊！
                 ctx.fillStyle = "#0f172a";
                 ctx.font = "bold 15px Microsoft JhengHei";
                 ctx.textAlign = "left";
                 
-                // 畫左側危害名稱與風險標籤
                 drawWrappedText(ctx, `【${disaster}】`, 50, tableY + 28, 200, 20);
 
                 ctx.fillStyle = "#dc2626";
@@ -883,7 +1005,6 @@ HTML
                 ctx.fillStyle = "#16a34a";
                 ctx.fillText(`改善後：${rule.after}`, 50, tableY + 92);
 
-                // 💡 右側控制措施：起點設定為 260px，給予 430px 寬度，徹底防重疊
                 ctx.fillStyle = "#334155";
                 ctx.font = "12px Microsoft JhengHei";
                 const lines = rule.controls.split('\n');
@@ -896,7 +1017,6 @@ HTML
                 tableY += singleCardH + 15;
             });
 
-            // 5. 四、現場已採行控制措施
             currentY = tableY + 10;
             drawCardBox(ctx, 20, currentY, 710, 60 + (checkItemsText.length * 35));
             ctx.fillStyle = "#15803d";
@@ -915,7 +1035,6 @@ HTML
                 checkY += 32;
             });
 
-            // 6. 五、雙簽名
             currentY = checkY + 20;
             drawCardBox(ctx, 20, currentY, 710, 220);
             ctx.fillStyle = "#1e40af";
@@ -946,18 +1065,15 @@ HTML
             document.getElementById('resultImageModal').style.display = "block";
         }
 
-        // 🚀 繪製「山林水專屬告示牌 QR Code 圖檔」函數
         function generatePosterQR() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = 600;
             canvas.height = 780;
 
-            // 底色
             ctx.fillStyle = "#f8fafc";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 頂部深藍標題
             ctx.fillStyle = "#0f172a";
             ctx.fillRect(0, 0, 600, 150);
 
@@ -974,14 +1090,12 @@ HTML
             ctx.font = "bold 14px Microsoft JhengHei";
             ctx.fillText("開工前危害告知與雙簽名管制入口", 300, 125);
 
-            // 白色中心卡片
             drawCardBox(ctx, 40, 180, 520, 550);
 
             ctx.fillStyle = "#1e40af";
             ctx.font = "bold 20px Microsoft JhengHei";
             ctx.fillText("📱 請使用手機相機掃描 QR Code 啟動", 300, 225);
 
-            // 臨時生成 300x300 QR Code 畫至中心
             const tempDiv = document.createElement('div');
             tempDiv.style.display = 'none';
             document.body.appendChild(tempDiv);
@@ -999,7 +1113,6 @@ HTML
                 ctx.drawImage(qrImg, 160, 250, 280, 280);
                 document.body.removeChild(tempDiv);
 
-                // 說明提示
                 ctx.fillStyle = "#475569";
                 ctx.font = "15px Microsoft JhengHei";
                 ctx.fillText("👉 支援現場危害辨識、對策勾稽與即時雙簽名", 300, 570);
@@ -1009,12 +1122,10 @@ HTML
                 ctx.font = "bold 15px Microsoft JhengHei";
                 ctx.fillText(`網址：${targetUrl}`, 300, 635);
 
-                // 防偽標籤
                 ctx.fillStyle = "#94a3b8";
                 ctx.font = "bold 13px Microsoft JhengHei";
                 ctx.fillText("江十三 著作權所有 翻印必究", 300, 700);
 
-                // 彈出視窗
                 document.getElementById('modalTitle').innerText = "🖼️ 山林水專屬告示牌 QR Code";
                 const posterData = canvas.toDataURL("image/jpeg", 0.92);
                 document.getElementById('finalExportedImage').src = posterData;
