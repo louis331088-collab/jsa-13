@@ -1,1176 +1,1363 @@
-HTML
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧型動態危害辨識與風險評估系統</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        body { background-color: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; position: relative; }
-        
-        body::before {
-            content: "江十三 著作權所有 翻印必究  江十三 著作權所有 翻印必究";
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; opacity: 0.04; font-size: 2rem; color: #000;
-            line-height: 8rem; pointer-events: none; transform: rotate(-15deg);
-            white-space: pre-wrap; word-wrap: break-word; padding: 20px;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>營造工地施工風險評估即評即判專家系統 | 職安技師專業版</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            osh: {
+              blue: '#0F2C59',
+              accent: '#0284C7',
+              warning: '#F59E0B',
+              danger: '#DC2626',
+              success: '#10B981',
+              dark: '#1E293B',
+              surface: '#F8FAFC'
+            }
+          }
         }
-
-        #capture-area { padding: 12px 8px; background-color: #f1f5f9; position: relative; }
-        .card { border: none; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; background-color: #fff; z-index: 1; }
-        .header-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 22px 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
-        .risk-badge { font-size: 1.05rem; font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; color: white; }
-        .risk-5 { background-color: #7f1d1d; }
-        .risk-4 { background-color: #b91c1c; }
-        .risk-3 { background-color: #c2410c; }
-        .risk-2 { background-color: #eab308; color: #1e293b; }
-        .risk-1 { background-color: #15803d; }
-        .disaster-btn { display: none; }
-        .disaster-label { display: block; padding: 10px 4px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: all 0.2s; background-color: #fff; }
-        .disaster-btn:checked + .disaster-label { background-color: #2563eb; color: white; border-color: #1d4ed8; transform: scale(1.02); }
-        .sig-canvas { border: 2px dashed #94a3b8; background-color: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; max-width: 320px; height: 130px; }
-        
-        .table-responsive { border-radius: 8px; overflow: hidden; }
-        .table th { font-size: 0.8rem; padding: 8px 4px !important; text-align: center; vertical-align: middle; }
-        .table td { font-size: 0.82rem; padding: 8px 6px !important; }
-        .badge-risk-cell { font-size: 0.75rem; font-weight: bold; padding: 4px 2px; white-space: normal; line-height: 1.1; display: block; width: 100%; text-align: center; }
-
-        .control-check-item { background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 10px; margin-bottom: 8px; border-radius: 4px; }
-        .watermark-footer { display: none; font-size: 0.82rem; color: #64748b; font-weight: bold; margin-top: 20px; text-align: center; width: 100%; }
-
-        .custom-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.6);
-        }
-        .custom-modal-content {
-            background-color: #fff;
-            margin: 5% auto;
-            padding: 20px;
-            border-radius: 14px;
-            width: 92%;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            position: relative;
-        }
-
-        @media print { 
-            .no-print { display: none !important; } 
-            body, #capture-area { background-color: #fff; padding: 0; } 
-            .card { box-shadow: none; margin-bottom: 10px; border: 1px solid #ddd; } 
-            .watermark-footer { display: block !important; }
-        }
-    </style>
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white !important; font-size: 11pt; }
+      .sheet-table { width: 100% !important; border-collapse: collapse !important; }
+      .sheet-table th, .sheet-table td { border: 1px solid #333 !important; padding: 4px 6px !important; }
+    }
+    .badge-5 { background-color: #7F1D1D; color: #FEE2E2; } /* 重大風險 */
+    .badge-4 { background-color: #DC2626; color: #FEF2F2; } /* 高度風險 */
+    .badge-3 { background-color: #EA580C; color: #FFF7ED; } /* 中度風險 */
+    .badge-2 { background-color: #2563EB; color: #EFF6FF; } /* 低度風險 */
+    .badge-1 { background-color: #059669; color: #ECFDF5; } /* 輕度風險 */
+  </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-    <div id="lockout-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0f172a; color:#f8fafc; z-index:99999; padding:50px 20px; text-align:center;">
-        <h2 class="text-danger fw-bold mb-4">⚠️ 系統安全授權驗證失敗</h2>
-        <p class="fs-5">本系統受智慧財產權與國家競賽防盜條款保護。</p>
-        <p class="text-warning">偵測到未經授權的複製、下載或域名竄改行為，系統已自動實施安全封鎖。</p>
-        <p class="text-muted mt-5">原創研發著作權人：江十三 先生</p>
+  <!-- 頂部專業導覽列 -->
+  <header class="bg-osh-blue text-white shadow-lg border-b-4 border-amber-500 no-print sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="bg-amber-500 p-2 rounded-lg text-slate-900 font-black">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-wider flex items-center gap-2">
+            營造工地施工風險評估即評即判系統
+            <span class="text-xs bg-amber-400 text-slate-900 font-bold px-2 py-0.5 rounded-full uppercase">技師審定版 v3.2</span>
+          </h1>
+          <p class="text-xs text-slate-300">依據職安署《營造工程風險評估技術指引》第三版、職安法§5、職安辦法§12-1及營標§6</p>
+        </div>
+      </div>
+      
+      <!-- 快速功能鍵 -->
+      <div class="flex items-center gap-2 text-sm">
+        <button onclick="window.print()" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-md shadow text-white font-medium transition">
+          <i data-lucide="printer" class="w-4 h-4"></i> 列印報表
+        </button>
+        <button onclick="exportToCSV()" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-md shadow text-white font-medium transition">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 匯出CSV
+        </button>
+        <button onclick="copyTableText()" class="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 hover:bg-sky-600 rounded-md shadow text-white font-medium transition">
+          <i data-lucide="copy" class="w-4 h-4"></i> 複製表格
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容容器 -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- 即評即判核心篩選檢索器 -->
+    <section class="bg-white rounded-xl shadow-md border border-slate-200 p-5 no-print transition-all">
+      <div class="flex flex-col md:flex-row md:items-center justify-between border-b pb-3 mb-4 gap-2">
+        <div>
+          <span class="text-xs font-semibold tracking-wider text-sky-600 uppercase">Step 1: 即填即判智能引擎</span>
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i> 請輸入或選擇營造工程作業項目 (工項)
+          </h2>
+        </div>
+        <div class="text-xs text-slate-500 flex items-center gap-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          專家知識庫：內建 25+ 營造主工項、110+ 標準危害情境模型
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <!-- 搜尋輸入框 -->
+        <div class="md:col-span-5 relative">
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            1. 輸入工項關鍵字（自動聯想判斷）
+          </label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="jobInput" 
+              placeholder="例如：開挖、起重機、連續壁、鋼構、電焊、局限空間..." 
+              oninput="handleSearchInput(this.value)"
+              class="w-full pl-9 pr-4 py-2 border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm font-medium transition"
+            >
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+          </div>
+          <!-- 智能候選建議下拉選單 -->
+          <div id="autocompleteDropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-30 max-h-60 overflow-y-auto"></div>
+        </div>
+
+        <!-- 常用典型工項快捷選擇 -->
+        <div class="md:col-span-5">
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            或直接點選完整營造工項分類
+          </label>
+          <select id="quickSelect" onchange="selectPredefined(this.value)" class="w-full py-2 px-3 border-2 border-slate-300 rounded-lg text-sm bg-slate-50 font-medium focus:ring-2 focus:ring-sky-500">
+            <option value="">-- 請選擇營造主要工項類別 --</option>
+            <optgroup label="土方與地工構造">
+              <option value="開挖回填">土建工程 - 開挖回填工程</option>
+              <option value="擋土支撐">土建工程 - 擋土支撐工程</option>
+              <option value="連續壁工程">地下工程 - 連續壁/扶壁工程</option>
+              <option value="鋼鈑樁工程">土建工程 - 鋼鈑樁工程</option>
+              <option value="基樁工程">基礎工程 - 鑽掘基樁/植入樁</option>
+            </optgroup>
+            <optgroup label="結構與軀體工項">
+              <option value="模板加工">土建工程 - 模板加工作業</option>
+              <option value="模板組配">土建工程 - 模板支撐與組拆</option>
+              <option value="鋼筋加工">土建工程 - 鋼筋裁切彎曲加工</option>
+              <option value="鋼筋綁紮">土建工程 - 鋼筋組紮工程</option>
+              <option value="鋼構組配">土建工程 - 鋼構吊裝組配工程</option>
+              <option value="混凝土澆置">土建工程 - 混凝土泵送澆置</option>
+              <option value="施工架組拆">假設工程 - 施工架組配及拆除</option>
+            </optgroup>
+            <optgroup label="起重吊掛與運輸">
+              <option value="起重機吊掛作業">特種作業 - 移動式/固定式起重機吊掛</option>
+              <option value="土方運輸">運輸作業 - 傾卸車土方運送</option>
+            </optgroup>
+            <optgroup label="動火與裝修設備">
+              <option value="電焊作業">動火作業 - 電銲/氣焊熔接</option>
+              <option value="氧氣乙炔作業">動火作業 - 氧乙炔切割熔斷</option>
+              <option value="油漆工程">裝修工程 - 油漆塗料作業(有機溶劑)</option>
+              <option value="裝修工程">裝修工程 - 泥作/輕隔間/天花板</option>
+              <option value="水電管線工程">機電工程 - 水電消防配管配線</option>
+            </optgroup>
+            <optgroup label="下水道管網與推進">
+              <option value="推進機安裝">管線工程 - 工作井推進機組裝(局限空間)</option>
+              <option value="推管工程">管線工程 - 管道推管推進施工</option>
+              <option value="管線試壓">管線工程 - 壓力水管水壓試驗</option>
+            </optgroup>
+            <optgroup label="工地管理、安全與應變">
+              <option value="施工圍籬與組合屋">假設工程 - 工地安全圍籬及組合屋</option>
+              <option value="臨時水電">假設工程 - 施工臨時電氣線路</option>
+              <option value="防颱防汛">自主管理 - 防颱防汛巡檢加固</option>
+              <option value="工作場所巡視">安全督導 - 工地主任/職安現場巡視</option>
+              <option value="交管人員">交通維持 - 工地出入口義交與旗手</option>
+              <option value="緊急應變">意外處置 - 演練與災害緊急應變</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 技師快速批次追加按鈕 -->
+        <div class="md:col-span-2 flex items-end">
+          <button 
+            onclick="triggerAssessment()" 
+            class="w-full py-2.5 px-4 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-lg shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 transition text-sm">
+            <i data-lucide="play" class="w-4 h-4 fill-current"></i> 即評即判
+          </button>
+        </div>
+      </div>
+
+      <!-- 快捷標籤 Tag Pills -->
+      <div class="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+        <span class="text-slate-500 font-semibold flex items-center mr-1">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500 mr-0.5"></i> 熱門工項直達:
+        </span>
+        <button onclick="selectAndRun('開挖回填')" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 rounded-md border border-slate-200 transition">開挖回填</button>
+        <button onclick="selectAndRun('起重機吊掛作業')" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 rounded-md border border-slate-200 transition">起重吊掛</button>
+        <button onclick="selectAndRun('施工架組拆')" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 rounded-md border border-slate-200 transition">施工架組拆</button>
+        <button onclick="selectAndRun('鋼構組配')" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 rounded-md border border-slate-200 transition">鋼構組配</button>
+        <button onclick="selectAndRun('模板組配')" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 rounded-md border border-slate-200 transition">模板支撐</button>
+        <button onclick="selectAndRun('推管工程')" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 rounded-md border border-slate-200 transition">推管(局限空間)</button>
+        <button onclick="selectAndRun('電焊作業')" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 rounded-md border border-slate-200 transition">電銲動火</button>
+        <button onclick="selectAndRun('水電管線工程')" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 rounded-md border border-slate-200 transition">水電配管</button>
+      </div>
+    </section>
+
+    <!-- 職安技師法規看板 & 5x5矩陣智慧計算看板 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 no-print" id="dashboardBanner">
+      <!-- 判定法規與作業主管標準 -->
+      <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-xl p-4 shadow-md border-l-4 border-sky-500 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-sky-400 font-semibold tracking-wider uppercase">技師法規指引備忘</span>
+            <span id="targetWorkBadge" class="text-xs bg-sky-900/80 text-sky-200 px-2 py-0.5 rounded">未選定工項</span>
+          </div>
+          <h3 class="font-bold text-base flex items-center gap-2 text-slate-100">
+            <i data-lucide="scale" class="w-4 h-4 text-sky-400"></i> 法定防護基準與監督要求
+          </h3>
+          <div id="statutoryHints" class="mt-2.5 text-xs text-slate-300 space-y-1.5 leading-relaxed">
+            請輸入或選擇作業項目，系統將依據《營造安全衛生設施標準》及職安署指引自動帶出法定作業主管證照、特定機械檢驗與安全規定。
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-slate-700/60 text-[11px] text-slate-400 flex justify-between items-center">
+          <span>主管單位：勞動部職安署</span>
+          <span>指引版次：114年2月第三版</span>
+        </div>
+      </div>
+
+      <!-- 5x5 風險矩陣快速換算器 -->
+      <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">即時矩陣校正 (TOSHMS / 指引第5.3.2節)</span>
+            <span id="matrixScoreBadge" class="text-xs font-black px-2 py-0.5 rounded badge-3">中度風險 (等級 3)</span>
+          </div>
+          <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+            <i data-lucide="calculator" class="w-4 h-4 text-amber-500"></i> 半定量 5×5 嚴重度(S) × 可能性(P) 試算
+          </h3>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">嚴重度 (Severity S1-S5)</label>
+              <select id="calcS" onchange="recalcInteractiveMatrix()" class="w-full text-xs p-1.5 border border-slate-300 rounded bg-slate-50">
+                <option value="5">S5-重大(死亡/永久失能)</option>
+                <option value="4" selected>S4-高度(需住院/重傷)</option>
+                <option value="3">S3-中度(外送就醫損失工時)</option>
+                <option value="2">S2-低度(急救/無損失工時)</option>
+                <option value="1">S1-輕微(微傷無礙)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">可能性 (Probability P1-P5)</label>
+              <select id="calcP" onchange="recalcInteractiveMatrix()" class="w-full text-xs p-1.5 border border-slate-300 rounded bg-slate-50">
+                <option value="5">P5-經常(年發生多次/無防護)</option>
+                <option value="4">P4-極可能(1~10年一次)</option>
+                <option value="3" selected>P3-可能(10~30年一次)</option>
+                <option value="2">P2-稀少(30~100年一次)</option>
+                <option value="1">P1-極少(>100年/安全環境)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-2 bg-slate-50 p-1.5 rounded border border-slate-100">
+          判定標準：風險等級 4~5 為不可接受風險，必須採取工程控制或作業程序降低至等級 3 以下。
+        </p>
+      </div>
+
+      <!-- 工程送審表頭資訊 (可自訂編輯) -->
+      <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200 text-xs space-y-2">
+        <div class="flex items-center justify-between pb-1 border-b">
+          <span class="font-bold text-slate-700 flex items-center gap-1">
+            <i data-lucide="file-signature" class="w-3.5 h-3.5 text-sky-600"></i> 工程備查標頭資訊 (送審專用)
+          </span>
+          <button onclick="toggleProjectModal()" class="text-sky-600 hover:underline text-[11px]">編輯專案抬頭</button>
+        </div>
+        <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-slate-600 text-[11px]">
+          <div><strong class="text-slate-800">工程名稱：</strong><span id="projName">高鐵/捷運聯絡線及水資統包工程</span></div>
+          <div><strong class="text-slate-800">文件編號：</strong><span id="projDoc">RA-115-SOP-01</span></div>
+          <div><strong class="text-slate-800">評估小組：</strong><span>專任工程技師、職安師、工地主任</span></div>
+          <div><strong class="text-slate-800">審定版次：</strong><span>審定第0版 (符合職安指引3版)</span></div>
+        </div>
+        <div class="pt-2 border-t flex items-center justify-between text-[11px] text-slate-400">
+          <span>法規紀錄保存年限：至少 3 年</span>
+          <span class="text-emerald-600 font-semibold flex items-center gap-1">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 符合職安管理辦法§12-1
+          </span>
+        </div>
+      </div>
     </div>
 
-    <div id="qrModal" class="custom-modal no-print">
-        <div class="custom-modal-content">
-            <h5 class="fw-bold text-primary mb-3">📱 危害辨識核可 QR Code</h5>
-            <p class="text-muted small text-start">1. <strong>現場面對面：</strong>請職安人員直接用手機相機掃描此碼。<br>2. <strong>遠端傳送：</strong>點擊下方按鈕直接開啟 LINE 傳送給職安主管審核。</p>
-            <div class="d-flex justify-content-center my-3">
-                <div id="qrcodeCanvas" style="padding: 10px; background: white; border: 1px solid #ddd;"></div>
+    <!-- 表格展示區塊 (列印模式時核心保留) -->
+    <div class="bg-white rounded-xl shadow-lg border border-slate-300 overflow-hidden">
+      <!-- 送審公文表頭 (列印與正式檢視) -->
+      <div class="p-4 sm:p-6 border-b border-slate-200 bg-slate-50">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-xs font-bold bg-slate-800 text-white rounded">表4.1 / 表15</span>
+              <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-wide" id="tableTitleDisplay">
+                施工規劃階段危害鑑別與風險評估表 (標準版)
+              </h2>
             </div>
-            <div class="d-grid gap-2 mt-3">
-                <button class="btn btn-primary" id="lineShareDirectBtn">📲 使用 LINE 傳送接關網址</button>
-                <button class="btn btn-secondary" onclick="closeQRModal()">關閉視窗</button>
-            </div>
+            <p class="text-xs text-slate-600 mt-1" id="subInfoDisplay">
+              當前工項群組：<span class="font-bold text-sky-800" id="currentJobTitle">土建工程 - 開挖回填</span> | 依據職安署第三版技術指引標準欄位生成
+            </p>
+          </div>
+          
+          <div class="no-print flex items-center gap-2">
+            <button onclick="addNewCustomRow()" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-300 rounded-md text-xs font-bold flex items-center gap-1 transition">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 新增自訂危害項
+            </button>
+            <button onclick="resetToInitial()" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md text-xs font-semibold flex items-center gap-1 transition" title="重置回初始資料">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
         </div>
+      </div>
+
+      <!-- 響應式可橫向捲動表格 -->
+      <div class="overflow-x-auto w-full">
+        <table id="riskTable" class="w-full text-xs text-left border-collapse sheet-table">
+          <!-- 雙層專業表頭架構 -->
+          <thead>
+            <tr class="bg-slate-800 text-white font-semibold text-center border-b border-slate-700 divide-x divide-slate-700">
+              <th rowspan="2" class="p-2 w-16">項次<br>編號</th>
+              <th colspan="3" class="p-2 bg-slate-800">1. 作業編號及基本資訊</th>
+              <th colspan="2" class="p-2 bg-slate-700">2. 辨識危害及後果</th>
+              <th colspan="3" class="p-2 bg-slate-800">3. 現有防護設施 (既有控制)</th>
+              <th colspan="4" class="p-2 bg-amber-900/60">4. 評估風險 / 機會</th>
+              <th rowspan="2" class="p-2 bg-sky-900 text-white min-w-[200px]">5. 降低風險所採取之控制措施<br><span class="text-[10px] text-sky-200 font-normal">(依消除/取代/工程/管理/PPE階層)</span></th>
+              <th colspan="4" class="p-2 bg-emerald-900/60">6. 控制後預估殘餘風險</th>
+              <th rowspan="2" class="p-2 w-12 no-print bg-slate-800">操作</th>
+            </tr>
+            <tr class="bg-slate-700 text-slate-200 text-[11px] font-medium text-center border-b border-slate-600 divide-x divide-slate-600">
+              <!-- 1. 作業 -->
+              <th class="p-2 min-w-[120px]">作業名稱</th>
+              <th class="p-2 w-16">作業週期</th>
+              <th class="p-2 w-16">作業環境</th>
+              <!-- 2. 危害 -->
+              <th class="p-2 w-24">危害類型</th>
+              <th class="p-2 min-w-[180px]">危害可能造成後果之情境描述</th>
+              <!-- 3. 現有設施 -->
+              <th class="p-2 min-w-[130px]">工程控制 (硬體)</th>
+              <th class="p-2 min-w-[120px]">管理控制 (軟體)</th>
+              <th class="p-2 min-w-[110px]">個人防護具 (PPE)</th>
+              <!-- 4. 評估風險 -->
+              <th class="p-1.5 w-10">嚴重度(S)</th>
+              <th class="p-1.5 w-10">可能性(P)</th>
+              <th class="p-1.5 w-12">風險值</th>
+              <th class="p-1.5 w-16">風險等級</th>
+              <!-- 6. 控制後 -->
+              <th class="p-1.5 w-10">殘餘(S)</th>
+              <th class="p-1.5 w-10">殘餘(P)</th>
+              <th class="p-1.5 w-12">殘餘值</th>
+              <th class="p-1.5 w-16">控制後等級</th>
+            </tr>
+          </thead>
+          <tbody id="riskTableBody" class="divide-y divide-slate-200 bg-white text-slate-800">
+            <!-- 動態渲染行 -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 送審簽署區 (官方標準結尾) -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-700">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+          <div class="border-b border-slate-400 pb-1 flex justify-between items-end">
+            <span class="font-bold">評估製表人 (職安人員)：</span>
+            <span class="text-slate-400 italic text-[11px]">江慶誠 / 技師簽章</span>
+          </div>
+          <div class="border-b border-slate-400 pb-1 flex justify-between items-end">
+            <span class="font-bold">作業主管核對：</span>
+            <span class="text-slate-400 italic text-[11px]">合格作業主管簽章</span>
+          </div>
+          <div class="border-b border-slate-400 pb-1 flex justify-between items-end">
+            <span class="font-bold">專任工程人員 (主任技師)：</span>
+            <span class="text-slate-400 italic text-[11px]">專技高考技師簽章</span>
+          </div>
+          <div class="border-b border-slate-400 pb-1 flex justify-between items-end">
+            <span class="font-bold">工作場所負責人 (工地主任)：</span>
+            <span class="text-slate-400 italic text-[11px]">工地主任執業簽署</span>
+          </div>
+        </div>
+        <p class="text-[10px] text-slate-400 text-right mt-3">
+          備註：本風險紀錄依《職業安全衛生管理辦法》第12條之1規定應妥善保存至少三年。遇工法、機具設備或地質變更時應依第12-3條實施變更風險評估。
+        </p>
+      </div>
     </div>
+  </main>
 
-    <div id="resultImageModal" class="custom-modal no-print">
-        <div class="custom-modal-content">
-            <h5 class="fw-bold text-success mb-2" id="modalTitle">🎉 紀錄長圖檔已成功產出！</h5>
-            <p class="text-danger small fw-bold mb-2">【⚠️ 請長按下方圖片即可儲存至手機相簿】</p>
-            <div style="max-height: 60vh; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px; background: #f8fafc;">
-                <img id="finalExportedImage" src="" alt="圖檔生成中..." style="width: 100%; height: auto;" />
-            </div>
-            <div class="d-grid gap-2 mt-3">
-                <button class="btn btn-secondary" onclick="closeResultImageModal()">關閉此視窗</button>
-            </div>
+  <!-- 提示訊息 Toast -->
+  <div id="toastMessage" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-lg shadow-xl text-xs font-semibold hidden flex items-center gap-2 border border-slate-700 transition">
+    <i data-lucide="info" class="w-4 h-4 text-amber-400"></i>
+    <span id="toastText">訊息已更新</span>
+  </div>
+
+  <!-- 專案工程設定 Modal (隱藏) -->
+  <div id="projectModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="font-bold text-slate-800">設定送審工程抬頭資訊</h3>
+        <button onclick="toggleProjectModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">工程專案名稱</label>
+          <input type="text" id="modalProjName" class="w-full p-2 border rounded" value="高雄市楠梓再生水廠興建移轉營運案">
         </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">送審文件編號</label>
+          <input type="text" id="modalDocNo" class="w-full p-2 border rounded" value="MFW-PL-043-REV01">
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="toggleProjectModal()" class="px-3 py-1.5 bg-slate-200 text-slate-700 rounded text-xs font-semibold">取消</button>
+        <button onclick="saveProjectInfo()" class="px-4 py-1.5 bg-sky-700 text-white rounded text-xs font-bold">儲存更新</button>
+      </div>
     </div>
+  </div>
 
-    <div id="capture-area">
-        <div class="header-banner">
-            <div class="fw-bold text-info mb-1" style="font-size: 1.1rem; letter-spacing: 2px;">山林水環境工程股份有限公司</div>
-            <h3>智慧型動態危害辨識與風險評估系統</h3>
-            <p class="mb-0 fw-bold text-warning" style="font-size:0.9rem;">依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩陣規範設計</p>
-        </div>
+  <!-- 內嵌全工項營造風險評估專家資料庫與即評即判引擎 -->
+  <script>
+    /* =========================================================================
+       1. 營造工地全施工工項危害資料庫 (依照官方指引、楠梓水資中心與永康案精煉)
+       ========================================================================= */
+    const OSH_DATABASE = {
+      "開挖回填": {
+        category: "土建工程 - 開挖回填",
+        statutory: "營造安全衛生設施標準第67~75條 (露天開挖/擋土支撐)。露天開挖深逾1.5m應設擋土支撐或採安全斜坡；應設置「露天開挖作業主管」於現場指揮監督。",
+        items: [
+          {
+            subNo: "01-01-001",
+            name: "土建工程-開挖回填",
+            cycle: "非例行性",
+            env: "戶外/開挖面",
+            hazardType: "崩塌",
+            scenario: "挖土機開挖過程土石邊坡軟弱未作支撐，人員進入基坑遭崩塌土石掩埋導致重傷窒息或死亡",
+            engineering: "1. 依土壤性質設置擋土支撐 (鋼板樁/型鋼支撐)\n2. 深度1.5m以上採安息角斜坡開挖",
+            management: "1. 設置「露天開挖作業主管」於現場監督\n2. 每日作業前檢視邊坡裂縫與水位\n3. 訂定安全作業SOP與危害告知",
+            ppe: "高反光背心、C種反光工程安全帽、防砸鋼頭安全鞋、防滑手套",
+            s: 4, p: 3,
+            control: "1. 指派專職監視人員全程警戒\n2. 嚴禁非作業人員進入邊坡下方\n3. 連續壁或開挖邊緣設0.9m警戒欄杆與警報器",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-01-002",
+            name: "土建工程-開挖回填",
+            cycle: "非例行性",
+            env: "戶外/周邊",
+            hazardType: "崩塌",
+            scenario: "開挖出土堆置過於接近開挖上緣，因荷重過大或降雨導致邊坡失穩崩落，重壓下方人員",
+            engineering: "1. 設置出土暫存管制區 (距坑槽邊緣至少1公尺以上)\n2. 開挖面坡頂設置阻隔土堤與排水溝",
+            management: "1. 堆置高度嚴格限制不得超過1.5公尺\n2. 實施作業前自動檢查與沉陷觀測",
+            ppe: "安全帽、安全鞋、高反光背心",
+            s: 4, p: 2,
+            control: "1. 即時將挖出土方清運外棄\n2. 邊坡表面鋪設防雨塑膠布防止滲水沖蝕",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-01-003",
+            name: "土建工程-開挖回填",
+            cycle: "非例行性",
+            env: "高處/開挖邊緣",
+            hazardType: "墜落",
+            scenario: "監視人員或測量人員於開挖面邊緣、上下爬梯或支撐梁上走動時，不慎失足墜落深坑導致傷亡",
+            engineering: "1. 開挖面邊緣全面裝設高90cm以上標準防護欄杆與踏腳板\n2. 設置安全上下階梯設備及安全母索",
+            management: "1. 實施開挖作業特定許可與每日勤前危險預知 (KYT)\n2. 監視人員需持證於安全作業構臺上指揮",
+            ppe: "雙大鉤雙背負式安全帶、防墜器、反光背心、安全帽",
+            s: 4, p: 3,
+            control: "1. 支撐構件全面滿鋪工作通道\n2. 嚴格強制掛設防墜安全母索並全程勾掛雙掛鉤",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-01-004",
+            name: "土建工程-開挖回填",
+            cycle: "非例行性",
+            env: "戶外動線",
+            hazardType: "被撞",
+            scenario: "工作人員進入挖土機或推土機迴轉迴旋半徑盲區，遭旋轉機體或挖斗撞擊傷亡",
+            engineering: "1. 挖土機設置迴轉蜂鳴器及超音波/環景雷達視野輔助警示器\n2. 車載警戒閃光燈",
+            management: "1. 劃設旋轉半徑危險管制區，拉設實體圍阻\n2. 挖土機操作手需取得重機械操作合格證照\n3. 專職引導人員指揮",
+            ppe: "高可見度反光背心 (CNS 15901)、安全帽、安全鞋",
+            s: 4, p: 3,
+            control: "1. 強制禁止任何人進入挖土機動作半徑\n2. 施工機具一律採行車視野影像輔助系統，裝設倒車語音警示",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-01-005",
+            name: "土建工程-開挖回填",
+            cycle: "非例行性",
+            env: "夏季戶外高溫",
+            hazardType: "其他(熱危害)",
+            scenario: "夏季開挖無遮蔽環境下作業，勞工體溫調節失衡導致熱中暑、熱衰竭促發腦中風或生命危險",
+            engineering: "1. 現場設置遮陽通風降溫休息帳棚\n2. 配置工業水霧降溫噴霧機與冷水供應點",
+            management: "1. 設置綜合溫度熱指數(WBGT)監測\n2. 落實「高氣溫戶外作業勞工熱危害預防指引」安排輪替與定時休息",
+            ppe: "淺色透氣防曬衣物、防紫外線遮陽帽簾、運動飲料/電解質水",
+            s: 3, p: 3,
+            control: "1. 實施午間避開最高溫時段作業 (11:00-14:00調整工時)\n2. 每日晨會量測血壓心率實施健康評估",
+            postS: 3, postP: 1
+          }
+        ]
+      },
 
-        <div class="container px-1">
-            <div id="jc-alert" class="alert alert-warning d-none text-center fw-bold shadow-sm mb-2" style="font-size:0.85rem;" role="alert">
-                ℹ️ 偵測到施工人員傳送之危害確認紀錄，請審核完畢後於右側管理人員欄位簽字核可。
-            </div>
+      "起重機吊掛作業": {
+        category: "土建/設備 - 起重吊掛工程",
+        statutory: "起重升降機具安全規則、營標§88~95。起重機具須有一年合格證；操作手須具「固定式/移動式起重機操作證」；吊掛人員須具「吊掛作業結業證書」；嚴禁超載與人員搭乘吊具。",
+        items: [
+          {
+            subNo: "01-02-001",
+            name: "土建工程-起重機吊掛作業",
+            cycle: "非例行性",
+            env: "戶外/吊掛空域",
+            hazardType: "物體飛落",
+            scenario: "吊掛物捆綁不牢固或鋼索破損斷裂，重物於高空飛落砸中下方或鄰近作業勞工造成重大傷亡",
+            engineering: "1. 吊鉤設置防滑舌片 (防脫裝置)\n2. 使用檢驗合格之鋼索/吊帶 (不得有扭結、壓扁、斷股超過10%)",
+            management: "1. 指派具吊掛合格證之人員捆紮\n2. 吊掛半徑下方劃設管制區並拉封鎖線\n3. 試吊抬升10~20cm確認重心",
+            ppe: "安全帽、防砸鋼頭安全鞋、防滑手套、反光背心",
+            s: 4, p: 3,
+            control: "1. 嚴格貫徹「吊物下方嚴禁站人」\n2. 吊升過程以牽引導索(Tag line)控制擺盪，禁止直接用手推拉重物",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-02-002",
+            name: "土建工程-起重機吊掛作業",
+            cycle: "非例行性",
+            env: "戶外軟弱地盤",
+            hazardType: "物體倒塌",
+            scenario: "起重機伸臂作業時地盤軟弱沉陷或出腿外伸撐座未全伸且未墊枕木，導致整部吊車翻覆",
+            engineering: "1. 吊車外伸撐座 (Outrigger) 下方全面鋪墊高強度厚枕木或專用重載鋼板\n2. 車身水平儀校正檢測",
+            management: "1. 作業前確認地面承載力，避開地下化糞池或暗溝\n2. 操作手出示合格執照與年度檢驗合格標卡",
+            ppe: "安全帽、安全鞋、反光背心",
+            s: 5, p: 2,
+            control: "1. 查核起重機載重曲線表(Load Chart)，作業電腦負載限制器(過載警報)強制開啟\n2. 撐座完全外伸鎖定",
+            postS: 5, postP: 1
+          },
+          {
+            subNo: "01-02-003",
+            name: "土建工程-起重機吊掛作業",
+            cycle: "非例行性",
+            env: "鄰近架空高壓線",
+            hazardType: "感電",
+            scenario: "起重機伸臂迴轉時未保持安全距離，碰觸或逼近高壓架空線路引起電弧擊穿導致人員觸電傷亡",
+            engineering: "1. 架空電線包裹高壓防護絕緣套管 (台電申請包覆)\n2. 吊臂頂端設置非接觸式接近高壓警報器",
+            management: "1. 保持法規安全淨距 (如69kV至少需保持3公尺以上安全距離)\n2. 設置專責電氣監督指揮員全程看顧",
+            ppe: "特高壓絕緣靴、絕緣手套 (必要時)、安全帽",
+            s: 4, p: 2,
+            control: "1. 於高壓線側設置地面物理限位擋桿，限制吊臂迴轉角度\n2. 指派監視員持哨監督禁止盲動",
+            postS: 4, postP: 1
+          }
+        ]
+      },
 
-            <!-- 1. 現場身份與工項輸入 -->
-            <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📋 一、作業工項與身份登記</h5>
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label fw-bold text-secondary" style="font-size:0.9rem;">請選擇所屬部門：</label>
-                        <select class="form-select border-primary" id="deptSelect" onchange="toggleOtherDeptInput()">
-                            <option value="工程部">工程部</option>
-                            <option value="營運部">營運部 (污水廠/代操作)</option>
-                            <option value="其他">其他 (下包商可自行填寫公司名稱)</option>
-                        </select>
-                    </div>
-                    <div class="col-12 d-none" id="otherDeptDiv">
-                        <label class="form-label fw-bold text-danger" style="font-size:0.9rem;">請輸入下包商或公司名稱：</label>
-                        <input type="text" class="form-control border-danger" id="otherDeptInput" placeholder="例如：○○工程有限公司...">
-                    </div>
+      "施工架組拆": {
+        category: "假設工程 - 施工架組配及拆除",
+        statutory: "職業安全衛生設施規則第224~238條、營標第40~65條。高度5公尺以上應指派「施工架組配作業主管」；鋼管施工架應符合CNS 4750國家標準；雙掛鉤安全帶、防墜網滿鋪、壁連座繫牆桿確實設置。",
+        items: [
+          {
+            subNo: "01-09-001",
+            name: "假設工程-施工架組拆作業",
+            cycle: "非例行性",
+            env: "高處外牆/邊緣",
+            hazardType: "墜落",
+            scenario: "架子工於組配或拆除施工架踏板及欄杆過程，無立足踏板或未鉤掛安全帶，從高空墜落傷亡",
+            engineering: "1. 採「扶手先行工法」或安全母索架設系統\n2. 施工架內側工作台滿鋪踏板無縫隙\n3. 樓層水平安全防墜網設置",
+            management: "1. 指派「施工架組配作業主管」在場監督指揮\n2. 架手須經高空作業體格檢驗合格 (無高血壓心臟病)",
+            ppe: "雙大鉤雙背負式安全帶、防墜器、防下顎滑脫安全帽、安全鞋",
+            s: 4, p: 3,
+            control: "1. 強制要求安全帶「100%確實勾掛」於結構上母索或獨立管架上\n2. 嚴禁站在未固定之橫檔鋼管上踩踏",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-09-002",
+            name: "假設工程-施工架組拆作業",
+            cycle: "非例行性",
+            env: "高處立面",
+            hazardType: "物體倒塌",
+            scenario: "施工架繫牆桿(壁連座)未依規定間距設置(垂直5.5m/水平8m)，或因風壓、超載導致大面積倒塌",
+            engineering: "1. 依力學計算書確實施作化學錨栓壁連座\n2. 施工架底座加設可調螺桿底座與厚木墊板\n3. 外側張掛阻燃防塵網",
+            management: "1. 技師簽章結構計算書及施工組配圖\n2. 強風豪雨地震後實施專項自動檢查",
+            ppe: "安全帽、防滑安全鞋、高反光背心",
+            s: 4, p: 3,
+            control: "1. 施工架上嚴禁過度堆置模板、磁磚等重料\n2. 未經許可嚴禁任何包商拆除壁連座與斜撐交錯拉桿",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-09-003",
+            name: "假設工程-施工架組拆作業",
+            cycle: "非例行性",
+            env: "下方地面",
+            hazardType: "物體飛落",
+            scenario: "拆除施工架時，勞工自高處任意拋扔緊結鉸剪、鋼管或踏板，擊中地面通行人員傷亡",
+            engineering: "1. 設置滑輪吊桶、吊料平台或起重機吊運\n2. 施工架外周設置防飛落檔板與挑簷安全網",
+            management: "1. 嚴格禁止空中拋擲構件\n2. 地面劃定警戒隔離區並設看守人員，禁止人員穿越",
+            ppe: "高強度防砸安全帽、反光背心、防砸安全鞋",
+            s: 4, p: 2,
+            control: "1. 設置出入口斜棚防護\n2. 拆卸構件依序傳遞至地面並整齊積垛捆綁",
+            postS: 4, postP: 1
+          }
+        ]
+      },
 
-                    <div class="col-12">
-                        <label class="form-label fw-bold text-secondary" style="font-size:0.9rem;">請選擇填報人員身份：</label>
-                        <select class="form-select border-primary" id="identitySelect" onchange="toggleOtherIdentityInput()">
-                            <option value="施工人員">施工人員</option>
-                            <option value="作業主管">作業主管</option>
-                            <option value="現場負責人">現場負責人</option>
-                            <option value="本公司同仁">本公司同仁</option>
-                            <option value="僱主">僱主</option>
-                            <option value="其他">其他 (可自行填寫)</option>
-                        </select>
-                    </div>
-                    <div class="col-12 d-none" id="otherIdentityDiv">
-                        <label class="form-label fw-bold text-danger" style="font-size:0.9rem;">請輸入自行填寫的身份名稱：</label>
-                        <input type="text" class="form-control border-danger" id="otherIdentityInput" placeholder="例如：監造工程師、業主主管...">
-                    </div>
+      "模板組配": {
+        category: "土建工程 - 模板加工與組配支撐",
+        statutory: "營造安全衛生設施標準第131條~139條。高度在7公尺以上且面積達330平方公尺以上應由專任工程人員依預期載重繪製施工圖與結構計算書；設置「模板支撐作業主管」；水平繫條按縱橫方向設置。",
+        items: [
+          {
+            subNo: "01-07-001",
+            name: "土建工程-模板組配作業",
+            cycle: "非例行性",
+            env: "高處/梁板下方",
+            hazardType: "墜落",
+            scenario: "作業人員在梁底模或樓板邊緣鋪設模板時，踏空失足自高處開口墜落傷亡",
+            engineering: "1. 開口邊緣設置標準欄杆及安全母索\n2. 梁底下方搭設滿鋪工作台或張掛水平安全網",
+            management: "1. 設置「模板支撐作業主管」監督作業方法\n2. 實施作業前防墜設施巡視",
+            ppe: "背負式雙掛鉤安全帶、安全帽、防滑安全鞋",
+            s: 4, p: 3,
+            control: "1. 嚴禁站在單一角材或未鋪妥之板模邊緣行走\n2. 安全母索全程扣掛",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-07-002",
+            name: "土建工程-模板組配作業",
+            cycle: "非例行性",
+            env: "挑高樓層/地下室",
+            hazardType: "崩塌",
+            scenario: "澆置混凝土載重過大或支撐角柱垂直度偏差、水平繫條未確實扣緊，引發模板支撐架整體挫屈崩塌",
+            engineering: "1. 鋼管可調支撐依計算間距排列並加設水平繫條(每4m)\n2. 頂部螺桿伸出長度限制於30cm以內",
+            management: "1. 專任工程人員簽章之強度計算與支撐施工圖\n2. 澆灌混凝土時指派專人於下方觀測沉陷變形",
+            ppe: "安全帽、安全鞋、高反光背心",
+            s: 5, p: 2,
+            control: "1. 嚴禁混合使用不同材質(木柱與鋼管柱混搭)之支撐\n2. 澆灌順序採對稱均勻打設，嚴禁混凝土堆積單點集中超載",
+            postS: 5, postP: 1
+          },
+          {
+            subNo: "01-07-003",
+            name: "土建工程-模板加工及組配",
+            cycle: "非例行性",
+            env: "加工區/工地",
+            hazardType: "被刺、割、擦傷",
+            scenario: "使用圓盤鋸裁切模板木料或拆模時踏穿釘子，造成手指截指傷害或腳底穿刺感染破傷風",
+            engineering: "1. 圓盤鋸設置鋸齒接觸預防裝置(安全護罩)與反撥預防裝置\n2. 拆下之廢木板即時拔釘並集中整理",
+            management: "1. 圓盤鋸操作人員資格安全教育\n2. 工地推行即時拔釘與5S整頓",
+            ppe: "防穿刺防砸安全鞋(加鋼底板)、防割手套、防護眼鏡",
+            s: 2, p: 3,
+            control: "1. 電動手工具漏電斷路器定期檢跳測試\n2. 每日清運廢木料並設置指定廢棄物集中坑",
+            postS: 2, postP: 1
+          }
+        ]
+      },
 
-                    <div class="col-12">
-                        <label class="form-label fw-bold text-secondary" style="font-size:0.9rem;">請輸入目前現場施工工項名稱：</label>
-                        <input type="text" class="form-control border-primary" id="jobInput" style="font-size:1rem;" placeholder="例如：鼓風機檢修、大池巡檢、管線開挖作業...">
-                    </div>
-                </div>
-            </div>
+      "鋼筋綁紮": {
+        category: "土建工程 - 鋼筋加工與組紮",
+        statutory: "營標§119~127。開口設置護欄；鋼筋柱未澆置前應加拉斜撐鋼索固定防止強風倒塌；直立鋼筋頂端應加裝防穿刺黃色安全保護套帽；機具接地並裝漏電斷路器。",
+        items: [
+          {
+            subNo: "01-05-001",
+            name: "土建工程-鋼筋綁紮作業",
+            cycle: "非例行性",
+            env: "深基坑/樓層板邊",
+            hazardType: "踩踏/踏穿(穿刺)",
+            scenario: "作業人員於鋼筋網上行走失足跌倒，身體或眼部遭受未套保護蓋之直立鋼筋穿刺重傷",
+            engineering: "1. 所有外露直立鋼筋端部全面套上亮黃色耐衝擊防穿刺保護帽或覆蓋木蓋板\n2. 鋪設臨時木走道板供行走",
+            management: "1. 每日進場前檢查防穿刺套蓋完整度\n2. 施工前危害告知禁止直接踩跳鋼筋間隔",
+            ppe: "防穿刺鋼底安全鞋、安全帽、護目鏡、厚皮防磨手套",
+            s: 4, p: 3,
+            control: "1. 柱牆鋼筋組立完成後立即覆蓋保護條\n2. 嚴格執行走道鋪面管理",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-05-002",
+            name: "土建工程-鋼筋綁紮作業",
+            cycle: "非例行性",
+            env: "柱、牆面立體組配",
+            hazardType: "物體倒塌",
+            scenario: "高聳柱牆鋼筋尚未封模前，遇強風吹襲或吊重碰撞，未設斜撐固定導致整體傾倒壓死勞工",
+            engineering: "1. 柱、牆鋼筋組紮達3公尺以上時，雙向對稱加裝鋼索斜撐及花籃螺栓緊固\n2. 底部確實與預留筋焊接或密接",
+            management: "1. 強風警報前進行臨時加固巡查\n2. 鋼筋吊料時設專人導向牽引",
+            ppe: "安全帽、安全鞋、手套、反光背心",
+            s: 4, p: 3,
+            control: "1. 依結構設計圖確實綁妥每處固定點\n2. 柱鋼筋未加固完成前禁止在上方攀爬施作",
+            postS: 4, postP: 1
+          }
+        ]
+      },
 
-            <!-- AI 視覺辨識卡片 -->
-            <div class="card p-3 no-print border border-info bg-light">
-                <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
-                    <h5 class="text-primary mb-0" style="font-size:1.05rem;">🤖 現場照片 AI 智慧危害辨識 (Vision AI)</h5>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleApiKeyInput()">⚙️ 設定 API Key</button>
-                </div>
-                <div id="apiKeySection" class="mt-2 d-none">
-                    <label class="form-label small fw-bold text-muted">Gemini API Key：</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control form-control-sm" id="apiKeyInput" placeholder="請貼上完整的 API Key">
-                        <button class="btn btn-sm btn-primary" onclick="saveApiKey()">儲存</button>
-                    </div>
-                    <div class="form-text x-small text-muted">支援新版 AQ.Ab8... 格式金鑰。</div>
-                </div>
-                <p class="text-muted small mt-2 mb-2">拍攝或上傳現場施工環境照片，AI 將自動辨識作業環境並建議潛在危害：</p>
-                <div class="row g-2">
-                    <div class="col-12">
-                        <input type="file" class="form-control border-info" id="sitePhotoInput" accept="image/*" capture="environment" onchange="previewAndAnalyzePhoto()">
-                    </div>
-                    <div id="photoPreviewContainer" class="col-12 text-center d-none mt-2">
-                        <img id="photoPreview" class="img-fluid rounded border" style="max-height: 200px;" alt="現場照片預覽">
-                        <div id="aiLoading" class="mt-2 text-primary fw-bold d-none">
-                            <span class="spinner-border spinner-border-sm me-1"></span> AI 正在分析現場潛在危害中...
-                        </div>
-                        <div id="aiResultText" class="alert alert-success mt-2 py-2 small d-none text-start"></div>
-                    </div>
-                </div>
-            </div>
+      "鋼構組配": {
+        category: "土建工程 - 鋼構造組裝吊掛",
+        statutory: "營標§140~159。高度逾5公尺應設置「鋼構組配作業主管」；鋼梁上張設安全母索及安全網；螺栓接合緊固前吊索嚴禁鬆脫；嚴禁風速超過10m/s強風時吊掛鋼梁構件。",
+        items: [
+          {
+            subNo: "01-24-001",
+            name: "土建工程-鋼構組配作業",
+            cycle: "非例行性",
+            env: "高空高柱梁",
+            hazardType: "墜落",
+            scenario: "鋼構工行走於高空狹窄鋼梁梁翼上進行螺栓鎖定或解開吊索時，失足自高空墜落造成死亡",
+            engineering: "1. 鋼梁吊裝前先於地面預先安裝立柱與水平鋼索安全母索\n2. 梁柱下方張設每層垂直防墜網\n3. 採用高空工作車輔助接合",
+            management: "1. 設置「鋼構組配作業主管」於現場指揮\n2. 嚴格落實安全帶雙掛鉤扣掛於母索\n3. 風速達10m/s或降雨時立即停工",
+            ppe: "背負式五點安全帶(具緩衝包及雙大鉤)、防脫落安全帽、防滑絕緣安全鞋",
+            s: 5, p: 3,
+            control: "1. 吊梁前安裝「自動脫鉤裝置」減少人員高空冒險爬梁拆鉤\n2. 強制使用附防墜滑輪扣環於母索滑動",
+            postS: 5, postP: 1
+          },
+          {
+            subNo: "01-24-002",
+            name: "土建工程-鋼構組配作業",
+            cycle: "非例行性",
+            env: "吊裝現場",
+            hazardType: "物體倒塌",
+            scenario: "鋼柱吊放至地錨螺栓後，螺母尚未鎖妥或臨時纜風拉索未拉緊前，即鬆開吊車鋼索，導致整支鋼柱倒塌",
+            engineering: "1. 柱底地腳螺栓雙螺母緊固，並使用專用四方拉索(鋼纜)鎖固\n2. 柱接頭設置夾具臨時固結裝置",
+            management: "1. 吊裝安全作業標準程序：確認至少完成50%以上常規螺栓初鎖後始可解開吊鉤\n2. 經技師結構分析假安裝程序",
+            ppe: "安全帽、安全鞋、手套、反光背心",
+            s: 5, p: 2,
+            control: "1. 鋼柱假組立時設置至少四方向對稱鋼索花籃拉緊\n2. 經作業主管查驗螺栓鎖固扭力無誤後方可下令解鉤",
+            postS: 5, postP: 1
+          }
+        ]
+      },
 
-            <!-- 2. 災害類型勾選區 -->
-            <div class="card p-3 no-print" id="disasterCardSec">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">⚠️ 二、辨識現場潛在災害類型 (可多選)</h5>
-                <p class="text-muted small">請職安人員或現場主管評估，此作業施工過程中可能引致哪些危害狀況：</p>
-                <div class="row g-2" id="disasterGrid"></div>
-            </div>
+      "混凝土澆置": {
+        category: "土建工程 - 混凝土泵送澆置",
+        statutory: "營造安全衛生設施標準第138條、設施規則第57條。澆置作業前應檢查模板支撐、管路管扣安全鎖；壓送車出腳完全伸展平穩；管路堵塞反沖排壓程序；高處設置防止管端擺盪傷人措施。",
+        items: [
+          {
+            subNo: "01-08-001",
+            name: "土建工程-混凝土澆置作業",
+            cycle: "非例行性",
+            env: "樓板/高處澆灌面",
+            hazardType: "物體破裂",
+            scenario: "混凝土輸送鋼管或末端軟管發生堵塞，加壓泵持續增壓導致軟管或扣件爆裂，高壓碎石噴射擊傷勞工",
+            engineering: "1. 輸送管路接頭採用快拆安全扣並加裝「鋼索保險扣」防止管脫\n2. 混凝土壓送車設置自動超壓停機安全閥",
+            management: "1. 堵塞排空時嚴格遵循SOP：先減壓倒轉吸回再敲打疏通\n2. 作業前落實管路耐壓自主檢查",
+            ppe: "防衝擊護目鏡、防護面罩、防滑雨鞋、防磨手套、安全帽",
+            s: 3, p: 3,
+            control: "1. 末端軟管由專用減衝器控制，禁止人員跨騎或近距抱持軟管甩動\n2. 試泵前將排壓管指向無人安全區",
+            postS: 3, postP: 1
+          },
+          {
+            subNo: "01-08-002",
+            name: "土建工程-混凝土澆置作業",
+            cycle: "非例行性",
+            env: "戶外地面",
+            hazardType: "被撞",
+            scenario: "預拌混凝土車在倒車進料時，因後視盲區撞倒現場引導人員或路過工人",
+            engineering: "1. 預拌車全面加裝倒車鏡頭及倒車語音蜂鳴器\n2. 設置專用洗車槽與硬質進出跑道",
+            management: "1. 指派專職穿著反光背心之交通引導員持指揮棒在旁指揮\n2. 劃定車輛運行專用動線禁止工人穿行",
+            ppe: "高反光反光背心、反光安全帽、安全鞋",
+            s: 4, p: 2,
+            control: "1. 嚴禁引導人員站立於倒車車輛正後方盲區引導\n2. 廠內車速嚴格限速10 km/h以下",
+            postS: 4, postP: 1
+          }
+        ]
+      },
 
-            <!-- 3. 評估結果 -->
-            <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">📊 三、危害標準風險評估結果 (半定量評估)</h5>
-                <div id="riskResultBox" class="mb-3">
-                    <div class="risk-badge risk-1">請於上方勾選潛在災害類型以啟動動態評估</div>
-                </div>
-                <div id="analysisDetails" style="display: none;">
-                    <div class="table-responsive">
-                        <table class="table table-bordered align-middle">
-                            <thead class="table-dark">
-                                <tr class="text-center">
-                                    <th style="width: 18%;">災害類型</th>
-                                    <th style="width: 20%;">改善前風險等級</th>
-                                    <th>國家職業安全衛生法規應採行之控制措施</th>
-                                    <th style="width: 20%;">改善後殘留風險</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resultRows"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+      "連續壁工程": {
+        category: "地下工程 - 連續壁/扶壁施工",
+        statutory: "營標§67~75、指引附件四(圖25、表55)。導溝開挖後立即覆蓋花紋鐵板護蓋；泥漿池四周設防護欄杆；大型油壓抓斗作業範圍圈圍管制；超音波檢測時人員著安全帶扣掛防止墜落深槽導溝。",
+        items: [
+          {
+            subNo: "01-10-001",
+            name: "地下工程-連續壁單元鑽掘",
+            cycle: "非例行性",
+            env: "導溝開口旁",
+            hazardType: "墜落",
+            scenario: "作業人員於導溝旁觀測泥漿或施工超音波檢測時失足跌入深達數十公尺充滿泥漿之導溝深槽溺斃",
+            engineering: "1. 導溝開口部立即以2分花紋鐵板(表面黃底紅字警告)全面密閉覆蓋\n2. 沿導溝外側設置1.1m高移動式安全護欄",
+            management: "1. 檢測人員作業時必須配戴安全帶勾掛於背後獨立安全母索\n2. 現場配置救生圈、救生索備用",
+            ppe: "背負式雙掛鉤安全帶、安全帽、防滑安全雨鞋",
+            s: 5, p: 2,
+            control: "1. 非作業單元之導溝嚴禁任意掀開鋼蓋板\n2. 鑽機開挖時周邊5公尺內拉設安全警示帶",
+            postS: 5, postP: 1
+          },
+          {
+            subNo: "01-10-002",
+            name: "地下工程-連續壁鋼筋籠吊放",
+            cycle: "非例行性",
+            env: "空中吊裝",
+            hazardType: "被撞/物體倒塌",
+            scenario: "龐大鋼筋籠空中雙機抬吊翻身時，主副吊車協調不良或吊點焊道拉斷導致鋼筋籠變形失控掃撞人員",
+            engineering: "1. 鋼筋籠吊耳強度需經技師結構力學計算並以雙面全滲透焊接\n2. 鋼筋籠內部加設臨時加強桁架剪刀撐",
+            management: "1. 雙機抬吊前召集工具箱會議協同兩台起重機操作手\n2. 全程由單一總指揮人員使用無線電統一指揮",
+            ppe: "安全帽、安全鞋、手套、反光背心",
+            s: 5, p: 2,
+            control: "1. 吊翻身半徑1.5倍範圍劃設禁區淨空所有人員\n2. 牽引尾部鋼筋籠採牽引索遙控，人員保持安全距離",
+            postS: 5, postP: 1
+          }
+        ]
+      },
 
-            <!-- 4. 勾稽確認卡片 -->
-            <div class="card p-3 d-none" id="controlCheckSec">
-                <h5 class="text-success border-bottom pb-2" style="font-size:1.05rem;">✅ 四、現場已採行控制措施 (勾稽確認)</h5>
-                <p class="text-muted small">請作業人員逐項確認現場是否已確實落實以下控制對策，勾選完畢方可進行簽章：</p>
-                <div id="controlCheckList"></div>
-                <div class="alert alert-info mt-2 mb-0 py-2 text-center small fw-bold" id="checkStatusMsg">
-                    請完整勾選上述控制措施，以確實降減現場危害風險。
-                </div>
-            </div>
+      "推管工程": {
+        category: "管線工程 - 污水/輸水管道推管(局限空間)",
+        statutory: "職業安全衛生設施規則第29條之1 (局限空間危害預防)、營標§99~118。作業前氧氣及四用氣體監測；設置機械通風換氣；置備防爆型通風機與三腳架捲揚式防墜救援系統；指派「缺氧作業主管」與槽外監視員。",
+        items: [
+          {
+            subNo: "06-14-001",
+            name: "管線工程-管道推進作業",
+            cycle: "非例行性",
+            env: "工作井/地下暗管(局限空間)",
+            hazardType: "與有害物等接觸(缺氧/中毒)",
+            scenario: "推管內部地層裂隙滲入硫化氫、甲烷或通風中斷，勞工吸入毒氣或缺氧窒息昏倒於長距離管內死亡",
+            engineering: "1. 連續式強制送風排氣設備 (風管直達管頭挖掘面)\n2. 連續自動連線型四用氣體偵測警報器 (O2, CO, H2S, LEL)",
+            management: "1. 指派「缺氧作業主管」並配置井口專任監視人員\n2. 實施進出人員白板登錄管制與工時輪替\n3. 訂定局限空間危害防止計畫",
+            ppe: "空氣呼吸器(SCBA)或氧氣逃生呼吸器(EEBD)、四用氣體警報胸表、全身安全帶",
+            s: 5, p: 3,
+            control: "1. 進場前強制測量氣體合格 (O2>18%, H2S<10ppm, CO<35ppm, 爆炸下限<10%)\n2. 井口常備救生三腳架、捲揚式防墜器與急救擔架",
+            postS: 5, postP: 1
+          },
+          {
+            subNo: "06-14-002",
+            name: "管線工程-管道推進作業",
+            cycle: "非例行性",
+            env: "地下工作井底",
+            hazardType: "溺斃",
+            scenario: "推管穿牆鏡面破開或工作井大底遇高水壓砂層破裂湧水湧砂，人員受困深井無法及時逃生滅頂溺斃",
+            engineering: "1. 鏡面加設止水圈與注漿地盤改良固結\n2. 井底設置大流量沉水泵浦與備用發電機\n3. 工作井逃生鋼梯設置",
+            management: "1. 建立地層水壓監測與湧水緊急撤退警報程序 (氣笛/閃燈)\n2. 定期辦理工作井防溺避難演練",
+            ppe: "工作救生衣、安全帽、安全鞋、安全帶",
+            s: 5, p: 2,
+            control: "1. 穿牆推進前確認地盤改良取樣強度與止水性無虞\n2. 坑內人員全員穿戴救生警報裝備",
+            postS: 5, postP: 1
+          }
+        ]
+      },
 
-            <!-- 5. 簽名確認區 -->
-            <div class="card p-3">
-                <h5 class="text-primary border-bottom pb-2" style="font-size:1.05rem;">✍️ 五、危害告知與開工確認簽章</h5>
-                <p class="text-muted small">現場施工人員與專職職安管理人員已確實召開工具箱會議，知悉上述危害並承諾落實防護措施：</p>
-                <div class="row g-3 text-center">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label fw-bold text-danger" style="font-size:0.88rem;" id="workerSigLabel">【手寫簽名】已了解危害人員</label>
-                        <div><canvas id="worker-sig" class="sig-canvas" width="300" height="130"></canvas></div>
-                        <div class="mt-1 no-print"><button id="worker-clear-btn" class="btn btn-sm btn-outline-secondary" onclick="clearSig('worker')">清除簽名</button></div>
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label fw-bold text-primary" style="font-size:0.88rem;">【手寫簽名】專職職安管理人員</label>
-                        <div><canvas id="safety-sig" class="sig-canvas" width="300" height="130"></canvas></div>
-                        <div class="mt-1 no-print"><button class="btn btn-sm btn-outline-secondary" onclick="clearSig('safety')">清除簽名</button></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="image-watermark" class="watermark-footer">江十三 著作權所有 翻印必究</div>
-        </div>
-    </div>
+      "電焊作業": {
+        category: "土建/管線 - 動火銲接工程",
+        statutory: "職安設施規則§241~245。電焊機設置自動電擊防止裝置 (無載電壓<25V)；接地線確實搭接；銲接點5米內清除易燃物並備滅火器；通風不良處設置局部排氣抽風機。",
+        items: [
+          {
+            subNo: "01-17-001",
+            name: "土建工程-電焊作業",
+            cycle: "非例行性",
+            env: "金屬構架/潮濕地面",
+            hazardType: "感電",
+            scenario: "交流電焊機未裝自動電擊防止裝置或二次側電纜破損裸露，勞工更換銲條時接觸金屬電極觸電休克",
+            engineering: "1. 交流電焊機加裝檢驗合格自動電擊防止裝置 (內附測試紐)\n2. 電銲機外殼確實施行接地\n3. 電源箱裝設高感度高速型漏電斷路器",
+            management: "1. 每日作業前按下測試按鈕確認電防裝置正常作動\n2. 潮濕雨天禁止露天露電施焊",
+            ppe: "電焊皮手套、絕緣安全鞋、銲工防護面罩、防護圍裙",
+            s: 4, p: 3,
+            control: "1. 銲夾頭採用全包覆絕緣型\n2. 電纜線全程架高懸吊，嚴禁浸水或車輛輾壓",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "01-17-002",
+            name: "土建工程-電焊作業",
+            cycle: "非例行性",
+            env: "樓層開口/鄰近易燃材料",
+            hazardType: "火災",
+            scenario: "高空銲接飛濺之高溫高熱熔渣火星掉落於下方防塵網、保麗龍或油漆溶劑，引燃整棟大樓火災",
+            engineering: "1. 施銲處下方及四周鋪設符合CNS標準之防火阻燃毯、集渣盤\n2. 配備手提式乾粉滅火器2具以上於3公尺內",
+            management: "1. 開立動火工作許可證 (Hot Work Permit)\n2. 施工時及完工後30分鐘內安排火模警戒員看守監測",
+            ppe: "防高溫防火手套、護目鏡、防焰工作服",
+            s: 4, p: 2,
+            control: "1. 清除作業點周邊10公尺內所有易燃木料及化學品\n2. 嚴禁在未作防護開口上方直接動火切焊",
+            postS: 4, postP: 1
+          }
+        ]
+      },
 
-    <!-- 按鈕控制區 -->
-    <div class="container mb-5 no-print">
-        <div class="d-grid gap-2">
-            <button id="sendToSafetyBtn" class="btn btn-primary btn-lg shadow" style="font-size:1.05rem;" onclick="generatePassData()">🚀 危害確認完成：生成 QR Code 傳送職安審核</button>
-            <button id="exportBtn" class="btn btn-success btn-lg shadow d-none" style="font-size:1.05rem;" onclick="exportAsImage()">📸 現場審核通過：匯出雙簽名評估紀錄圖檔</button>
-            <button class="btn btn-info btn-lg text-white shadow" style="font-size:1.05rem;" onclick="generatePosterQR()">🖼️ 匯出山林水專屬告示牌 QR Code 圖檔</button>
-            <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ 呼叫系統列印 / 儲存為 PDF 電子檔</button>
-        </div>
-    </div>
+      "水電管線工程": {
+        category: "機電工程 - 水電消防配管配線",
+        statutory: "用戶用電設備裝置規則、營標§11~14。臨時配電箱門扉上鎖、標示電壓危險；線路絕緣阻抗符合標準；管線試壓設置防護遮板與釋壓閥；高空拉線使用合梯高度限制與絕緣手工具。",
+        items: [
+          {
+            subNo: "04-02-001",
+            name: "機電工程-配管配線工程",
+            cycle: "非例行性",
+            env: "天花板/室內管架",
+            hazardType: "感電",
+            scenario: "拉設電纜或維修測試配電盤時，誤觸帶電裸露銅排或線路絕緣破損導致強烈電弧灼傷或觸電",
+            engineering: "1. 實施「上鎖掛牌與斷電檢電」(LOTO - Lockout/Tagout)\n2. 活線作業加裝絕緣遮蔽罩板\n3. 接地線接地電阻合格",
+            management: "1. 配電作業需由合格電匠或室內配線技術士擔任\n2. 驗電筆確認無電壓後方可接觸施工",
+            ppe: "電工絕緣手套 (耐壓級)、絕緣鞋、1000V絕緣手工具、防電弧面罩",
+            s: 4, p: 2,
+            control: "1. 斷電開關鎖上安全鎖並指派人員看顧控制箱\n2. 試送電前清查所有線路終端並清點現場所有人員",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "04-02-002",
+            name: "機電工程-管線試壓作業",
+            cycle: "非例行性",
+            env: "管廊/地下室",
+            hazardType: "物體破裂",
+            scenario: "給水或消防管線進行水壓/氣壓強度試驗時，管蓋盲板固定不良或試壓超壓導致爆裂彈飛擊傷人員",
+            engineering: "1. 盲板端部設置鋼製安全防飛擋架\n2. 試壓管系安裝經校正合格之安全閥及雙壓力表",
+            management: "1. 嚴格依規範分階段階梯式逐步加壓，嚴禁一次加至最高壓\n2. 試壓區域拉設管制黃條禁止無關人員停留盲板正前方",
+            ppe: "安全帽、護目鏡、安全鞋、手套",
+            s: 4, p: 2,
+            control: "1. 升壓時檢查人員不得貼近焊道或盲板敲擊\n2. 試壓完畢由洩壓閥緩慢排壓，確認指針歸零後始可拆裝",
+            postS: 4, postP: 1
+          }
+        ]
+      }
+    };
 
-    <script>
-        (function() {
-            const allowedHost = "louis331088-collab.github.io";
-            if (window.location.hostname !== allowedHost && window.location.hostname !== "127.0.0.1" && window.location.hostname !== "localhost") {
-                window.addEventListener('DOMContentLoaded', () => {
-                    document.getElementById('lockout-screen').style.display = 'block';
-                    document.body.innerHTML = document.getElementById('lockout-screen').outerHTML;
-                });
-            }
-            document.addEventListener('contextmenu', e => e.preventDefault());
-        })();
+    /* 5x5 風險矩陣換算公式表 (指引表11/表12標準) */
+    function calcRiskLevel(s, p) {
+      const score = s * p;
+      let level = 1;
+      let name = "低度風險";
+      let badgeClass = "badge-1";
 
-        function toggleApiKeyInput() {
-            const sec = document.getElementById('apiKeySection');
-            sec.classList.toggle('d-none');
-            const savedKey = localStorage.getItem('GEMINI_API_KEY');
-            if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+      // 依職安指引標準矩陣 (5x5):
+      // S5: P5(5), P4(4), P3(4), P2(3), P1(2)
+      // S4: P5(5), P4(4), P3(3), P2(3), P1(2)
+      // S3: P5(4), P4(3), P3(3), P2(2), P1(1)
+      // S2: P5(3), P4(3), P3(2), P2(1), P1(1)
+      // S1: P5(2), P4(2), P3(1), P2(1), P1(1)
+      if (s === 5) {
+        if (p >= 5) level = 5;
+        else if (p >= 3) level = 4;
+        else if (p === 2) level = 3;
+        else level = 2;
+      } else if (s === 4) {
+        if (p >= 5) level = 5;
+        else if (p === 4) level = 4;
+        else if (p >= 2) level = 3;
+        else level = 2;
+      } else if (s === 3) {
+        if (p >= 5) level = 4;
+        else if (p >= 3) level = 3;
+        else if (p === 2) level = 2;
+        else level = 1;
+      } else if (s === 2) {
+        if (p >= 4) level = 3;
+        else if (p === 3) level = 2;
+        else level = 1;
+      } else {
+        if (p >= 4) level = 2;
+        else level = 1;
+      }
+
+      switch(level) {
+        case 5: name = "重大風險 (5)"; badgeClass = "badge-5"; break;
+        case 4: name = "高度風險 (4)"; badgeClass = "badge-4"; break;
+        case 3: name = "中度風險 (3)"; badgeClass = "badge-3"; break;
+        case 2: name = "低度風險 (2)"; badgeClass = "badge-2"; break;
+        case 1: name = "輕度風險 (1)"; badgeClass = "badge-1"; break;
+      }
+
+      return { score, level, name, badgeClass };
+    }
+
+    /* 全域工作狀態 */
+    let currentRows = [];
+    let currentSelectedJob = "開挖回填";
+
+    // 頁面載入初始化
+    window.onload = function() {
+      lucide.createIcons();
+      selectAndRun("開挖回填");
+    };
+
+    /* 執行工項選擇與即評即判 */
+    function selectAndRun(jobKey) {
+      document.getElementById('jobInput').value = jobKey;
+      currentSelectedJob = jobKey;
+      executeAssessment(jobKey);
+    }
+
+    function selectPredefined(val) {
+      if (!val) return;
+      selectAndRun(val);
+    }
+
+    function triggerAssessment() {
+      const inputVal = document.getElementById('jobInput').value.trim();
+      if (!inputVal) {
+        showToast("請先輸入或點選作業名稱！");
+        return;
+      }
+      executeAssessment(inputVal);
+    }
+
+    /* 核心即時判定解析器 */
+    function executeAssessment(keyword) {
+      let matchedData = null;
+
+      // 1. 精準對應資料庫
+      if (OSH_DATABASE[keyword]) {
+        matchedData = OSH_DATABASE[keyword];
+      } else {
+        // 2. 模糊關鍵字比對
+        for (let key in OSH_DATABASE) {
+          if (keyword.includes(key) || key.includes(keyword)) {
+            matchedData = OSH_DATABASE[key];
+            break;
+          }
         }
+      }
 
-        function saveApiKey() {
-            const key = document.getElementById('apiKeyInput').value.trim();
-            if (key) {
-                localStorage.setItem('GEMINI_API_KEY', key);
-                alert("Gemini API Key 已儲存！");
-                document.getElementById('apiKeySection').classList.add('d-none');
-            } else {
-                alert("請輸入有效的 API Key！");
-            }
-        }
+      // 3. 若找不到完全符合之冷門工項，以高階技師專業架構即時推演生成通用工程模型
+      if (!matchedData) {
+        matchedData = generateDynamicHazardModel(keyword);
+      }
 
-        function toggleOtherDeptInput() {
-            const select = document.getElementById('deptSelect');
-            const otherDiv = document.getElementById('otherDeptDiv');
-            if (select.value === '其他') {
-                otherDiv.classList.remove('d-none');
-            } else {
-                otherDiv.classList.add('d-none');
-                document.getElementById('otherDeptInput').value = '';
-            }
-            updateSignatureLabel();
-        }
+      // 渲染法規資訊與表頭
+      document.getElementById('targetWorkBadge').innerText = keyword;
+      document.getElementById('statutoryHints').innerHTML = `
+        <div class="text-amber-300 font-bold mb-1">【法定作業主管與規範要求】</div>
+        <p>${matchedData.statutory}</p>
+      `;
+      document.getElementById('currentJobTitle').innerText = matchedData.category;
 
-        function toggleOtherIdentityInput() {
-            const select = document.getElementById('identitySelect');
-            const otherDiv = document.getElementById('otherIdentityDiv');
-            if (select.value === '其他') {
-                otherDiv.classList.remove('d-none');
-            } else {
-                otherDiv.classList.add('d-none');
-                document.getElementById('otherIdentityInput').value = '';
-            }
-            updateSignatureLabel();
-        }
+      // 深拷貝行資料進入編輯狀態
+      currentRows = JSON.parse(JSON.stringify(matchedData.items));
+      renderTable();
+      showToast(`已即時判定並生成【${keyword}】共 ${currentRows.length} 項標準風險評估情境`);
+    }
 
-        function updateSignatureLabel() {
-            const deptSel = document.getElementById('deptSelect').value;
-            const deptOther = document.getElementById('otherDeptInput').value.trim();
-            const idSel = document.getElementById('identitySelect').value;
-            const idOther = document.getElementById('otherIdentityInput').value.trim();
+    /* 動態通用推演生成器 (針對特殊/冷門工項) */
+    function generateDynamicHazardModel(customName) {
+      return {
+        category: `綜合工程 - ${customName}`,
+        statutory: `適用《職業安全衛生設施規則》一般作業標準、第21-3條作業前風險評估；視現場高度、機械、開挖、動火性質依《營造安全衛生設施標準》設置各該合格作業主管及工程控制防護。`,
+        items: [
+          {
+            subNo: "GEN-01",
+            name: customName,
+            cycle: "非例行性",
+            env: "工區現場",
+            hazardType: "墜落/滾落",
+            scenario: `從事${customName}作業時，作業人員於開口部或高處動線未依規定佩戴安全帶失足墜落`,
+            engineering: "設置標準安全護欄、安全母索與走道防滑設施",
+            management: "落實高處作業工作許可，專任作業主管現場監督查核",
+            ppe: "背負式安全帶、安全帽(附下巴帶)、安全鞋",
+            s: 4, p: 3,
+            control: "1. 依階層原則消除或使用高空工作車取代攀爬\n2. 施工前落實100%雙大鉤勾掛管理",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "GEN-02",
+            name: customName,
+            cycle: "非例行性",
+            env: "設備操作區",
+            hazardType: "物體飛落/被撞",
+            scenario: `${customName}施作過程物料脫落或施工車輛機具迴轉盲區碰撞下方人員傷亡`,
+            engineering: "設置實體隔離作業管制區、機具加裝行車視野影像輔助器",
+            management: "指派合格交通引導員管制人車分離動線，落實進場自主檢查",
+            ppe: "高反光警示背心、防砸鋼頭安全鞋、安全帽",
+            s: 4, p: 2,
+            control: "1. 劃設半徑內危險警戒禁區，嚴禁非相關人員逗留\n2. 機械迴轉時自動語音蜂鳴提示",
+            postS: 4, postP: 1
+          },
+          {
+            subNo: "GEN-03",
+            name: customName,
+            cycle: "非例行性",
+            env: "臨時供電區",
+            hazardType: "感電",
+            scenario: `使用電動手工具或臨時線路未安裝漏電斷路器，電纜浸水受潮破損引發感電死亡`,
+            engineering: "臨時分電箱全數裝設高感度高速型漏電斷路器(30mA/0.03秒)並施行第三種接地",
+            management: "定期檢測線路絕緣阻抗，機具貼附合格檢驗標卡",
+            ppe: "絕緣安全鞋、電工絕緣手套、安全帽",
+            s: 4, p: 2,
+            control: "1. 施工電線架高吊掛至少2公尺，嚴禁拖地被車輪輾壓\n2. 每日作業前按下漏電斷路器測試鈕確認作動",
+            postS: 4, postP: 1
+          }
+        ]
+      };
+    }
 
-            let deptName = (deptSel === '其他') ? (deptOther || "自訂公司") : deptSel;
-            let idName = (idSel === '其他') ? (idOther || "自訂身份") : idSel;
+    /* 渲染風險評估大表 */
+    function renderTable() {
+      const tbody = document.getElementById('riskTableBody');
+      tbody.innerHTML = '';
 
-            document.getElementById('workerSigLabel').innerText = `【手寫簽名】已了解危害人員（${deptName} - ${idName}）`;
-        }
+      if (currentRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="19" class="p-8 text-center text-slate-400">尚未載入評估資料，請選擇或輸入工項</td></tr>`;
+        return;
+      }
 
-        document.getElementById('otherDeptInput').addEventListener('input', updateSignatureLabel);
-        document.getElementById('otherIdentityInput').addEventListener('input', updateSignatureLabel);
+      currentRows.forEach((row, index) => {
+        // 計算原評估與殘餘風險
+        const preRisk = calcRiskLevel(row.s, row.p);
+        const postRisk = calcRiskLevel(row.postS, row.postP);
 
-        const disasterDatabase = {
-            "熱危害": { 
-                before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "【工程控制】設置遮陽場所、通風設備或細水霧，監測/現場記錄熱指數。\n【管理控制】適度調配高氣溫作業時間，規律每15~20分鐘補充150-200ml水與鹽分，新進勞工實施熱適應管理，採團隊作業(至少2人1組)互相照應。\n【個人防護】提供淺色透氣工作服與通風帽子，必要時配戴冰背心。",
-                checkItems: [
-                    "【工程控制】已設置具遮陽/風扇/空調之休息場所，並配置清涼飲用水與電解質",
-                    "【管理控制】已落實熱適應規劃、避開極高溫時段，並指派專人定期巡檢與體溫血壓量測",
-                    "【管理控制】已落實團隊作業（至少2人1組），宣導每15~20分鐘規律補充水分鹽分",
-                    "【個人防護】作業人員穿著淺色透氣工作服與通風帽子，已建立熱疾病緊急通報就醫流程"
-                ]
-            },
-            "噪音": {
-                before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(3分)", afterClass: "risk-2",
-                controls: "【工程控制】鼓風機/泵浦區等高噪音設備加裝隔音罩、吸音材或隔音牆。\n【管理控制】標示噪音危害公告，實施噪音檢測與聽力保護計畫，採取作業輪調分散暴露。\n【個人防護】全程正確配戴合格之防音耳塞或防音耳罩。",
-                checkItems: [
-                    "【工程控制】高噪音機房或設備已裝設防音隔音罩、消音器與吸音板",
-                    "【管理控制】已於高噪音區域張貼警示告示，並控制作業人員連續暴露時間",
-                    "【個人防護】人員進入高噪音作業區已全程正確配戴合格耳塞或耳罩"
-                ]
-            },
-            "蟲害(蛇、蜂、鼠、火蟻等)": {
-                before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2",
-                controls: "【環境管理】定期割除廠區草叢、清理積水與環境死角，避免堆放廢棄物引致鼠害。\n【管理控制】戶外草叢作業前執行「打草驚蛇」，避免使用香水與鮮艷衣物；備妥蜂蛇咬傷急救資訊與抗蛇毒血清醫療路線。\n【個人防護】穿著長袖長褲、厚高筒安全鞋或長統膠鞋。",
-                checkItems: [
-                    "【環境管理】廠區周遭已完成雜草割除與死角清理，無可疑蜂巢或害蟲孳生",
-                    "【管理控制】戶外草叢區域作業前已執行打草驚蛇，並確認緊急送醫聯絡資訊",
-                    "【個人防護】作業人員已穿著淺色長袖長褲、厚高筒鞋或高統長膠鞋"
-                ]
-            },
-            "照明不足": {
-                before: "中度風險(8分)", beforeClass: "risk-3", after: "極低風險(1分)", afterClass: "risk-1",
-                controls: "【工程控制】地下管廊、水池深槽等暗處架設固定式防爆照明，確保通道照度>50Lux、檢修區>300Lux。\n【管理控制】定期巡檢維護燈具完好，嚴禁單人在完全無照明區作業。\n【個人防護】配備高亮度防爆手電筒或高照度頭燈。",
-                checkItems: [
-                    "【工程控制】暗處通道及水池巡檢區已架設充足照度之固定式防爆燈具",
-                    "【個人防護】進入地下管廊或夜間巡檢人員已隨身攜帶高亮度防爆頭燈或手電筒"
-                ]
-            },
-            "人因工程": {
-                before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2",
-                controls: "【工程控制】重物搬運(>40kg)優先使用天車、吊具、電動油壓車或手推車輔助。\n【管理控制】改善閥門與設備操作高度，避免長時間彎腰或過度扭轉；實施搬運姿勢訓練，每小時給予伸展休息時間。\n【個人防護】配戴護腰帶及防滑工作手套。",
-                checkItems: [
-                    "【工程控制】重物搬運與閥門開關已優先使用天車、手推車或專用加力槓桿",
-                    "【管理控制】單人搬運已控制在40kg以下，並落實正確彎膝搬運與適時伸展休息"
-                ]
-            },
-            "墜落": { 
-                before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "【工程控制】設置合格護欄、工作台或安全母索。\n【管理控制】落實高處作業檢核。\n【個人防護】正確配戴雙大鉤背負式安全帶及安全帽。",
-                checkItems: ["【工程控制】已確認作業高處設置合格護欄、工作台或獨立安全母索", "【管理控制】已確實執行高處作業開工前安全檢查", "【個人防護】作業人員已全程正確配戴雙大鉤背負式安全帶與安全帽"]
-            },
-            "物體飛落": { 
-                before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", 
-                controls: "【工程控制】設置防飛落遮欄或雙層安全網。\n【管理控制】劃設下方禁入管制區，嚴禁垂直重疊作業。\n【個人防護】全程配戴防護安全帽。",
-                checkItems: ["【工程控制】高處作業下方已設置防飛落遮欄或雙層安全防護網", "【管理控制】下方投影區已劃設禁入管制線，嚴禁垂直重疊作業", "【個人防護】現場人員已確實配戴合格防護安全帽"]
-            },
-            "感電": { 
-                before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "【工程控制】加裝漏電斷路器，電線架高保護。\n【管理控制】作業前實施上鎖掛牌（LOTO）與驗電。\n【個人防護】穿戴絕緣手套與絕緣鞋。",
-                checkItems: ["【工程控制】臨時用電迴路已安裝高敏感度漏電斷路器，電線已架高", "【管理控制】作業前已完成上鎖掛牌（LOTO）並以驗電筆確認無電", "【個人防護】已正確穿戴完全乾燥之絕緣手套與絕緣鞋"]
-            },
-            "被夾": { 
-                before: "中度風險(9分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", 
-                controls: "【工程控制】設置傳動帶與齒輪安全護罩。\n【管理控制】維修清除故障時務必停機斷電掛牌。\n【個人防護】嚴禁穿著寬鬆衣物，操作旋轉軸禁止戴棉紗手套。",
-                checkItems: ["【工程控制】機械設備運轉傳動部位已裝設完好安全護罩", "【管理控制】維修清理時已停機斷電並掛牌管制", "【個人防護】人員服裝合身，操作旋轉設備已禁止配戴手套"]
-            },
-            "被捲": { 
-                before: "中度風險(9分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", 
-                controls: "【工程控制】設置防捲入護網與緊急連鎖斷電裝置。\n【管理控制】維持良好照明與防滑措施。\n【個人防護】穿著緊身工作服，禁止戴棉紗手套操作。",
-                checkItems: ["【工程控制】旋轉區域已設置防捲入護網與緊急停機裝置", "【管理控制】作業周遭保持充足照明與地面乾爽防滑", "【個人防護】作業人員穿著緊身工作服，禁止配戴棉紗手套"]
-            },
-            "物體倒塌": { 
-                before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", 
-                controls: "【工程控制】落實墊木、繩索繫縛防滑移措施，堆疊高度應小於1.8公尺。\n【管理控制】劃設物料堆放專用區，定期巡檢結構穩定度。",
-                checkItems: ["【工程控制】材料堆置已放置墊木與繩索繫縛，堆疊高度低於1.8公尺", "【管理控制】已劃設物料專用區，並完成堆疊結構穩定度巡檢"]
-            },
-            "崩塌": { 
-                before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "【工程控制】深度達1.5公尺以上設置擋土支撐或採斜坡開挖。\n【管理控制】指派「露天開挖作業主管」全程在場監督。\n【個人防護】配戴安全帽、安全鞋，嚴禁進入無防護區域。",
-                checkItems: ["【工程控制】開挖深度達1.5公尺以上已確實設置擋土支撐或安全斜坡", "【管理控制】已指派合格露天開挖作業主管全程在場監督", "【個人防護】人員已配戴安全帽與安全鞋，嚴禁進入無防護區域"]
-            },
-            "被撞": { 
-                before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", 
-                controls: "【工程控制】人車動線分流，車輛倒車警報器維持正常。\n【管理控制】營建機械作業時指派交通指揮手。\n【個人防護】全程正確穿著高可視度反光背心。",
-                checkItems: ["【工程控制】現場人車動線已明確分流，工程車倒車警報器正常", "【管理控制】營建機械作業現場已指派專職交通指揮手", "【個人防護】作業人員已全程穿著高可視度反光背心"]
-            },
-            "與有害物等之接觸": { 
-                before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", 
-                controls: "【工程控制】設置局部排氣或通風設備。\n【管理控制】備妥安全資料表（SDS），落實危害通識。\n【個人防護】配戴合格之防化學手套、防毒面具或安全護目鏡。",
-                checkItems: ["【工程控制】作業區已配置運轉正常之局部抽排風通風設備", "【管理控制】現場已備妥化學品安全資料表（SDS）並完成危害宣導", "【個人防護】人員已配戴防化學手套、防毒面具或護目鏡"]
-            },
-            "跌倒": { 
-                before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", 
-                controls: "【工程控制】高差通道設置安全扶手，保持充足照明。\n【管理控制】徹底落實工地 5S 整理整頓，維持通道暢通。",
-                checkItems: ["【工程控制】高差通行處已設置防滑梯階與安全扶手", "【管理控制】現場已落實 5S 整理整頓，保持通道清潔暢通"]
-            },
-            "火災": { 
-                before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", 
-                controls: "【工程控制】動火點周遭10公尺內嚴禁堆放易燃物，配備防火擋焰毯。\n【管理控制】落實動火作業許可制度，指派專職看火人。\n【個人防護】隨案配備合格之乾粉滅火器。",
-                checkItems: ["【工程控制】動火點周遭10公尺內已清除易燃物，並架設防火毯", "【管理控制】已取得動火作業許可證，並指派專職看火人在場", "【個人防護】動火作業點已隨案配備合格效期內之滅火器"]
-            },
-            "爆炸": { 
-                before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(4分)", afterClass: "risk-2", 
-                controls: "【工程控制】氣瓶分開直立儲存，加裝防傾倒鏈條與安全「逆火防止器」。\n【管理控制】嚴禁烈日曝曬，現場落實密閉氣體外洩偵測。",
-                checkItems: ["【工程控制】氧氣乙炔氣瓶已直立固定，並加裝逆火防止器", "【管理控制】高壓氣瓶已設置遮陽防曝曬，現場無氣體外洩"]
-            },
-            "溺斃": { 
-                before: "高度風險(15分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "【工程控制】水池周遭設置防墜護欄，架設固定式安全爬梯。\n【管理控制】嚴禁單獨接近未設護欄之水體作業。\n【個人防護】臨水作業人員全程穿戴合格之救生衣。",
-                checkItems: ["【工程控制】開放水池周遭已架設高 1.1 公尺以上防墜護欄", "【管理控制】嚴禁單人單獨臨水作業，並劃設防溺警示區", "【個人防護】臨水作業人員已全程正確穿戴合格救生衣"]
-            },
-            "與高溫、低溫之接觸": { 
-                before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", 
-                controls: "【工程控制】高溫管線包覆保溫棉或設置防燙隔板。\n【管理控制】張貼高溫警示牌，設定設備冷卻管制期。\n【個人防護】穿戴隔熱服與防高溫皮革長手套。",
-                checkItems: ["【工程控制】高溫管線或設備表面已裝設隔熱包覆與防燙隔板", "【個人防護】作業人員已配戴防高溫隔熱手套與防護面罩"]
-            },
-            "衝撞": { 
-                before: "低度風險(4分)", beforeClass: "risk-2", after: "極低風險(1分)", afterClass: "risk-1", 
-                controls: "【工程控制】通道死角或轉角處裝設廣角凸面反光鏡。\n【管理控制】工區內嚴格限速10公里/小時，行走指定安全步道。",
-                checkItems: ["【工程控制】工區轉角視線死角處已裝設凸面反光鏡", "【管理控制】車輛嚴格限速 10 km/h，人員行走於指定安全步道"]
-            },
-            "其他交通事故": { 
-                before: "高度風險(12分)", beforeClass: "risk-4", after: "低度風險(3分)", afterClass: "risk-2", 
-                controls: "【管理控制】大門動線指派專職交管人員；落實視野死角管制；嚴禁酒後與疲勞駕駛。",
-                checkItems: ["【管理控制】大門及主要動線已配置專職交管，嚴禁酒後疲勞駕駛"]
-            },
-            "物體破裂": { 
-                before: "中度風險(9分)", beforeClass: "risk-3", after: "低度風險(3分)", afterClass: "risk-2", 
-                controls: "【工程控制】手持砂輪機、切割機確實設置高強度防飛落安全防護罩。\n【管理控制】落實機具使用前安全檢查，嚴禁超載運轉。",
-                checkItems: ["【工程控制】手持砂輪機與切割機防護罩完好無鬆脫", "【管理控制】作業前已完成電動機具自主安全檢查"]
-            },
-            "局限空間/缺氧中毒": { 
-                before: "極高風險(20分)", beforeClass: "risk-5", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "【工程控制】連續強制換氣，偵測確認氧氣>18%、硫化氫<10ppm、一氧化碳<35ppm。\n【管理控制】指派局限空間作業主管在場，落實許可證核准與進出登載。\n【個人防護】備妥全身式安全帶、三腳架救援設備及緊急逃生呼吸防護具（EEBD）。",
-                checkItems: ["【工程控制】進入前已連續強制通風，氣體偵測結果合格（O2>18%）", "【管理控制】局限空間作業主管在場監督，許可證已簽核並完成人員登載", "【個人防護】現場已備妥三腳架救援設備與緊急逃生呼吸防護具（EEBD）"]
-            },
-            "被刺、割、擦傷": { 
-                before: "中度風險(8分)", beforeClass: "risk-3", after: "極低風險(1分)", afterClass: "risk-1", 
-                controls: "【工程控制】清除突出鐵釘，機具防護罩完好。\n【管理控制】將穿刺與飛散危害公告。\n【個人防護】必備鋼頭防穿刺鞋、耐切割手套及防護眼鏡。",
-                checkItems: ["【工程控制】作業地面已完成整理，無突出鐵釘或尖銳飛散物", "【個人防護】人員已穿著鋼頭防穿刺安全鞋與耐切割工作手套"]
-            },
-            "踩踏、踏穿": { 
-                before: "高度風險(10分)", beforeClass: "risk-4", after: "低度風險(5分)", afterClass: "risk-2", 
-                controls: "【工程控制】脆弱採光罩、輕鋼架作業鋪設寬度30公分以上具防滑功能之合格通道踏板。\n【管理控制】懸掛「嚴禁踩踏」告示。\n【個人防護】正確配戴防墜安全帶並掛置於獨立安全母索。",
-                checkItems: ["【工程控制】脆弱屋頂採光罩處已鋪設寬 30cm 以上合格通道踏板", "【管理控制】易踏穿區域已懸掛警告標示，人員安全帶已掛置於母索"]
-            },
-            "化學品洩漏": { 
-                before: "中度風險(6分)", beforeClass: "risk-3", after: "極低風險(2分)", afterClass: "risk-1", 
-                controls: "【工程控制】藥劑儲存區設置防液堤或集液托盤。\n【管理控制】張貼安全資料表（SDS），配置足夠防液沙包與吸液棉。",
-                checkItems: ["【工程控制】化學品儲存區已設置防液堤與盛漏托盤", "【管理控制】現場已配置洩漏緊急應變防液沙包與吸液棉"]
-            }
-        };
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition border-b border-slate-200 divide-x divide-slate-200";
+        tr.innerHTML = `
+          <!-- 編號 -->
+          <td class="p-2 text-center font-mono font-bold text-slate-600 bg-slate-50/50">${row.subNo || (index+1)}</td>
+          
+          <!-- 1. 作業名稱/週期/環境 (支援在線微調) -->
+          <td class="p-2 font-medium">
+            <input type="text" value="${escapeHtml(row.name)}" onchange="updateCell(${index}, 'name', this.value)" class="w-full bg-transparent border-b border-transparent hover:border-slate-300 focus:border-sky-500 focus:bg-white text-xs px-1 py-0.5 rounded">
+          </td>
+          <td class="p-2 text-center">
+            <select onchange="updateCell(${index}, 'cycle', this.value)" class="bg-transparent border-b border-transparent hover:border-slate-300 text-xs text-center py-0.5">
+              <option value="例行性" ${row.cycle==='例行性'?'selected':''}>例行性</option>
+              <option value="非例行性" ${row.cycle==='非例行性'?'selected':''}>非例行性</option>
+              <option value="緊急" ${row.cycle==='緊急'?'selected':''}>緊急</option>
+            </select>
+          </td>
+          <td class="p-2 text-center">
+            <input type="text" value="${escapeHtml(row.env)}" onchange="updateCell(${index}, 'env', this.value)" class="w-full bg-transparent border-b border-transparent hover:border-slate-300 text-xs text-center py-0.5">
+          </td>
 
-        const disasterTypes = [
-            "熱危害", "噪音", "蟲害(蛇、蜂、鼠、火蟻等)", "照明不足", "人因工程",
-            "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", "被夾", "被捲", 
-            "與有害物等之接觸", "跌倒", "爆炸", "溺斃", "與高溫、低溫之接觸", 
-            "衝撞", "其他交通事故", "物體破裂", "感電", "火災", 
-            "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩漏"
+          <!-- 2. 危害類型 & 情境描述 -->
+          <td class="p-2 text-center">
+            <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+              ${escapeHtml(row.hazardType)}
+            </span>
+          </td>
+          <td class="p-2 leading-relaxed text-slate-700">
+            <textarea rows="3" onchange="updateCell(${index}, 'scenario', this.value)" class="w-full bg-transparent border border-transparent hover:border-slate-300 focus:border-sky-500 focus:bg-white text-xs p-1 rounded resize-y">${row.scenario}</textarea>
+          </td>
+
+          <!-- 3. 現有防護設施 (硬體、軟體、PPE) -->
+          <td class="p-2 bg-slate-50/40">
+            <textarea rows="3" onchange="updateCell(${index}, 'engineering', this.value)" class="w-full bg-transparent border border-transparent hover:border-slate-300 focus:border-sky-500 focus:bg-white text-xs p-1 rounded resize-y" placeholder="工程控制">${row.engineering}</textarea>
+          </td>
+          <td class="p-2 bg-slate-50/40">
+            <textarea rows="3" onchange="updateCell(${index}, 'management', this.value)" class="w-full bg-transparent border border-transparent hover:border-slate-300 focus:border-sky-500 focus:bg-white text-xs p-1 rounded resize-y" placeholder="管理控制">${row.management}</textarea>
+          </td>
+          <td class="p-2 bg-slate-50/40">
+            <textarea rows="3" onchange="updateCell(${index}, 'ppe', this.value)" class="w-full bg-transparent border border-transparent hover:border-slate-300 focus:border-sky-500 focus:bg-white text-xs p-1 rounded resize-y" placeholder="個人防護具">${row.ppe}</textarea>
+          </td>
+
+          <!-- 4. 原風險評估 S, P, Risk, Level -->
+          <td class="p-1 text-center font-bold">
+            <select onchange="updateRowMatrix(${index}, 's', this.value)" class="bg-transparent font-bold text-center text-xs">
+              ${[5,4,3,2,1].map(v => `<option value="${v}" ${row.s===v?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </td>
+          <td class="p-1 text-center font-bold">
+            <select onchange="updateRowMatrix(${index}, 'p', this.value)" class="bg-transparent font-bold text-center text-xs">
+              ${[5,4,3,2,1].map(v => `<option value="${v}" ${row.p===v?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </td>
+          <td class="p-1 text-center font-mono font-bold text-slate-800">${preRisk.score}</td>
+          <td class="p-1 text-center">
+            <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${preRisk.badgeClass}">
+              ${preRisk.name}
+            </span>
+          </td>
+
+          <!-- 5. 降低風險所採取之控制措施 (職安指引關鍵對策) -->
+          <td class="p-2 bg-sky-50/30">
+            <textarea rows="3" onchange="updateCell(${index}, 'control', this.value)" class="w-full bg-transparent border border-transparent hover:border-sky-300 focus:border-sky-500 focus:bg-white text-xs p-1 rounded font-medium text-sky-950 resize-y">${row.control}</textarea>
+          </td>
+
+          <!-- 6. 控制後殘餘風險 postS, postP, Score, Level -->
+          <td class="p-1 text-center font-bold text-emerald-800">
+            <select onchange="updateRowMatrix(${index}, 'postS', this.value)" class="bg-transparent font-bold text-center text-xs text-emerald-800">
+              ${[5,4,3,2,1].map(v => `<option value="${v}" ${row.postS===v?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </td>
+          <td class="p-1 text-center font-bold text-emerald-800">
+            <select onchange="updateRowMatrix(${index}, 'postP', this.value)" class="bg-transparent font-bold text-center text-xs text-emerald-800">
+              ${[5,4,3,2,1].map(v => `<option value="${v}" ${row.postP===v?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </td>
+          <td class="p-1 text-center font-mono font-bold text-emerald-800">${postRisk.score}</td>
+          <td class="p-1 text-center">
+            <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${postRisk.badgeClass}">
+              ${postRisk.name}
+            </span>
+          </td>
+
+          <!-- 操作鍵 -->
+          <td class="p-2 text-center no-print">
+            <button onclick="deleteRow(${index})" class="text-rose-500 hover:text-rose-700 p-1" title="刪除此項">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    /* 在線微調表格資料連動更新 */
+    function updateCell(idx, field, val) {
+      if (currentRows[idx]) {
+        currentRows[idx][field] = val;
+      }
+    }
+
+    function updateRowMatrix(idx, field, val) {
+      if (currentRows[idx]) {
+        currentRows[idx][field] = parseInt(val, 10);
+        renderTable();
+      }
+    }
+
+    function deleteRow(idx) {
+      if (confirm("確定要刪除這筆危害評估情境嗎？")) {
+        currentRows.splice(idx, 1);
+        renderTable();
+        showToast("已刪除該情境項目");
+      }
+    }
+
+    function addNewCustomRow() {
+      const newNo = `01-NEW-${String(currentRows.length + 1).padStart(3, '0')}`;
+      currentRows.push({
+        subNo: newNo,
+        name: currentSelectedJob,
+        cycle: "非例行性",
+        env: "室內/戶外",
+        hazardType: "跌倒/碰撞",
+        scenario: "請輸入自訂具體致災要因情境描述...",
+        engineering: "設置防護欄杆/物料整齊堆置",
+        management: "標準作業SOP與進場危害告知",
+        ppe: "安全帽、安全鞋、反光背心",
+        s: 3, p: 2,
+        control: "加強專責人員日常安全巡檢與作業檢點",
+        postS: 3, postP: 1
+      });
+      renderTable();
+      showToast("已新增自訂評估項目，請於表格中編輯！");
+    }
+
+    function resetToInitial() {
+      executeAssessment(currentSelectedJob);
+    }
+
+    /* 頂部5x5矩陣試算聯動 */
+    function recalcInteractiveMatrix() {
+      const s = parseInt(document.getElementById('calcS').value, 10);
+      const p = parseInt(document.getElementById('calcP').value, 10);
+      const res = calcRiskLevel(s, p);
+      const badge = document.getElementById('matrixScoreBadge');
+      badge.className = `text-xs font-black px-2 py-0.5 rounded ${res.badgeClass}`;
+      badge.innerText = `${res.name} (風險值: ${res.score})`;
+    }
+
+    /* 搜尋聯想建議 */
+    function handleSearchInput(val) {
+      const dropdown = document.getElementById('autocompleteDropdown');
+      if (!val.trim()) {
+        dropdown.classList.add('hidden');
+        return;
+      }
+
+      const query = val.toLowerCase();
+      const matchedKeys = Object.keys(OSH_DATABASE).filter(k => k.toLowerCase().includes(query));
+
+      if (matchedKeys.length > 0) {
+        dropdown.innerHTML = matchedKeys.map(k => `
+          <div onclick="selectFromDropdown('${k}')" class="px-3 py-2 text-xs hover:bg-sky-50 text-slate-700 cursor-pointer flex items-center justify-between border-b last:border-none">
+            <span class="font-bold text-slate-800">${k}</span>
+            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">${OSH_DATABASE[k].category}</span>
+          </div>
+        `).join('');
+        dropdown.classList.remove('hidden');
+      } else {
+        dropdown.classList.add('hidden');
+      }
+    }
+
+    function selectFromDropdown(k) {
+      document.getElementById('jobInput').value = k;
+      document.getElementById('autocompleteDropdown').classList.add('hidden');
+      selectAndRun(k);
+    }
+
+    // 點擊空白處關閉下拉選單
+    document.addEventListener('click', function(e) {
+      const input = document.getElementById('jobInput');
+      const dropdown = document.getElementById('autocompleteDropdown');
+      if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    /* 匯出 CSV 功能 */
+    function exportToCSV() {
+      if (currentRows.length === 0) {
+        showToast("無資料可供匯出！");
+        return;
+      }
+
+      let csv = "\uFEFF"; // UTF-8 BOM
+      csv += "作業編號,作業名稱,作業週期,作業環境,危害類型,後果情境描述,工程控制,管理控制,個人防護具,原嚴重度S,原可能性P,原風險值,原風險等級,降低風險控制措施,殘餘S,殘餘P,殘餘風險值,殘餘等級\n";
+
+      currentRows.forEach(r => {
+        const pre = calcRiskLevel(r.s, r.p);
+        const post = calcRiskLevel(r.postS, r.postP);
+        const rowData = [
+          `"${r.subNo}"`,
+          `"${r.name}"`,
+          `"${r.cycle}"`,
+          `"${r.env}"`,
+          `"${r.hazardType}"`,
+          `"${r.scenario.replace(/"/g, '""')}"`,
+          `"${r.engineering.replace(/"/g, '""')}"`,
+          `"${r.management.replace(/"/g, '""')}"`,
+          `"${r.ppe.replace(/"/g, '""')}"`,
+          r.s, r.p, pre.score, `"${pre.name}"`,
+          `"${r.control.replace(/"/g, '""')}"`,
+          r.postS, r.postP, post.score, `"${post.name}"`
         ];
-
-        const grid = document.getElementById('disasterGrid');
-        disasterTypes.forEach((type, index) => {
-            let labelClass = "";
-            if(type === "熱危害") labelClass = "border-danger text-danger";
-            else if(["噪音", "蟲害(蛇、蜂、鼠、火蟻等)", "照明不足", "人因工程"].includes(type)) labelClass = "border-primary text-primary";
-
-            const html = `
-                <div class="col-6 col-md-3">
-                    <input type="checkbox" class="disaster-btn condition-check" id="dis_${index}" value="${type}">
-                    <label class="disaster-label ${labelClass}" for="dis_${index}">${type === "熱危害" ? "🔥 熱危害" : type}</label>
-                </div>
-            `;
-            grid.insertAdjacentHTML('beforeend', html);
-        });
-
-        const sigPads = {
-            worker: { canvas: document.getElementById('worker-sig'), ctx: document.getElementById('worker-sig').getContext('2d'), drawing: false, lastPos: null, strokes: [] },
-            safety: { canvas: document.getElementById('safety-sig'), ctx: document.getElementById('safety-sig').getContext('2d'), drawing: false, lastPos: null, strokes: [] }
-        };
-
-        Object.keys(sigPads).forEach(key => {
-            const pad = sigPads[key]; pad.ctx.lineWidth = 3; pad.ctx.strokeStyle = "#0f172a";
-            let currentStroke = [];
-
-            function getPos(e) {
-                const rect = pad.canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: Math.round(clientX - rect.left), y: Math.round(clientY - rect.top) };
-            }
-            function startDraw(e) { 
-                pad.drawing = true; pad.ctx.beginPath(); const p = getPos(e); pad.ctx.moveTo(p.x, p.y); 
-                currentStroke = [[p.x, p.y]]; pad.lastPos = p; e.preventDefault(); 
-            }
-            function draw(e) { 
-                if(!pad.drawing) return; const p = getPos(e); 
-                const dist = Math.hypot(p.x - pad.lastPos.x, p.y - pad.lastPos.y);
-                if (dist > 6) {
-                    pad.ctx.lineTo(p.x, p.y); pad.ctx.stroke(); currentStroke.push([p.x, p.y]); pad.lastPos = p;
-                }
-                e.preventDefault(); 
-            }
-            function stopDraw() { if(pad.drawing && currentStroke.length > 0) { pad.strokes.push(currentStroke); } pad.drawing = false; }
-
-            pad.canvas.addEventListener('mousedown', startDraw); pad.canvas.addEventListener('mousemove', draw); window.addEventListener('mouseup', stopDraw);
-            pad.canvas.addEventListener('touchstart', startDraw); pad.canvas.addEventListener('touchmove', draw); window.addEventListener('touchend', stopDraw);
-        });
-
-        function clearSig(key) {
-            const pad = sigPads[key]; pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height); pad.strokes = [];
-        }
-
-        setTimeout(() => {
-            const checkboxes = document.querySelectorAll('.condition-check');
-            checkboxes.forEach(box => box.addEventListener('change', evaluateRisk));
-        }, 200);
-
-        function evaluateRisk() {
-            const resultRows = document.getElementById('resultRows');
-            const riskResultBox = document.getElementById('riskResultBox');
-            const idDetails = document.getElementById('analysisDetails');
-            const controlCheckSec = document.getElementById('controlCheckSec');
-            const controlCheckList = document.getElementById('controlCheckList');
-            const checkboxes = document.querySelectorAll('.condition-check');
-            const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
-            
-            resultRows.innerHTML = '';
-            controlCheckList.innerHTML = '';
-            let maxRiskText = '低度風險 (1-4分，已採取安全設施，落實日常巡檢)';
-            let maxRiskClass = 'risk-2'; let hasSelection = false;
-            let checkIndex = 0;
-
-            checkboxes.forEach(box => {
-                if (box.checked) {
-                    hasSelection = true;
-                    const rule = disasterDatabase[box.value];
-                    if (rule.beforeClass === 'risk-5') { maxRiskClass = 'risk-5'; maxRiskText = '極高風險 (20-25分，不可接受！須立即召開管制會議並全面暫停作業！)'; }
-                    else if (rule.beforeClass === 'risk-4' && maxRiskClass !== 'risk-5') { maxRiskClass = 'risk-4'; maxRiskText = '高度風險 (10-16分，在工程控制與降險防護到位前，不可開工作業)'; }
-                    else if (rule.beforeClass === 'risk-3' && maxRiskClass !== 'risk-5' && maxRiskClass !== 'risk-4') { maxRiskClass = 'risk-3'; maxRiskText = '中度風險 (5-10分，應逐步配置更完善之施工防護設施)'; }
-
-                    const formattedControls = rule.controls.replace(/\n/g, '<br>');
-                    const row = `<tr>
-                        <td class="fw-bold text-center text-dark" style="background-color: #f8fafc;">${box.value}</td>
-                        <td class="text-center"><span class="badge-risk-cell badge ${rule.beforeClass}">${rule.before}</span></td>
-                        <td>${formattedControls}</td>
-                        <td class="text-center"><span class="badge-risk-cell badge ${rule.afterClass}">${rule.after}</span></td>
-                    </tr>`;
-                    resultRows.insertAdjacentHTML('beforeend', row);
-
-                    if (rule.checkItems) {
-                        rule.checkItems.forEach(itemText => {
-                            checkIndex++;
-                            const checkHtml = `
-                                <div class="control-check-item d-flex align-items-center">
-                                    <input class="form-check-input me-2 control-checkbox" type="checkbox" id="chk_${checkIndex}" onchange="updateCheckStatus()">
-                                    <label class="form-check-label fw-bold text-dark" style="font-size:0.88rem; cursor:pointer;" for="chk_${checkIndex}">
-                                        ${itemText}
-                                    </label>
-                                </div>
-                            `;
-                            controlCheckList.insertAdjacentHTML('beforeend', checkHtml);
-                        });
-                    }
-                }
-            });
-
-            if (hasSelection) {
-                riskResultBox.innerHTML = `<div class="risk-badge ${maxRiskClass}">針對【${jobName}】評估最高初始風險：${maxRiskText}</div>`;
-                idDetails.style.display = 'block';
-                controlCheckSec.classList.remove('d-none');
-                updateCheckStatus();
-            } else {
-                riskResultBox.innerHTML = `<div class="risk-badge risk-1">請於上方勾選潛在災害類型以啟動動態評估</div>`;
-                idDetails.style.display = 'none';
-                controlCheckSec.classList.add('d-none');
-            }
-        }
-
-        function updateCheckStatus() {
-            const allChecks = document.querySelectorAll('.control-checkbox');
-            const checkedCount = document.querySelectorAll('.control-checkbox:checked').length;
-            const msgBox = document.getElementById('checkStatusMsg');
-
-            if (allChecks.length > 0 && checkedCount === allChecks.length) {
-                msgBox.className = "alert alert-success mt-2 mb-0 py-2 text-center small fw-bold";
-                msgBox.innerHTML = "🎉 現場防護對策已 100% 勾稽確認完成，風險已實質降至可接受之低度風險範圍！";
-            } else {
-                msgBox.className = "alert alert-warning mt-2 mb-0 py-2 text-center small fw-bold";
-                msgBox.innerHTML = `⚠️ 目前已確認 (${checkedCount}/${allChecks.length}) 項現場措施，請完整勾選以確保降險合規！`;
-            }
-        }
-
-        /* 現場照片壓縮與 AI 辨識（採用最新版 gemini-3.6-flash 端點） */
-        function previewAndAnalyzePhoto() {
-            const fileInput = document.getElementById('sitePhotoInput');
-            const file = fileInput.files[0];
-            if (!file) return;
-
-            const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
-            if (!apiKey) {
-                alert("請先點選右上角『⚙️ 設定 API Key』輸入您的 Gemini API Key！");
-                toggleApiKeyInput();
-                fileInput.value = '';
-                return;
-            }
-
-            const previewContainer = document.getElementById('photoPreviewContainer');
-            const previewImg = document.getElementById('photoPreview');
-            const aiLoading = document.getElementById('aiLoading');
-            const aiResultText = document.getElementById('aiResultText');
-
-            previewContainer.classList.remove('d-none');
-            aiLoading.classList.remove('d-none');
-            aiResultText.classList.add('d-none');
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxDim = 800;
-
-                    if (width > height && width > maxDim) {
-                        height = Math.round((height * maxDim) / width);
-                        width = maxDim;
-                    } else if (height > maxDim) {
-                        width = Math.round((width * maxDim) / height);
-                        height = maxDim;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-                    previewImg.src = canvas.toDataURL('image/jpeg', 0.8);
-                    
-                    analyzeImageWithGemini(apiKey, compressedBase64, 'image/jpeg');
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        async function analyzeImageWithGemini(apiKey, base64Data, mimeType) {
-            const aiLoading = document.getElementById('aiLoading');
-            const aiResultText = document.getElementById('aiResultText');
-
-            const systemPrompt = `你是一位具備甲種職業安全衛生業務主管資格的專業稽核專家。
-請仔細審視這張施工或廠區現場照片，根據台灣《職業安全衛生設施規則》與營造安全指引：
-1. 辨識照片中的作業環境與潛在危害。
-2. 必須從以下標準危害清單中挑選符合的項目（請只選取照片中真正存在的項目）：
-["熱危害", "噪音", "蟲害(蛇、蜂、鼠、火蟻等)", "照明不足", "人因工程", "墜落", "物體倒塌", "崩塌", "物體飛落", "被撞", "被夾", "被捲", "與有害物等之接觸", "跌倒", "爆炸", "溺斃", "與高溫、低溫之接觸", "衝撞", "其他交通事故", "物體破裂", "感電", "火災", "局限空間/缺氧中毒", "被刺、割、擦傷", "踩踏、踏穿", "化學品洩漏"]
-
-請輸出嚴格的 JSON 格式，不要包含任何 markdown 標記：
-{
-  "detectedDisasters": ["危害1", "危害2"],
-  "analysisSummary": "針對現場危害的簡要說明與分析理由（80字以內）"
-}`;
-
-            // 使用官方最新指定的 gemini-3.6-flash 端點
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-
-            const requestBody = {
-                contents: [{
-                    parts: [
-                        { text: systemPrompt },
-                        { inline_data: { mime_type: mimeType, data: base64Data } }
-                    ]
-                }],
-                generationConfig: {
-                    response_mime_type: "application/json"
-                }
-            };
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-goog-api-key': apiKey
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error?.message || `HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-                const jsonText = data.candidates[0].content.parts[0].text;
-                const result = JSON.parse(jsonText);
-
-                aiLoading.classList.add('d-none');
-                aiResultText.className = "alert alert-success mt-2 py-2 small text-start";
-                aiResultText.classList.remove('d-none');
-                aiResultText.innerHTML = `<strong>🤖 AI 危害辨識結論：</strong><br>${result.analysisSummary}<br><span class="text-primary fw-bold">已自動為您勾選：${result.detectedDisasters.join('、')}</span>`;
-
-                document.querySelectorAll('.condition-check').forEach(cb => {
-                    if (result.detectedDisasters.includes(cb.value)) {
-                        cb.checked = true;
-                    }
-                });
-
-                evaluateRisk();
-
-            } catch (err) {
-                aiLoading.classList.add('d-none');
-                aiResultText.classList.remove('d-none');
-                aiResultText.className = "alert alert-danger mt-2 py-2 small text-start";
-                aiResultText.innerHTML = `❌ AI 辨識失敗：${err.message}`;
-            }
-        }
-
-        let generatedTargetUrl = ""; 
-
-        function urlSafeBtoa(str) {
-            let base64 = btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) { return String.fromCharCode(parseInt(p1, 16)); }));
-            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        }
-
-        function generatePassData() {
-            const jobName = document.getElementById('jobInput').value.trim();
-            if (!jobName) { alert("請先輸入作業工項名稱！"); return; }
-            const selectedDisasters = [];
-            document.querySelectorAll('.condition-check:checked').forEach(cb => { selectedDisasters.push(cb.value); });
-            if (selectedDisasters.length === 0) { alert("請至少勾選一個災害類型！"); return; }
-
-            const allChecks = document.querySelectorAll('.control-checkbox');
-            const checkedCount = document.querySelectorAll('.control-checkbox:checked').length;
-            if (allChecks.length > 0 && checkedCount < allChecks.length) {
-                alert("請先將「四、現場已採行控制措施」全部勾選確認，以實證風險降低！");
-                return;
-            }
-
-            if (sigPads.worker.strokes.length === 0) { alert("請填報人員先在簽名欄位簽名！"); return; }
-
-            const deptSelect = document.getElementById('deptSelect').value;
-            const deptOther = document.getElementById('otherDeptInput').value.trim();
-            const idSelect = document.getElementById('identitySelect').value;
-            const idOther = document.getElementById('otherIdentityInput').value.trim();
-
-            const dataToShare = { j: jobName, d: selectedDisasters, s: sigPads.worker.strokes, dp: deptSelect, dpo: deptOther, id: idSelect, ido: idOther };
-            const base64Data = urlSafeBtoa(JSON.stringify(dataToShare));
-            const baseUrl = window.location.origin + window.location.pathname;
-            generatedTargetUrl = `${baseUrl}?data=${base64Data}`;
-
-            const qrContainer = document.getElementById('qrcodeCanvas');
-            qrContainer.innerHTML = '';
-            new QRCode(qrContainer, {
-                text: generatedTargetUrl,
-                width: 200,
-                height: 200
-            });
-
-            document.getElementById('qrModal').style.display = "block";
-        }
-
-        document.getElementById('lineShareDirectBtn').addEventListener('click', () => {
-            const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
-            const lineText = `【JSA施工危害辨識核可申請】\n工項：${jobName}\n施工人員已簽認，請複製以下網址至瀏覽器審核簽名：\n\n${generatedTargetUrl}`;
-            window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
-        });
-
-        function closeQRModal() { document.getElementById('qrModal').style.display = "none"; }
-        function closeResultImageModal() { document.getElementById('resultImageModal').style.display = "none"; }
-
-        function urlSafeAtob(str) {
-            let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-            while (base64.length % 4) { base64 += '='; }
-            return decodeURIComponent(Array.prototype.map.call(atob(base64), function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
-        }
-
-        window.addEventListener('load', () => {
-            const savedKey = localStorage.getItem('GEMINI_API_KEY');
-            if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const rawData = urlParams.get('data');
-
-            if (rawData) {
-                try {
-                    const decodedData = JSON.parse(urlSafeAtob(rawData));
-                    document.getElementById('jobInput').value = decodedData.j;
-                    document.getElementById('jobInput').readOnly = true;
-
-                    const deptSelect = document.getElementById('deptSelect');
-                    deptSelect.value = decodedData.dp || "工程部";
-                    deptSelect.disabled = true;
-                    if (decodedData.dp === '其他') {
-                        const otherDeptDiv = document.getElementById('otherDeptDiv');
-                        otherDeptDiv.classList.remove('d-none');
-                        const otherDeptInput = document.getElementById('otherDeptInput');
-                        otherDeptInput.value = decodedData.dpo || "";
-                        otherDeptInput.readOnly = true;
-                    }
-
-                    const select = document.getElementById('identitySelect');
-                    select.value = decodedData.id;
-                    select.disabled = true;
-                    if (decodedData.id === '其他') {
-                        const otherDiv = document.getElementById('otherIdentityDiv');
-                        otherDiv.classList.remove('d-none');
-                        const otherInput = document.getElementById('otherIdentityInput');
-                        otherInput.value = decodedData.ido;
-                        otherInput.readOnly = true;
-                    }
-                    updateSignatureLabel();
-
-                    document.querySelectorAll('.condition-check').forEach(cb => {
-                        if (decodedData.d.includes(cb.value)) { cb.checked = true; } 
-                        else { cb.closest('.col-6').classList.add('d-none'); }
-                    });
-                    document.getElementById('disasterCardSec').classList.add('d-none');
-                    evaluateRisk();
-
-                    document.querySelectorAll('.control-checkbox').forEach(chk => {
-                        chk.checked = true;
-                        chk.disabled = true;
-                    });
-                    updateCheckStatus();
-
-                    if (decodedData.s && decodedData.s.length > 0) {
-                        const canvas = sigPads.worker.canvas; const ctx = sigPads.worker.ctx;
-                        sigPads.worker.strokes = decodedData.s; 
-                        setTimeout(() => {
-                            ctx.clearRect(0, 0, canvas.width, canvas.height);
-                            decodedData.s.forEach(stroke => {
-                                if (stroke.length > 0) {
-                                    ctx.beginPath(); ctx.lineWidth = 3; ctx.strokeStyle = "#0f172a";
-                                    ctx.moveTo(stroke[0][0], stroke[0][1]);
-                                    stroke.forEach(pt => { ctx.lineTo(pt[0], pt[1]); });
-                                    ctx.stroke();
-                                }
-                            });
-                        }, 400); 
-                        document.getElementById('worker-clear-btn').classList.add('d-none');
-                        canvas.style.pointerEvents = "none";
-                    }
-                    document.getElementById('jc-alert').classList.remove('d-none'); 
-                    document.getElementById('sendToSafetyBtn').classList.add('d-none'); 
-                    document.getElementById('exportBtn').classList.remove('d-none'); 
-                } catch (e) {
-                    alert("網址資料解析失敗！");
-                }
-            }
-        });
-
-        function drawWrappedText(ctx, text, startX, startY, maxWidth, lineHeight) {
-            const words = text.split('');
-            let line = '';
-            let currentY = startY;
-            let totalHeightAcc = 0;
-
-            for (let n = 0; n < words.length; n++) {
-                let testLine = line + words[n];
-                let metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                    ctx.fillText(line, startX, currentY);
-                    line = words[n];
-                    currentY += lineHeight;
-                    totalHeightAcc += lineHeight;
-                } else {
-                    line = testLine;
-                }
-            }
-            ctx.fillText(line, startX, currentY);
-            totalHeightAcc += lineHeight;
-            return totalHeightAcc;
-        }
-
-        function exportAsImage() {
-            if (sigPads.safety.strokes.length === 0) { alert("請【職安管理人員】先簽名再進行核可！"); return; }
-            
-            const selectedDisasters = [];
-            document.querySelectorAll('.condition-check:checked').forEach(cb => { selectedDisasters.push(cb.value); });
-
-            if (selectedDisasters.length >= 6) {
-                alert(`ℹ️ 偵測到本作業辨識危害項目較多 (共 ${selectedDisasters.length} 項)，已為您自動優化為 A4 多頁 PDF / 列印格式！`);
-                window.print();
-                return;
-            }
-
-            const deptSel = document.getElementById('deptSelect').value;
-            const deptOther = document.getElementById('otherDeptInput').value.trim();
-            const idSel = document.getElementById('identitySelect').value;
-            const idOther = document.getElementById('otherIdentityInput').value.trim();
-            let deptName = (deptSel === '其他') ? (deptOther || "自訂公司") : deptSel;
-            let idName = (idSel === '其他') ? (idOther || "自訂身份") : idSel;
-            const jobName = document.getElementById('jobInput').value.trim() || "未命名作業";
-
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            const checkItemsText = [];
-            document.querySelectorAll('.control-checkbox').forEach(chk => {
-                const label = chk.nextElementSibling.innerText.trim();
-                checkItemsText.push(label);
-            });
-
-            let tableTotalHeight = 0;
-            const cardHeightList = [];
-
-            ctx.font = "12px Microsoft JhengHei";
-            selectedDisasters.forEach(disaster => {
-                const rule = disasterDatabase[disaster];
-                const lines = rule.controls.split('\n');
-                let singleCardTextH = 15;
-                
-                lines.forEach(line => {
-                    const words = line.split('');
-                    let tempLine = '';
-                    let lineCount = 1;
-                    for (let w = 0; w < words.length; w++) {
-                        if (ctx.measureText(tempLine + words[w]).width > 420 && w > 0) {
-                            lineCount++;
-                            tempLine = words[w];
-                        } else {
-                            tempLine += words[w];
-                        }
-                    }
-                    singleCardTextH += lineCount * 22;
-                });
-
-                let calcH = Math.max(125, singleCardTextH + 20);
-                cardHeightList.push(calcH);
-                tableTotalHeight += calcH + 15;
-            });
-
-            let totalHeight = 620 + tableTotalHeight + (checkItemsText.length * 35) + 380;
-            canvas.width = 750;
-            canvas.height = totalHeight;
-
-            ctx.fillStyle = "#f1f5f9";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = "#0f172a";
-            ctx.fillRect(20, 20, 710, 110);
-            
-            ctx.fillStyle = "#38bdf8";
-            ctx.font = "bold 20px Microsoft JhengHei";
-            ctx.textAlign = "center";
-            ctx.fillText("山林水環境工程股份有限公司", 375, 50);
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 24px Microsoft JhengHei";
-            ctx.fillText("智慧型動態危害辨識與風險評估系統", 375, 82);
-
-            ctx.fillStyle = "#facc15";
-            ctx.font = "bold 13px Microsoft JhengHei";
-            ctx.fillText("依據勞動部「營造工程風險評估技術指引(第三版)」五乘五矩陣規範設計", 375, 110);
-
-            let currentY = 150;
-            drawCardBox(ctx, 20, currentY, 710, 130);
-            ctx.fillStyle = "#1e40af";
-            ctx.font = "bold 18px Microsoft JhengHei";
-            ctx.textAlign = "left";
-            ctx.fillText("📋 一、作業工項與身份登記", 40, currentY + 35);
-
-            ctx.fillStyle = "#334155";
-            ctx.font = "bold 16px Microsoft JhengHei";
-            ctx.fillText(`部門 / 公司： ${deptName}`, 40, currentY + 70);
-            ctx.fillText(`填報人身份： ${idName}`, 40, currentY + 95);
-            ctx.fillText(`施工工項： ${jobName}`, 380, currentY + 70);
-
-            currentY += 150;
-            drawCardBox(ctx, 20, currentY, 710, 80 + tableTotalHeight);
-            ctx.fillStyle = "#1e40af";
-            ctx.font = "bold 18px Microsoft JhengHei";
-            ctx.fillText("📊 三、危害標準風險評估結果 (半定量評估)", 40, currentY + 35);
-
-            ctx.fillStyle = "#b91c1c";
-            ctx.fillRect(40, currentY + 50, 670, 35);
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 14px Microsoft JhengHei";
-            ctx.textAlign = "center";
-            ctx.fillText(`針對【${jobName}】評估最高初始風險：高度/極高風險 (在降險防護到位前不可開工)`, 375, currentY + 73);
-
-            let tableY = currentY + 100;
-            selectedDisasters.forEach((disaster, idx) => {
-                const rule = disasterDatabase[disaster];
-                const singleCardH = cardHeightList[idx];
-
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(40, tableY, 670, singleCardH);
-                ctx.strokeStyle = "#cbd5e1";
-                ctx.lineWidth = 1;
-                ctx.strokeRect(40, tableY, 670, singleCardH);
-
-                ctx.fillStyle = "#0f172a";
-                ctx.font = "bold 15px Microsoft JhengHei";
-                ctx.textAlign = "left";
-                
-                drawWrappedText(ctx, `【${disaster}】`, 50, tableY + 28, 200, 20);
-
-                ctx.fillStyle = "#dc2626";
-                ctx.font = "bold 12px Microsoft JhengHei";
-                ctx.fillText(`改善前：${rule.before}`, 50, tableY + 68);
-
-                ctx.fillStyle = "#16a34a";
-                ctx.fillText(`改善後：${rule.after}`, 50, tableY + 92);
-
-                ctx.fillStyle = "#334155";
-                ctx.font = "12px Microsoft JhengHei";
-                const lines = rule.controls.split('\n');
-                let textY = tableY + 25;
-                lines.forEach((line) => {
-                    let drawnH = drawWrappedText(ctx, line, 260, textY, 430, 22);
-                    textY += drawnH;
-                });
-
-                tableY += singleCardH + 15;
-            });
-
-            currentY = tableY + 10;
-            drawCardBox(ctx, 20, currentY, 710, 60 + (checkItemsText.length * 35));
-            ctx.fillStyle = "#15803d";
-            ctx.font = "bold 18px Microsoft JhengHei";
-            ctx.textAlign = "left";
-            ctx.fillText("✅ 四、現場已採行控制措施 (勾稽確認)", 40, currentY + 35);
-
-            let checkY = currentY + 65;
-            checkItemsText.forEach(chkText => {
-                ctx.fillStyle = "#16a34a";
-                ctx.font = "bold 16px Microsoft JhengHei";
-                ctx.fillText("☑", 40, checkY);
-                ctx.fillStyle = "#1e293b";
-                ctx.font = "14px Microsoft JhengHei";
-                ctx.fillText(chkText, 65, checkY);
-                checkY += 32;
-            });
-
-            currentY = checkY + 20;
-            drawCardBox(ctx, 20, currentY, 710, 220);
-            ctx.fillStyle = "#1e40af";
-            ctx.font = "bold 18px Microsoft JhengHei";
-            ctx.fillText("✍️ 五、危害告知與開工確認簽章", 40, currentY + 35);
-
-            ctx.fillStyle = "#dc2626";
-            ctx.font = "bold 13px Microsoft JhengHei";
-            ctx.fillText(`【手寫簽名】已了解危害人員（${deptName} - ${idName}）`, 40, currentY + 65);
-
-            ctx.fillStyle = "#2563eb";
-            ctx.fillText("【手寫簽名】專職職安管理人員", 390, currentY + 65);
-
-            const workerCanvas = document.getElementById('worker-sig');
-            const safetyCanvas = document.getElementById('safety-sig');
-
-            ctx.drawImage(workerCanvas, 40, currentY + 75, 310, 110);
-            ctx.drawImage(safetyCanvas, 390, currentY + 75, 310, 110);
-
-            ctx.fillStyle = "#64748b";
-            ctx.font = "bold 14px Microsoft JhengHei";
-            ctx.textAlign = "center";
-            ctx.fillText("江十三 著作權所有 翻印必究", 375, currentY + 205);
-
-            document.getElementById('modalTitle').innerText = "🎉 紀錄長圖檔已成功產出！";
-            const imgData = canvas.toDataURL("image/jpeg", 0.92);
-            document.getElementById('finalExportedImage').src = imgData;
-            document.getElementById('resultImageModal').style.display = "block";
-        }
-
-        function generatePosterQR() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 600;
-            canvas.height = 780;
-
-            ctx.fillStyle = "#f8fafc";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = "#0f172a";
-            ctx.fillRect(0, 0, 600, 150);
-
-            ctx.fillStyle = "#38bdf8";
-            ctx.font = "bold 22px Microsoft JhengHei";
-            ctx.textAlign = "center";
-            ctx.fillText("山林水環境工程股份有限公司", 300, 50);
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 26px Microsoft JhengHei";
-            ctx.fillText("智慧型動態危害辨識與風險評估系統", 300, 92);
-
-            ctx.fillStyle = "#facc15";
-            ctx.font = "bold 14px Microsoft JhengHei";
-            ctx.fillText("開工前危害告知與雙簽名管制入口", 300, 125);
-
-            drawCardBox(ctx, 40, 180, 520, 550);
-
-            ctx.fillStyle = "#1e40af";
-            ctx.font = "bold 20px Microsoft JhengHei";
-            ctx.fillText("📱 請使用手機相機掃描 QR Code 啟動", 300, 225);
-
-            const tempDiv = document.createElement('div');
-            tempDiv.style.display = 'none';
-            document.body.appendChild(tempDiv);
-            
-            const targetUrl = window.location.origin + window.location.pathname;
-
-            new QRCode(tempDiv, {
-                text: targetUrl,
-                width: 280,
-                height: 280
-            });
-
-            setTimeout(() => {
-                const qrImg = tempDiv.querySelector('img') || tempDiv.querySelector('canvas');
-                ctx.drawImage(qrImg, 160, 250, 280, 280);
-                document.body.removeChild(tempDiv);
-
-                ctx.fillStyle = "#475569";
-                ctx.font = "15px Microsoft JhengHei";
-                ctx.fillText("👉 支援現場危害辨識、對策勾稽與即時雙簽名", 300, 570);
-                ctx.fillText("👉 免下載 App，手機掃碼即刻進行開工核可", 300, 600);
-
-                ctx.fillStyle = "#2563eb";
-                ctx.font = "bold 15px Microsoft JhengHei";
-                ctx.fillText(`網址：${targetUrl}`, 300, 635);
-
-                ctx.fillStyle = "#94a3b8";
-                ctx.font = "bold 13px Microsoft JhengHei";
-                ctx.fillText("江十三 著作權所有 翻印必究", 300, 700);
-
-                document.getElementById('modalTitle').innerText = "🖼️ 山林水專屬告示牌 QR Code";
-                const posterData = canvas.toDataURL("image/jpeg", 0.92);
-                document.getElementById('finalExportedImage').src = posterData;
-                document.getElementById('resultImageModal').style.display = "block";
-            }, 200);
-        }
-
-        function drawCardBox(ctx, x, y, width, height) {
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.roundRect(x, y, width, height, 12);
-            ctx.fill();
-            ctx.strokeStyle = "#e2e8f0";
-            ctx.lineWidth = 1;
-            ctx.stroke();
-        }
-    </script>
+        csv += rowData.join(",") + "\n";
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `施工風險評估表_${currentSelectedJob}_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("已成功匯出符合公共工程標準之 CSV 報表！");
+    }
+
+    /* 一鍵複製純文字格式 (相容限制環境) */
+    function copyTableText() {
+      let text = `【營造工程施工階段風險評估表 - ${currentSelectedJob}】\n\n`;
+      currentRows.forEach((r, i) => {
+        const pre = calcRiskLevel(r.s, r.p);
+        const post = calcRiskLevel(r.postS, r.postP);
+        text += `[項次 ${i+1}] ${r.name} | 危害: ${r.hazardType}\n`;
+        text += `• 情境描述: ${r.scenario}\n`;
+        text += `• 現有防護: 工程[${r.engineering.replace(/\n/g, '; ')}] / 管理[${r.management.replace(/\n/g, '; ')}] / PPE[${r.ppe}]\n`;
+        text += `• 原風險等級: S${r.s} x P${r.p} = 風險值${pre.score} (${pre.name})\n`;
+        text += `• 控制改善措施: ${r.control.replace(/\n/g, ' ')}\n`;
+        text += `• 控制後殘餘: S${r.postS} x P${r.postP} = 殘餘值${post.score} (${post.name})\n`;
+        text += `------------------------------------------------------------\n`;
+      });
+
+      const tempTextArea = document.createElement("textarea");
+      tempTextArea.value = text;
+      document.body.appendChild(tempTextArea);
+      tempTextArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("已將全表完整評估內容複製至剪貼簿！");
+      } catch (err) {
+        showToast("複製失敗，請手動選取複製");
+      }
+      document.body.removeChild(tempTextArea);
+    }
+
+    /* 專案資訊抬頭 Modal */
+    function toggleProjectModal() {
+      const modal = document.getElementById('projectModal');
+      modal.classList.toggle('hidden');
+    }
+
+    function saveProjectInfo() {
+      const pName = document.getElementById('modalProjName').value;
+      const doc = document.getElementById('modalDocNo').value;
+      document.getElementById('projName').innerText = pName;
+      document.getElementById('projDoc').innerText = doc;
+      toggleProjectModal();
+      showToast("工程抬頭專案資訊已更新！");
+    }
+
+    /* 輔助函式：逸出HTML字元 */
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    /* Toast 提示條 */
+    function showToast(msg) {
+      const toast = document.getElementById('toastMessage');
+      const toastText = document.getElementById('toastText');
+      toastText.innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+  </script>
 </body>
 </html>
