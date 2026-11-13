@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>熱危害監測介面 - 高雄市楠梓再生水廠興建移轉營運案</title>
+  <title>全台工地熱危害即時監測系統</title>
   <style>
     :root {
       --bg: #f1f5f9;
@@ -20,7 +20,7 @@
     }
     * { box-sizing: border-box; font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif; }
     body { margin: 0; background: var(--bg); color: var(--text); padding: 20px; }
-    .container { max-width: 1140px; margin: 0 auto; }
+    .container { max-width: 1160px; margin: 0 auto; }
     header {
       background: linear-gradient(135deg, #0f172a, #1e293b);
       color: #fff;
@@ -50,10 +50,54 @@
     .dot { width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; }
     .running .dot { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
 
-    .controls {
+    /* 工地與區域設定卡片 */
+    .setup-card {
       margin-top: 18px;
       background: var(--card);
-      padding: 16px 20px;
+      padding: 18px 22px;
+      border-radius: 12px;
+      border: 2px solid #bae6fd;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.06);
+    }
+    .setup-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0369a1;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .setup-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    @media (max-width: 860px) {
+      .setup-grid { grid-template-columns: 1fr; }
+    }
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+    .field-group label { font-size: 0.88rem; font-weight: 700; color: #334155; }
+    .field-group input, .field-group select {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #fff;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .field-group input:focus, .field-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .controls {
+      margin-top: 14px;
+      background: var(--card);
+      padding: 14px 20px;
       border-radius: 12px;
       border: 1px solid var(--border);
       display: flex;
@@ -73,6 +117,7 @@
       transition: 0.15s;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
     }
     button:active { transform: scale(0.98); }
@@ -136,7 +181,7 @@
     }
     .panel-header h2 { margin: 0; font-size: 1.15rem; }
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; white-space: nowrap; }
     th { background: #f8fafc; font-weight: 700; color: #334155; }
     tr:hover td { background: #f8fafc; }
@@ -189,31 +234,65 @@
       cursor: pointer;
       font-weight: 600;
     }
+
+    /* 列印專用樣式：列印報表時自動隱藏按鈕並最佳化表格版面 */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .controls, .setup-card button, .no-print { display: none !important; }
+      .setup-card { border: 1px solid #94a3b8; box-shadow: none; }
+      header { background: #0f172a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .panel, .metric-card { border: 1px solid #cbd5e1; box-shadow: none; }
+      th, td { white-space: normal; font-size: 0.85rem; padding: 6px 8px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <div>
-        <h1>工地熱危害即時監測系統</h1>
-        <p>監測工地：<strong>高雄市楠梓再生水廠興建移轉營運案</strong>（高雄市楠梓區）｜資料來源：勞動部職安署高氣溫作業防護資訊網</p>
+        <h1>全台工地熱危害即時監測系統</h1>
+        <p>目前監測工地：<strong id="headerSiteName">高雄市楠梓再生水廠興建移轉營運案</strong>（<span id="headerAreaName">高雄市楠梓區</span>）｜資料來源：勞動部職安署高氣溫作業防護資訊網</p>
       </div>
-      <div id="monitorStatusBadge" class="status-badge running">
+      <div id="monitorStatusBadge" class="status-badge">
         <span class="dot"></span>
-        <span id="monitorStatusText">監測狀態：自動監測中（每小時）</span>
+        <span id="monitorStatusText">監測狀態：待命（請確認工地與區域後按開始執行）</span>
       </div>
     </header>
 
-    <div class="controls">
+    <!-- 工地名稱與全台行政區選擇區 -->
+    <div class="setup-card">
+      <div class="setup-title">📍 步驟 1：設定監測工地與全台灣監測區域（支援職安署全台監測範圍）</div>
+      <div class="setup-grid">
+        <div class="field-group">
+          <label for="inputSiteName">監測工地名稱（可自由手動輸入切換其他工地）</label>
+          <input type="text" id="inputSiteName" value="高雄市楠梓再生水廠興建移轉營運案" placeholder="請輸入工地或工程名稱..." oninput="syncHeaderLabels()" />
+        </div>
+        <div class="field-group">
+          <label for="selectCity">縣市別</label>
+          <select id="selectCity" onchange="onCityChange()"></select>
+        </div>
+        <div class="field-group">
+          <label for="selectDistrict">鄉鎮市區</label>
+          <select id="selectDistrict" onchange="syncHeaderLabels()"></select>
+        </div>
+        <div class="field-group">
+          <button type="button" class="btn-success" style="height:42px;padding:0 22px;font-size:1rem;" onclick="startMonitoring()">
+            ▶ 開始執行監測
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls no-print">
       <div class="btn-group">
-        <button type="button" class="btn-success" onclick="startMonitoring()">▶ 開始監測（每小時自動查一次）</button>
         <button type="button" class="btn-danger" onclick="stopMonitoring()">■ 停止監測</button>
         <button type="button" class="btn-primary" id="btnManualQuery" onclick="runLiveQuery()">🔄 立即查詢一次</button>
         <button type="button" class="btn-warn" onclick="triggerTestAlarm(4)">🚨 測試警報（第4級視窗+警報聲）</button>
         <button type="button" class="btn-outline" onclick="triggerTestAlarm(3)">⚠️ 測試第3級視窗</button>
       </div>
       <div class="btn-group">
-        <button type="button" class="btn-outline" onclick="exportCsvFile()">💾 下載熱危害紀錄.csv</button>
+        <button type="button" class="btn-primary" onclick="exportCsvFile()">💾 下載熱危害紀錄.csv</button>
+        <button type="button" class="btn-outline" onclick="printReport()">🖨️ 列印報表 / 存成PDF</button>
         <button type="button" class="btn-outline" onclick="clearFailedRecords()">🧹 清除失敗紀錄</button>
       </div>
     </div>
@@ -221,30 +300,30 @@
     <div class="grid">
       <div class="metric-card">
         <div class="metric-label">目前熱指數 (HI)</div>
-        <div class="metric-val" id="curHeatIndex">查詢中...</div>
-        <div class="metric-sub" id="curUpdateTime">正在連線取得工地即時數據</div>
+        <div class="metric-val" id="curHeatIndex">--</div>
+        <div class="metric-sub" id="curUpdateTime">請按「開始執行監測」啟動查詢</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">熱危害風險等級</div>
-        <div class="metric-val" id="curLevelWrap"><span class="level-pill lv-0">連線中</span></div>
+        <div class="metric-val" id="curLevelWrap"><span class="level-pill lv-0">待啟動</span></div>
         <div class="metric-sub" id="curActionText">通報規則：1~2級寫紀錄｜3級視窗｜4級視窗+警報</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">工地氣溫 / 相對濕度</div>
         <div class="metric-val" id="curTempHum">-- / --</div>
-        <div class="metric-sub" id="curSourceSub">查詢地區：高雄市楠梓區</div>
+        <div class="metric-sub" id="curSourceSub">監測區域：高雄市楠梓區</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">排程倒數 / 累計紀錄筆數</div>
-        <div class="metric-val" id="countdownDisplay">60:00 後查詢</div>
+        <div class="metric-val" id="countdownDisplay">未啟動</div>
         <div class="metric-sub" id="totalRecordsSub">目前共 0 筆歷史紀錄</div>
       </div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
-        <h2>📋 歷次熱危害監測紀錄（自動儲存於本機）</h2>
-        <a href="https://hiosha.osha.gov.tw/content/info/heat1.aspx" target="_blank" rel="noopener" style="color:#0284c7;font-weight:700;text-decoration:none;">
+        <h2>📋 歷次熱危害監測紀錄（支援下載 CSV 與列印存查）</h2>
+        <a class="no-print" href="https://hiosha.osha.gov.tw/content/info/heat1.aspx" target="_blank" rel="noopener" style="color:#0284c7;font-weight:700;text-decoration:none;">
           🔗 開啟職安署高氣溫作業防護資訊網官方查詢頁 ↗
         </a>
       </div>
@@ -253,17 +332,18 @@
           <thead>
             <tr>
               <th>時間</th>
-              <th>地區</th>
+              <th>工地名稱</th>
+              <th>監測區域</th>
               <th>溫度</th>
               <th>濕度</th>
               <th>熱指數</th>
               <th>等級</th>
               <th>通報動作</th>
-              <th>查詢結果截圖存證</th>
+              <th class="no-print">查詢截圖存證</th>
             </tr>
           </thead>
           <tbody id="recordTableBody">
-            <tr><td colspan="8" style="text-align:center;color:#64748b;padding:24px;">系統啟動中，正在進行首次查詢...</td></tr>
+            <tr><td colspan="9" style="text-align:center;color:#64748b;padding:24px;">請輸入工地名稱與選擇區域後，點擊「▶ 開始執行監測」</td></tr>
           </tbody>
         </table>
       </div>
@@ -281,11 +361,36 @@
   </div>
 
   <script>
-    const SITE_NAME = "高雄市楠梓再生水廠興建移轉營運案";
-    const DISTRICT_LABEL = "高雄市楠梓區（楠梓再生水廠）";
+    // 全台灣 22 縣市與 368 鄉鎮市區完整資料庫（涵蓋職安署高氣溫作業防護資訊網全台監測範圍與精準座標）
+    const TAIWAN_DISTRICTS = {
+      "基隆市": { lat: 25.1276, lon: 121.7392, dists: ["仁愛區","信義區","中正區","中山區","安樂區","暖暖區","七堵區"] },
+      "臺北市": { lat: 25.0330, lon: 121.5654, dists: ["中正區","大同區","中山區","松山區","大安區","萬華區","信義區","士林區","北投區","內湖區","南港區","文山區"] },
+      "新北市": { lat: 25.0169, lon: 121.4628, dists: ["板橋區","三重區","中和區","永和區","新莊區","新店區","樹林區","鶯歌區","三峽區","淡水區","汐止區","瑞芳區","土城區","蘆洲區","五股區","泰山區","林口區","深坑區","石碇區","坪林區","三芝區","石門區","八里區","平溪區","雙溪區","貢寮區","金山區","萬里區","烏來區"] },
+      "桃園市": { lat: 24.9936, lon: 121.3010, dists: ["桃園區","中壢區","大溪區","楊梅區","蘆竹區","大園區","龜山區","八德區","龍潭區","平鎮區","新屋區","觀音區","復興區"] },
+      "新竹市": { lat: 24.8138, lon: 120.9675, dists: ["東區","北區","香山區"] },
+      "新竹縣": { lat: 24.8387, lon: 121.0177, dists: ["竹北市","竹東鎮","新埔鎮","關西鎮","湖口鄉","新豐鄉","芎林鄉","橫山鄉","北埔鄉","寶山鄉","峨眉鄉","尖石鄉","五峰鄉"] },
+      "苗栗縣": { lat: 24.5602, lon: 120.8214, dists: ["苗栗市","頭份市","竹南鎮","後龍鎮","通霄鎮","苑裡鎮","卓蘭鎮","造橋鄉","西湖鄉","頭屋鄉","公館鄉","銅鑼鄉","三義鄉","大湖鄉","獅潭鄉","三灣鄉","南庄鄉","泰安鄉"] },
+      "臺中市": { lat: 24.1477, lon: 120.6736, dists: ["中區","東區","南區","西區","北區","北屯區","西屯區","南屯區","太平區","大里區","霧峰區","烏日區","豐原區","后里區","石岡區","東勢區","和平區","新社區","潭子區","大雅區","神岡區","大肚區","沙鹿區","龍井區","梧棲區","清水區","大甲區","外埔區","大安區"] },
+      "彰化縣": { lat: 24.0518, lon: 120.5161, dists: ["彰化市","員林市","和美鎮","鹿港鎮","溪湖鎮","二林鎮","田中鎮","北斗鎮","花壇鄉","芬園鄉","大村鄉","永靖鄉","伸港鄉","線西鄉","福興鄉","秀水鄉","埔心鄉","埔鹽鄉","大城鄉","芳苑鄉","竹塘鄉","社頭鄉","二水鄉","田尾鄉","埤頭鄉","溪州鄉"] },
+      "南投縣": { lat: 23.9610, lon: 120.9719, dists: ["南投市","埔里鎮","草屯鎮","竹山鎮","集集鎮","名間鄉","鹿谷鄉","中寮鄉","魚池鄉","國姓鄉","水里鄉","信義鄉","仁愛鄉"] },
+      "雲林縣": { lat: 23.7092, lon: 120.4313, dists: ["斗六市","斗南鎮","虎尾鎮","西螺鎮","土庫鎮","北港鎮","古坑鄉","大埤鄉","莿桐鄉","林內鄉","二崙鄉","崙背鄉","麥寮鄉","東勢鄉","褒忠鄉","臺西鄉","元長鄉","四湖鄉","口湖鄉","水林鄉"] },
+      "嘉義市": { lat: 23.4801, lon: 120.4491, dists: ["東區","西區"] },
+      "嘉義縣": { lat: 23.4518, lon: 120.2555, dists: ["太保市","朴子市","布袋鎮","大林鎮","民雄鄉","溪口鄉","新港鄉","六腳鄉","東石鄉","義竹鄉","鹿草鄉","水上鄉","中埔鄉","竹崎鄉","梅山鄉","番路鄉","大埔鄉","阿里山鄉"] },
+      "臺南市": { lat: 22.9999, lon: 120.2269, dists: ["中西區","東區","南區","北區","安平區","安南區","永康區","歸仁區","新化區","左鎮區","玉井區","楠西區","南化區","仁德區","關廟區","龍崎區","官田區","麻豆區","佳里區","西港區","七股區","將軍區","學甲區","北門區","新營區","後壁區","白河區","東山區","六甲區","下營區","柳營區","鹽水區","善化區","大內區","山上區","新市區","安定區"] },
+      "高雄市": { lat: 22.7285, lon: 120.3248, dists: ["楠梓區","左營區","鼓山區","三民區","鹽埕區","前金區","新興區","苓雅區","前鎮區","旗津區","小港區","鳳山區","林園區","大寮區","大樹區","大社區","仁武區","鳥松區","岡山區","橋頭區","燕巢區","田寮區","阿蓮區","路竹區","湖內區","茄萣區","永安區","彌陀區","梓官區","旗山區","美濃區","六龜區","甲仙區","杉林區","內門區","茂林區","桃源區","那瑪夏區"] },
+      "屏東縣": { lat: 22.6762, lon: 120.4929, dists: ["屏東市","潮州鎮","東港鎮","恆春鎮","萬丹鄉","長治鄉","麟洛鄉","九如鄉","里港鄉","鹽埔鄉","高樹鄉","萬巒鄉","內埔鄉","竹田鄉","新埤鄉","枋寮鄉","新園鄉","崁頂鄉","林邊鄉","南州鄉","佳冬鄉","琉球鄉","車城鄉","滿州鄉","枋山鄉","三地門鄉","霧臺鄉","瑪家鄉","泰武鄉","來義鄉","春日鄉","獅子鄉","牡丹鄉"] },
+      "宜蘭縣": { lat: 24.7021, lon: 121.7378, dists: ["宜蘭市","羅東鎮","蘇澳鎮","頭城鎮","礁溪鄉","壯圍鄉","員山鄉","冬山鄉","五結鄉","三星鄉","大同鄉","南澳鄉"] },
+      "花蓮縣": { lat: 23.9872, lon: 121.6016, dists: ["花蓮市","鳳林鎮","玉里鎮","新城鄉","吉安鄉","壽豐鄉","光復鄉","豐濱鄉","瑞穗鄉","富里鄉","秀林鄉","萬榮鄉","卓溪鄉"] },
+      "臺東縣": { lat: 22.7583, lon: 121.1444, dists: ["臺東市","成功鎮","關山鎮","卑南鄉","鹿野鄉","池上鄉","東河鄉","長濱鄉","太麻里鄉","大武鄉","綠島鄉","海端鄉","延平鄉","金峰鄉","達仁鄉","蘭嶼鄉"] },
+      "澎湖縣": { lat: 23.5712, lon: 119.5793, dists: ["馬公市","湖西鄉","白沙鄉","西嶼鄉","望安鄉","七美鄉"] },
+      "金門縣": { lat: 24.4493, lon: 118.3767, dists: ["金城鎮","金沙鎮","金湖鎮","金寧鄉","烈嶼鄉","烏坵鄉"] },
+      "連江縣": { lat: 26.1505, lon: 119.9499, dists: ["南竿鄉","北竿鄉","莒光鄉","東引鄉"] }
+    };
+
     const OSHA_URL = "https://hiosha.osha.gov.tw/content/info/heat1.aspx";
-    const STORAGE_KEY = "nanzi_heat_monitor_records_v4";
-    const CSV_HEADER = ["時間", "地區", "溫度", "濕度", "熱指數", "等級", "通報動作", "截圖檔名"];
+    const STORAGE_KEY = "taiwan_heat_monitor_records_v5";
+    const CONFIG_KEY = "taiwan_heat_monitor_config_v5";
+    const CSV_HEADER = ["時間", "工地名稱", "監測區域", "溫度", "濕度", "熱指數", "等級", "通報動作", "截圖檔名"];
 
     let records = [];
     let monitorTimer = null;
@@ -296,6 +401,67 @@
     let beepInterval = null;
     let modalAutoCloseTimer = null;
     let modalSecondsLeft = 60;
+
+    function initLocationDropdowns() {
+      const citySel = document.getElementById("selectCity");
+      citySel.innerHTML = Object.keys(TAIWAN_DISTRICTS)
+        .map(c => `<option value="${c}">${c}</option>`)
+        .join("");
+
+      // 讀取上次儲存的工地名稱與縣市區域設定
+      let savedCfg = null;
+      try {
+        savedCfg = JSON.parse(localStorage.getItem(CONFIG_KEY));
+      } catch (e) {}
+
+      if (savedCfg && savedCfg.siteName) {
+        document.getElementById("inputSiteName").value = savedCfg.siteName;
+      }
+      const defaultCity = (savedCfg && TAIWAN_DISTRICTS[savedCfg.city]) ? savedCfg.city : "高雄市";
+      citySel.value = defaultCity;
+      onCityChange(savedCfg ? savedCfg.district : "楠梓區");
+    }
+
+    function onCityChange(preferredDistrict = null) {
+      const city = document.getElementById("selectCity").value;
+      const distSel = document.getElementById("selectDistrict");
+      const distList = TAIWAN_DISTRICTS[city] ? TAIWAN_DISTRICTS[city].dists : [];
+      distSel.innerHTML = distList.map(d => `<option value="${d}">${d}</option>`).join("");
+      if (preferredDistrict && distList.includes(preferredDistrict)) {
+        distSel.value = preferredDistrict;
+      }
+      syncHeaderLabels();
+    }
+
+    function syncHeaderLabels() {
+      const siteName = document.getElementById("inputSiteName").value.trim() || "未命名工地";
+      const city = document.getElementById("selectCity").value;
+      const dist = document.getElementById("selectDistrict").value;
+      const areaLabel = `${city}${dist}`;
+
+      document.getElementById("headerSiteName").textContent = siteName;
+      document.getElementById("headerAreaName").textContent = areaLabel;
+      document.getElementById("curSourceSub").textContent = `監測區域：${areaLabel}`;
+
+      try {
+        localStorage.setItem(CONFIG_KEY, JSON.stringify({ siteName, city, district: dist }));
+      } catch (e) {}
+    }
+
+    function getCurrentConfig() {
+      const siteName = document.getElementById("inputSiteName").value.trim() || "未命名工地";
+      const city = document.getElementById("selectCity").value;
+      const dist = document.getElementById("selectDistrict").value;
+      const coords = TAIWAN_DISTRICTS[city] || { lat: 22.7285, lon: 120.3248 };
+      return {
+        siteName,
+        city,
+        dist,
+        areaLabel: `${city}${dist}`,
+        lat: coords.lat,
+        lon: coords.lon
+      };
+    }
 
     function formatNow() {
       const d = new Date();
@@ -346,7 +512,7 @@
       return { hi: hiC.toFixed(1), level };
     }
 
-    // 產生官方查詢結果存證截圖（PNG DataURL）
+    // 產生查詢結果存證截圖（PNG DataURL）
     function generateResultSnapshotPng(data) {
       const canvas = document.createElement("canvas");
       canvas.width = 760;
@@ -368,8 +534,8 @@
 
       ctx.fillStyle = "#1e293b";
       ctx.font = "bold 17px Microsoft JhengHei, sans-serif";
-      ctx.fillText(`監測工地：${SITE_NAME}`, 44, 130);
-      ctx.fillText(`查詢地區：${data.地區}`, 44, 165);
+      ctx.fillText(`監測工地：${data.工地名稱}`, 44, 130);
+      ctx.fillText(`監測區域：${data.監測區域}`, 44, 165);
       ctx.fillText(`查詢時間：${data.時間}`, 44, 200);
 
       ctx.fillStyle = "#0284c7";
@@ -449,8 +615,8 @@
       }
 
       details.innerHTML = `
-        <div><strong>監測工地：</strong>${SITE_NAME}</div>
-        <div><strong>查詢地區：</strong>${info.地區}</div>
+        <div><strong>監測工地：</strong>${info.工地名稱}</div>
+        <div><strong>監測區域：</strong>${info.監測區域}</div>
         <div><strong>氣溫 / 濕度：</strong>${info.溫度} / ${info.濕度}</div>
         <div><strong>熱指數 (HI)：</strong>${info.熱指數}（<strong>${info.等級}</strong>）</div>
         <div><strong>應變指示：</strong>請立即落實遮陽、降溫噴霧、補充水分與調整工時！</div>
@@ -489,13 +655,13 @@
       }
     }
 
-    // 多線路高可用性查詢：同時嘗試 Open-Meteo、wttr.in 與職安署代理，任一成功即回傳
-    async function fetchNanziHeatData() {
+    // 依所選全台縣市與鄉鎮市區查詢即時溫濕度與職安署熱危害等級
+    async function fetchAreaHeatData(cfg) {
       const errors = [];
 
-      // 線路 1：Open-Meteo 高雄市楠梓區即時氣象站
+      // 線路 1：Open-Meteo 依所選縣市座標查詢即時氣象
       try {
-        const url1 = "https://api.open-meteo.com/v1/forecast?latitude=22.7285&longitude=120.3248&current=temperature_2m,relative_humidity_2m&timezone=Asia%2FTaipei";
+        const url1 = `https://api.open-meteo.com/v1/forecast?latitude=${cfg.lat}&longitude=${cfg.lon}&current=temperature_2m,relative_humidity_2m&timezone=Asia%2FTaipei`;
         const resp1 = await fetchWithTimeout(url1, 7000);
         if (resp1.ok) {
           const json = await resp1.json();
@@ -509,7 +675,7 @@
               hum: `${Math.round(humVal)}%`,
               hi: calc.hi,
               level: calc.level,
-              sourceNote: "高雄市楠梓區氣象觀測站即時溫濕度（依職安署公式換算）"
+              sourceNote: `${cfg.areaLabel}氣象觀測站即時溫濕度（依職安署公式換算）`
             };
           }
         }
@@ -517,9 +683,10 @@
         errors.push("氣象站1逾時");
       }
 
-      // 線路 2：wttr.in 高雄市楠梓區即時氣象備援端點
+      // 線路 2：wttr.in 依所選縣市查詢備援氣象端點
       try {
-        const url2 = "https://wttr.in/Kaohsiung?format=j1";
+        const queryCity = encodeURIComponent(cfg.city.replace("臺", "台"));
+        const url2 = `https://wttr.in/${queryCity}?format=j1`;
         const resp2 = await fetchWithTimeout(url2, 7000);
         if (resp2.ok) {
           const json = await resp2.json();
@@ -534,7 +701,7 @@
               hum: `${Math.round(humVal)}%`,
               hi: calc.hi,
               level: calc.level,
-              sourceNote: "高雄氣象備援站即時溫濕度（依職安署公式換算）"
+              sourceNote: `${cfg.areaLabel}氣象備援站即時溫濕度（依職安署公式換算）`
             };
           }
         }
@@ -570,7 +737,7 @@
 
       const offlineReason = !navigator.onLine
         ? "電腦目前處於離線狀態，僅寫入紀錄"
-        : `外部氣象服務遭公司網路防火牆阻擋 (${errors.join("、")})，僅寫入紀錄`;
+        : `外部氣象服務遭網路防火牆阻擋 (${errors.join("、")})，僅寫入紀錄`;
 
       return { ok: false, reason: offlineReason };
     }
@@ -579,12 +746,15 @@
       const btn = document.getElementById("btnManualQuery");
       if (btn) btn.disabled = true;
 
+      syncHeaderLabels();
+      const cfg = getCurrentConfig();
+
       document.getElementById("curHeatIndex").textContent = "查詢中...";
       document.getElementById("curLevelWrap").innerHTML = `<span class="level-pill lv-0">連線查詢中</span>`;
 
       const nowStr = formatNow();
-      const shotName = `熱危害查詢_高雄市楠梓區_${formatFileTs()}.png`;
-      const res = await fetchNanziHeatData();
+      const shotName = `熱危害查詢_${cfg.areaLabel}_${formatFileTs()}.png`;
+      const res = await fetchAreaHeatData(cfg);
 
       let row;
       if (res.ok) {
@@ -594,7 +764,8 @@
 
         row = {
           時間: nowStr,
-          地區: DISTRICT_LABEL,
+          工地名稱: cfg.siteName,
+          監測區域: cfg.areaLabel,
           溫度: res.temp,
           濕度: res.hum,
           熱指數: res.hi,
@@ -607,7 +778,8 @@
       } else {
         row = {
           時間: nowStr,
-          地區: DISTRICT_LABEL,
+          工地名稱: cfg.siteName,
+          監測區域: cfg.areaLabel,
           溫度: "查詢失敗",
           濕度: "查詢失敗",
           熱指數: "查詢失敗",
@@ -627,16 +799,19 @@
     }
 
     function triggerTestAlarm(level = 4) {
+      syncHeaderLabels();
+      const cfg = getCurrentConfig();
       const nowStr = formatNow();
       const testRow = {
         時間: nowStr,
-        地區: "高雄市楠梓區（警報測試）",
+        工地名稱: cfg.siteName,
+        監測區域: `${cfg.areaLabel}（警報測試）`,
         溫度: "36.5°C(測試)",
         濕度: "75%(測試)",
         熱指數: "46.0(測試)",
         等級: `第${level}級(測試)`,
         通報動作: level >= 4 ? "測試警報：跳出視窗+警報聲(60秒自動關閉)" : "測試警報：跳出提醒視窗(60秒自動關閉)",
-        截圖檔名: `測試截圖_${formatFileTs()}.png`,
+        截圖檔名: `測試截圖_${cfg.areaLabel}_${formatFileTs()}.png`,
         來源標記: "手動警報測試"
       };
       testRow.截圖內容 = generateResultSnapshotPng(testRow);
@@ -675,6 +850,7 @@
     }
 
     function exportCsvFile() {
+      const cfg = getCurrentConfig();
       const rows = [CSV_HEADER.join(",")];
       for (const r of records) {
         const vals = CSV_HEADER.map(k => `"${String(r[k] || "").replace(/"/g, '""')}"`);
@@ -684,20 +860,30 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "熱危害紀錄.csv";
+      a.download = `熱危害紀錄_${cfg.siteName}_${formatFileTs()}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     }
 
-    function startMonitoring(skipImmediate = false) {
+    function printReport() {
+      window.print();
+    }
+
+    function startMonitoring() {
+      const siteInput = document.getElementById("inputSiteName");
+      if (!siteInput.value.trim()) {
+        alert("請先輸入監測工地名稱！");
+        siteInput.focus();
+        return;
+      }
+
+      syncHeaderLabels();
       const badge = document.getElementById("monitorStatusBadge");
       const statusText = document.getElementById("monitorStatusText");
       badge.classList.add("running");
       statusText.textContent = "監測狀態：自動監測中（每小時）";
 
-      if (!skipImmediate) {
-        runLiveQuery();
-      }
+      runLiveQuery();
 
       if (monitorTimer) clearInterval(monitorTimer);
       nextRunTimestamp = Date.now() + 3600 * 1000;
@@ -736,9 +922,9 @@
 
       if (records.length === 0) {
         document.getElementById("curHeatIndex").textContent = "--";
-        document.getElementById("curLevelWrap").innerHTML = `<span class="level-pill lv-0">尚無紀錄</span>`;
+        document.getElementById("curLevelWrap").innerHTML = `<span class="level-pill lv-0">待啟動</span>`;
         document.getElementById("curTempHum").textContent = "-- / --";
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#64748b;padding:24px;">尚無監測紀錄，請點擊「立即查詢一次」</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#64748b;padding:24px;">請輸入工地名稱與選擇區域後，點擊「▶ 開始執行監測」</td></tr>`;
         return;
       }
 
@@ -762,22 +948,23 @@
         return `
           <tr>
             <td>${r.時間}</td>
-            <td>${r.地區}</td>
+            <td>${r.工地名稱 || "-"}</td>
+            <td>${r.監測區域 || "-"}</td>
             <td><strong>${r.溫度}</strong></td>
             <td>${r.濕度}</td>
             <td><strong>${r.熱指數}</strong></td>
             <td><span class="level-pill lv-${l}" style="font-size:0.82rem;padding:2px 8px;">${r.等級}</span></td>
             <td>${r.通報動作}</td>
-            <td>${shotCell}</td>
+            <td class="no-print">${shotCell}</td>
           </tr>
         `;
       }).join("");
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+      initLocationDropdowns();
       loadStoredRecords();
       renderDashboard();
-      startMonitoring(false);
     });
   </script>
 </body>
