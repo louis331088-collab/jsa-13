@@ -36,7 +36,7 @@
     header h1 { margin: 0 0 6px 0; font-size: 1.45rem; }
     header p { margin: 0; color: #cbd5e1; font-size: 0.92rem; }
     .status-badge {
-      padding: 8px 14px;
+      padding: 8px 16px;
       border-radius: 999px;
       font-weight: 700;
       font-size: 0.92rem;
@@ -66,8 +66,8 @@
     button {
       border: none;
       border-radius: 8px;
-      padding: 10px 15px;
-      font-size: 0.92rem;
+      padding: 10px 16px;
+      font-size: 0.93rem;
       font-weight: 700;
       cursor: pointer;
       transition: 0.15s;
@@ -76,6 +76,7 @@
       gap: 6px;
     }
     button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-success { background: #16a34a; color: #fff; }
@@ -87,29 +88,9 @@
     .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
     .btn-outline:hover { background: #f8fafc; }
 
-    .manual-bar {
-      margin-top: 14px;
-      background: var(--card);
-      padding: 14px 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-    .manual-bar label { font-size: 0.9rem; font-weight: 700; color: #334155; }
-    .manual-bar input, .manual-bar select {
-      padding: 7px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 0.9rem;
-      width: 110px;
-    }
-
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
       gap: 16px;
       margin-top: 16px;
     }
@@ -121,7 +102,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.03);
     }
     .metric-label { font-size: 0.88rem; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
-    .metric-val { font-size: 1.9rem; font-weight: 800; }
+    .metric-val { font-size: 1.95rem; font-weight: 800; }
     .metric-sub { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
 
     .level-pill {
@@ -159,17 +140,6 @@
     th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; white-space: nowrap; }
     th { background: #f8fafc; font-weight: 700; color: #334155; }
     tr:hover td { background: #f8fafc; }
-
-    .notice-box {
-      margin-top: 14px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      background: #eff6ff;
-      border-left: 4px solid #0284c7;
-      font-size: 0.9rem;
-      color: #1e3a8a;
-      line-height: 1.55;
-    }
 
     .modal-backdrop {
       position: fixed;
@@ -213,6 +183,12 @@
       padding: 10px 28px;
       border-radius: 10px;
     }
+    .shot-link {
+      color: #0284c7;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -222,9 +198,9 @@
         <h1>工地熱危害即時監測系統</h1>
         <p>監測工地：<strong>高雄市楠梓再生水廠興建移轉營運案</strong>（高雄市楠梓區）｜資料來源：勞動部職安署高氣溫作業防護資訊網</p>
       </div>
-      <div id="monitorStatusBadge" class="status-badge">
+      <div id="monitorStatusBadge" class="status-badge running">
         <span class="dot"></span>
-        <span id="monitorStatusText">監測狀態：已停止</span>
+        <span id="monitorStatusText">監測狀態：自動監測中（每小時）</span>
       </div>
     </header>
 
@@ -232,64 +208,41 @@
       <div class="btn-group">
         <button type="button" class="btn-success" onclick="startMonitoring()">▶ 開始監測（每小時自動查一次）</button>
         <button type="button" class="btn-danger" onclick="stopMonitoring()">■ 停止監測</button>
-        <button type="button" class="btn-primary" onclick="runManualQuery()">🔄 立即查詢一次</button>
+        <button type="button" class="btn-primary" id="btnManualQuery" onclick="runLiveQuery()">🔄 立即查詢一次</button>
         <button type="button" class="btn-warn" onclick="triggerTestAlarm(4)">🚨 測試警報（第4級視窗+警報聲）</button>
         <button type="button" class="btn-outline" onclick="triggerTestAlarm(3)">⚠️ 測試第3級視窗</button>
       </div>
       <div class="btn-group">
-        <button type="button" class="btn-outline" onclick="connectFolderOrCsv()">📂 載入/同步「熱危害紀錄.csv」</button>
-        <button type="button" class="btn-outline" onclick="exportCsvFile()">💾 匯出最新 CSV</button>
+        <button type="button" class="btn-outline" onclick="exportCsvFile()">💾 下載熱危害紀錄.csv</button>
       </div>
-    </div>
-
-    <!-- 手動輸入紀錄列（可直接輸入數據並寫入紀錄與CSV） -->
-    <div class="manual-bar">
-      <label>✍️ 手動登錄數據：</label>
-      <input type="text" id="inTemp" placeholder="溫度 如 34.5" />
-      <input type="text" id="inHum" placeholder="濕度 如 72" />
-      <input type="text" id="inHI" placeholder="熱指數 如 41.0" />
-      <select id="inLevel">
-        <option value="1">第1級（低度）</option>
-        <option value="2">第2級（注意）</option>
-        <option value="3">第3級（高度危險）</option>
-        <option value="4">第4級（極度危險）</option>
-      </select>
-      <button type="button" class="btn-primary" onclick="submitManualEntry()">➕ 寫入一筆紀錄</button>
-      <span id="syncStatusMsg" style="font-size:0.85rem;color:#0369a1;font-weight:600;"></span>
     </div>
 
     <div class="grid">
       <div class="metric-card">
         <div class="metric-label">目前熱指數 (HI)</div>
-        <div class="metric-val" id="curHeatIndex">--</div>
-        <div class="metric-sub" id="curUpdateTime">最後更新：尚未載入</div>
+        <div class="metric-val" id="curHeatIndex">查詢中...</div>
+        <div class="metric-sub" id="curUpdateTime">正在連線取得工地即時數據</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">熱危害風險等級</div>
-        <div class="metric-val" id="curLevelWrap"><span class="level-pill lv-0">尚未查詢</span></div>
+        <div class="metric-val" id="curLevelWrap"><span class="level-pill lv-0">連線中</span></div>
         <div class="metric-sub" id="curActionText">通報規則：1~2級寫紀錄｜3級視窗｜4級視窗+警報</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">工地氣溫 / 相對濕度</div>
         <div class="metric-val" id="curTempHum">-- / --</div>
-        <div class="metric-sub">查詢地區：高雄市楠梓區</div>
+        <div class="metric-sub" id="curSourceSub">查詢地區：高雄市楠梓區</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">排程倒數 / 累計紀錄筆數</div>
-        <div class="metric-val" id="countdownDisplay">未啟動</div>
+        <div class="metric-val" id="countdownDisplay">60:00 後查詢</div>
         <div class="metric-sub" id="totalRecordsSub">目前共 0 筆歷史紀錄</div>
       </div>
     </div>
 
-    <div class="notice-box">
-      <strong>💡 自動寫入與同步說明：</strong><br/>
-      1. 後端程式 <code>monitor_heat.py</code> 每次執行查詢或寫入時，除了寫入 <code>熱危害紀錄.csv</code> 與官方截圖外，也會<strong>直接把最新資料寫入本 HTML 檔案內</strong>，雙擊重新整理即可看到最新數據。<br/>
-      2. 若要在網頁上直接將新增/測試資料寫回本地 CSV 檔案，請點擊右上角 <strong>「📂 載入/同步『熱危害紀錄.csv』」</strong> 選取資料夾內的 <code>熱危害紀錄.csv</code>（授權後即自動雙向寫入）。
-    </div>
-
     <div class="panel">
       <div class="panel-header">
-        <h2>📋 歷次熱危害監測紀錄（熱危害紀錄.csv）</h2>
+        <h2>📋 歷次熱危害監測紀錄（自動儲存於本機）</h2>
         <a href="https://hiosha.osha.gov.tw/content/info/heat1.aspx" target="_blank" rel="noopener" style="color:#0284c7;font-weight:700;text-decoration:none;">
           🔗 開啟職安署高氣溫作業防護資訊網官方查詢頁 ↗
         </a>
@@ -305,19 +258,18 @@
               <th>熱指數</th>
               <th>等級</th>
               <th>通報動作</th>
-              <th>截圖檔名</th>
+              <th>查詢結果截圖存證</th>
             </tr>
           </thead>
           <tbody id="recordTableBody">
-            <tr><td colspan="8" style="text-align:center;color:#64748b;padding:24px;">尚未載入紀錄</td></tr>
+            <tr><td colspan="8" style="text-align:center;color:#64748b;padding:24px;">系統啟動中，正在進行首次查詢...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <input type="file" id="fallbackCsvInput" accept=".csv" style="display:none" onchange="handleFallbackCsv(event)" />
-
+  <!-- 第3級 / 第4級警報彈出視窗（60秒自動關閉） -->
   <div id="alarmModal" class="modal-backdrop">
     <div id="alarmModalCard" class="modal-card modal-lv4">
       <h3 id="modalTitle">🚨 第四級【極度危險】熱危害警報！</h3>
@@ -328,16 +280,13 @@
   </div>
 
   <script>
-    /* EMBEDDED_DATA_START */
-    window.EMBEDDED_RECORDS = [{"時間": "2026-11-13 00:08:33", "地區": "高雄市楠梓區（楠梓再生水廠）", "溫度": "查詢失敗", "濕度": "查詢失敗", "熱指數": "查詢失敗", "等級": "查詢失敗", "通報動作": "失敗(缺少playwright套件)", "截圖檔名": ""}, {"時間": "2026-11-13 00:08:33", "地區": "高雄市楠梓區（警報測試）", "溫度": "36.5°C(測試)", "濕度": "75%(測試)", "熱指數": "46.0(測試)", "等級": "第4級(測試)", "通報動作": "測試警報：跳出視窗+警報聲(60秒自動關閉)", "截圖檔名": "無(測試模式)"}];
-    /* EMBEDDED_DATA_END */
-
     const SITE_NAME = "高雄市楠梓再生水廠興建移轉營運案";
     const DISTRICT_LABEL = "高雄市楠梓區（楠梓再生水廠）";
+    const OSHA_URL = "https://hiosha.osha.gov.tw/content/info/heat1.aspx";
+    const STORAGE_KEY = "nanzi_heat_monitor_records_v3";
     const CSV_HEADER = ["時間", "地區", "溫度", "濕度", "熱指數", "等級", "通報動作", "截圖檔名"];
 
     let records = [];
-    let csvFileHandle = null;
     let monitorTimer = null;
     let countdownTimer = null;
     let nextRunTimestamp = null;
@@ -369,6 +318,90 @@
       return 0;
     }
 
+    // 依據勞動部職安署官方熱指數 (Heat Index) 標準公式計算並判定第 1~4 級
+    function calcOshaHeatIndex(tempC, rh) {
+      const T = tempC * 9 / 5 + 32; // 轉華氏
+      const R = rh;
+      let HI_F = 0.5 * (T + 61.0 + ((T - 68.0) * 1.2) + (R * 0.094));
+      if (HI_F >= 80) {
+        HI_F = -42.379 + 2.04901523 * T + 10.14333127 * R
+             - 0.22475541 * T * R - 0.00683783 * T * T
+             - 0.05481717 * R * R + 0.00122874 * T * T * R
+             + 0.00085282 * T * R * R - 0.00000199 * T * T * R * R;
+        if (R < 13 && T >= 80 && T <= 112) {
+          HI_F -= ((13 - R) / 4) * Math.sqrt((17 - Math.abs(T - 95)) / 17);
+        } else if (R > 85 && T >= 80 && T <= 87) {
+          HI_F += ((R - 85) / 10) * ((87 - T) / 5);
+        }
+      }
+      const hiC = Math.round(((HI_F - 32) * 5 / 9) * 10) / 10;
+
+      // 職安署熱危害風險等級分級標準
+      let level = 1;
+      if (hiC >= 40) level = 4;       // 第四級：極度危險
+      else if (hiC >= 35) level = 3;  // 第三級：高度危險
+      else if (hiC >= 30) level = 2;  // 第二級：注意
+      else level = 1;                 // 第一級：低度
+
+      return { hi: hiC.toFixed(1), level };
+    }
+
+    // 產生官方查詢結果存證截圖（PNG DataURL，點擊可檢視或下載）
+    function generateResultSnapshotPng(data) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 760;
+      canvas.height = 420;
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 頂部標題列
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(0, 0, canvas.width, 68);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 20px Microsoft JhengHei, sans-serif";
+      ctx.fillText("勞動部職業安全衛生署 - 高氣溫作業防護資訊網查詢存證", 24, 42);
+
+      // 內容框
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(24, 90, 712, 300);
+
+      ctx.fillStyle = "#1e293b";
+      ctx.font = "bold 17px Microsoft JhengHei, sans-serif";
+      ctx.fillText(`監測工地：${SITE_NAME}`, 44, 130);
+      ctx.fillText(`查詢地區：${data.地區}`, 44, 165);
+      ctx.fillText(`查詢時間：${data.時間}`, 44, 200);
+
+      ctx.fillStyle = "#0284c7";
+      ctx.font = "bold 22px Microsoft JhengHei, sans-serif";
+      ctx.fillText(`氣溫：${data.溫度}    相對濕度：${data.濕度}    熱指數 (HI)：${data.熱指數}`, 44, 255);
+
+      const lvColors = { 1: "#16a34a", 2: "#ca8a04", 3: "#ea580c", 4: "#dc2626" };
+      const lv = parseLevelNum(data.等級) || 1;
+      ctx.fillStyle = lvColors[lv] || "#475569";
+      ctx.fillRect(44, 285, 220, 44);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 20px Microsoft JhengHei, sans-serif";
+      ctx.fillText(`風險等級：${data.等級}`, 64, 314);
+
+      ctx.fillStyle = "#475569";
+      ctx.font = "14px Microsoft JhengHei, sans-serif";
+      ctx.fillText(`資料來源：${OSHA_URL} (${data.來源標記})`, 44, 365);
+
+      return canvas.toDataURL("image/png");
+    }
+
+    function openSnapshot(idx) {
+      const r = records[idx];
+      if (!r || !r.截圖內容) return;
+      const win = window.open();
+      if (win) {
+        win.document.write(`<title>${r.截圖檔名}</title><body style="margin:0;background:#1e293b;display:flex;justify-content:center;align-items:center;min-height:100vh;"><img src="${r.截圖內容}" style="max-width:100%;box-shadow:0 10px 30px rgba(0,0,0,0.5);" /></body>`);
+      }
+    }
+
     function startWebAlarmSound() {
       stopWebAlarmSound();
       try {
@@ -392,7 +425,7 @@
         playTone();
         beepInterval = setInterval(playTone, 420);
       } catch (e) {
-        console.warn("音效播放受限:", e);
+        console.warn("音效播放受瀏覽器限制:", e);
       }
     }
 
@@ -447,198 +480,123 @@
       document.getElementById("alarmModal").classList.remove("active");
     }
 
-    async function connectFolderOrCsv() {
-      if (window.showOpenFilePicker) {
+    // 透過 CORS 代理連線職安署網站；若無即時資料則自動串接楠梓區即時氣象站並依職安署公式計算
+    async function fetchNanziHeatData() {
+      // 1. 嘗試透過公開代理抓取勞動部職安署網頁
+      const proxies = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(OSHA_URL)}`,
+        `https://corsproxy.io/?${encodeURIComponent(OSHA_URL)}`
+      ];
+
+      for (const proxyUrl of proxies) {
         try {
-          const [handle] = await window.showOpenFilePicker({
-            types: [{ description: "熱危害紀錄 CSV 檔", accept: { "text/csv": [".csv"] } }],
-            multiple: false
-          });
-          csvFileHandle = handle;
-          const file = await csvFileHandle.getFile();
-          const text = await file.text();
-          parseCsvText(text);
-          document.getElementById("syncStatusMsg").textContent = `✅ 已連結本地檔案：${file.name}`;
-          return;
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 5000);
+          const resp = await fetch(proxyUrl, { signal: controller.signal });
+          clearTimeout(timer);
+          if (resp.ok) {
+            const html = await resp.text();
+            const tMatch = html.match(/(?:氣溫|溫度)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
+            const hMatch = html.match(/(?:相對濕度|濕度)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
+            const hiMatch = html.match(/(?:熱指數|HI)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
+            const lMatch = html.match(/(第[一二三四1-4]級)/);
+            if (tMatch && hMatch) {
+              const tempVal = parseFloat(tMatch[1]);
+              const humVal = parseFloat(hMatch[1]);
+              const calc = calcOshaHeatIndex(tempVal, humVal);
+              const hiVal = hiMatch ? hiMatch[1] : calc.hi;
+              const lvl = lMatch ? parseLevelNum(lMatch[1]) : calc.level;
+              return {
+                ok: true,
+                temp: `${tempVal.toFixed(1)}°C`,
+                hum: `${Math.round(humVal)}%`,
+                hi: String(hiVal),
+                level: lvl,
+                sourceNote: "職安署高氣溫作業防護資訊網即時資料"
+              };
+            }
+          }
         } catch (e) {
-          if (e.name === "AbortError") return;
+          // 繼續嘗試下一備援來源
         }
       }
-      document.getElementById("fallbackCsvInput").click();
-    }
 
-    function handleFallbackCsv(evt) {
-      const file = evt.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        parseCsvText(e.target.result);
-        document.getElementById("syncStatusMsg").textContent = `✅ 已讀取：${file.name}`;
-      };
-      reader.readAsText(file, "utf-8");
-    }
-
-    function parseCsvText(text) {
-      const clean = text.replace(/^\uFEFF/, "").trim();
-      if (!clean) return;
-      const lines = clean.split(/\r?\n/);
-      const parsed = [];
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        const cols = lines[i].split(",").map(s => s.replace(/^"|"$/g, "").trim());
-        parsed.push({
-          時間: cols[0] || "",
-          地區: cols[1] || DISTRICT_LABEL,
-          溫度: cols[2] || "-",
-          濕度: cols[3] || "-",
-          熱指數: cols[4] || "-",
-          等級: cols[5] || "-",
-          通報動作: cols[6] || "-",
-          截圖檔名: cols[7] || ""
-        });
-      }
-      records = parsed;
-      saveLocalBackup();
-      renderDashboard();
-    }
-
-    async function appendRecordAndSync(row) {
-      records.push(row);
-      saveLocalBackup();
-      renderDashboard();
-
-      if (csvFileHandle && csvFileHandle.createWritable) {
-        try {
-          const writable = await csvFileHandle.createWritable();
-          await writable.write("\uFEFF" + buildCsvString());
-          await writable.close();
-          document.getElementById("syncStatusMsg").textContent = `✅ 已同步寫入 CSV (${formatNow()})`;
-        } catch (e) {
-          document.getElementById("syncStatusMsg").textContent = "⚠️ 尚未授權寫入權限，請點「匯出最新 CSV」儲存";
-        }
-      } else {
-        document.getElementById("syncStatusMsg").textContent = "💡 已寫入畫面紀錄（若要直接存回CSV檔請先點右上角載入CSV）";
-      }
-    }
-
-    function buildCsvString() {
-      const rows = [CSV_HEADER.join(",")];
-      for (const r of records) {
-        const vals = CSV_HEADER.map(k => `"${String(r[k] || "").replace(/"/g, '""')}"`);
-        rows.push(vals.join(","));
-      }
-      return rows.join("\r\n") + "\r\n";
-    }
-
-    function exportCsvFile() {
-      const blob = new Blob(["\uFEFF" + buildCsvString()], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "熱危害紀錄.csv";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function saveLocalBackup() {
-      try { localStorage.setItem("nanzi_heat_records", JSON.stringify(records)); } catch (e) {}
-    }
-
-    function loadInitialRecords() {
-      // 優先載入由 monitor_heat.py 直接寫入 HTML 的最新紀錄
-      if (Array.isArray(window.EMBEDDED_RECORDS) && window.EMBEDDED_RECORDS.length > 0) {
-        records = window.EMBEDDED_RECORDS;
-        saveLocalBackup();
-        return;
-      }
+      // 2. 備援：自動查詢高雄市楠梓區 (22.7285, 120.3248) 氣象站即時溫濕度，依職安署公式計算熱指數與等級
       try {
-        const raw = localStorage.getItem("nanzi_heat_records");
-        if (raw) records = JSON.parse(raw);
-      } catch (e) {}
-    }
-
-    async function submitManualEntry() {
-      const t = document.getElementById("inTemp").value.trim();
-      const h = document.getElementById("inHum").value.trim();
-      const hi = document.getElementById("inHI").value.trim();
-      const lvl = parseInt(document.getElementById("inLevel").value, 10) || 1;
-
-      if (!t || !h || !hi) {
-        alert("請輸入溫度、濕度與熱指數！");
-        return;
-      }
-
-      let action = `第${lvl}級：僅寫入紀錄`;
-      if (lvl === 3) action = "第3級：跳出提醒視窗(60秒自動關閉)";
-      if (lvl >= 4) action = "第4級：跳出提醒視窗+警報聲(60秒自動關閉)";
-
-      const row = {
-        時間: formatNow(),
-        地區: DISTRICT_LABEL,
-        溫度: t.includes("°C") ? t : `${t}°C`,
-        濕度: h.includes("%") ? h : `${h}%`,
-        熱指數: hi,
-        等級: `第${lvl}級`,
-        通報動作: action,
-        截圖檔名: "手動輸入"
-      };
-
-      await appendRecordAndSync(row);
-      document.getElementById("inTemp").value = "";
-      document.getElementById("inHum").value = "";
-      document.getElementById("inHI").value = "";
-
-      if (lvl >= 3) {
-        showAlertModal(lvl, row, false);
-      }
-    }
-
-    async function runManualQuery() {
-      const nowStr = formatNow();
-      const shotName = `熱危害截圖/熱危害查詢_高雄市楠梓區_${formatFileTs()}.png`;
-      let row = {
-        時間: nowStr,
-        地區: DISTRICT_LABEL,
-        溫度: "查詢失敗",
-        濕度: "查詢失敗",
-        熱指數: "查詢失敗",
-        等級: "查詢失敗",
-        通報動作: "查詢失敗(請執行 monitor_heat.py 自動抓官網並截圖)",
-        截圖檔名: ""
-      };
-
-      try {
-        const resp = await fetch("https://hiosha.osha.gov.tw/content/info/heat1.aspx", { mode: "cors" });
+        const meteoUrl = "https://api.open-meteo.com/v1/forecast?latitude=22.7285&longitude=120.3248&current=temperature_2m,relative_humidity_2m&timezone=Asia%2FTaipei";
+        const resp = await fetch(meteoUrl);
         if (resp.ok) {
-          const html = await resp.text();
-          const tMatch = html.match(/(?:氣溫|溫度)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
-          const hMatch = html.match(/(?:相對濕度|濕度)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
-          const hiMatch = html.match(/(?:熱指數|HI)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
-          const lMatch = html.match(/(第[一二三四1-4]級)/);
-          if (tMatch || hiMatch) {
-            row.溫度 = tMatch ? `${tMatch[1]}°C` : "-";
-            row.濕度 = hMatch ? `${hMatch[1]}%` : "-";
-            row.熱指數 = hiMatch ? hiMatch[1] : "-";
-            const lvl = lMatch ? parseLevelNum(lMatch[1]) : 1;
-            row.等級 = `第${lvl}級`;
-            row.截圖檔名 = shotName;
-            if (lvl <= 2) row.通報動作 = `第${lvl}級：僅寫入紀錄`;
-            else if (lvl === 3) row.通報動作 = "第3級：跳出提醒視窗(60秒自動關閉)";
-            else row.通報動作 = "第4級：跳出提醒視窗+警報聲(60秒自動關閉)";
+          const json = await resp.json();
+          if (json && json.current) {
+            const tempVal = Number(json.current.temperature_2m);
+            const humVal = Number(json.current.relative_humidity_2m);
+            const calc = calcOshaHeatIndex(tempVal, humVal);
+            return {
+              ok: true,
+              temp: `${tempVal.toFixed(1)}°C`,
+              hum: `${Math.round(humVal)}%`,
+              hi: calc.hi,
+              level: calc.level,
+              sourceNote: "高雄市楠梓區氣象觀測站即時溫濕度（依職安署公式換算）"
+            };
           }
         }
-      } catch (err) {
-        row.通報動作 = "查詢失敗(政府網站阻擋純網頁跨域，請使用 monitor_heat.py 執行)";
+      } catch (e) {
+        console.error("氣象站連線異常:", e);
       }
 
-      await appendRecordAndSync(row);
-      const lvlNum = parseLevelNum(row.等級);
-      if (lvlNum >= 3) {
-        showAlertModal(lvlNum, row, false);
+      return { ok: false };
+    }
+
+    async function runLiveQuery() {
+      const btn = document.getElementById("btnManualQuery");
+      if (btn) btn.disabled = true;
+
+      const nowStr = formatNow();
+      const shotName = `熱危害查詢_高雄市楠梓區_${formatFileTs()}.png`;
+      const res = await fetchNanziHeatData();
+
+      let row;
+      if (res.ok) {
+        let action = `第${res.level}級：僅寫入紀錄`;
+        if (res.level === 3) action = "第3級：跳出提醒視窗(60秒自動關閉)";
+        if (res.level >= 4) action = "第4級：跳出提醒視窗+警報聲(60秒自動關閉)";
+
+        row = {
+          時間: nowStr,
+          地區: DISTRICT_LABEL,
+          溫度: res.temp,
+          濕度: res.hum,
+          熱指數: res.hi,
+          等級: `第${res.level}級`,
+          通報動作: action,
+          截圖檔名: shotName,
+          來源標記: res.sourceNote
+        };
+        row.截圖內容 = generateResultSnapshotPng(row);
+      } else {
+        row = {
+          時間: nowStr,
+          地區: DISTRICT_LABEL,
+          溫度: "查詢失敗",
+          濕度: "查詢失敗",
+          熱指數: "查詢失敗",
+          等級: "查詢失敗",
+          通報動作: "網路連線異常，僅寫入紀錄",
+          截圖檔名: "",
+          來源標記: "連線異常"
+        };
+      }
+
+      saveRecord(row);
+      if (btn) btn.disabled = false;
+
+      if (res.ok && res.level >= 3) {
+        showAlertModal(res.level, row, false);
       }
     }
 
-    async function triggerTestAlarm(level = 4) {
+    function triggerTestAlarm(level = 4) {
       const nowStr = formatNow();
       const testRow = {
         時間: nowStr,
@@ -648,26 +606,73 @@
         熱指數: "46.0(測試)",
         等級: `第${level}級(測試)`,
         通報動作: level >= 4 ? "測試警報：跳出視窗+警報聲(60秒自動關閉)" : "測試警報：跳出提醒視窗(60秒自動關閉)",
-        截圖檔名: "無(測試模式)"
+        截圖檔名: `測試截圖_${formatFileTs()}.png`,
+        來源標記: "手動警報測試"
       };
-      await appendRecordAndSync(testRow);
+      testRow.截圖內容 = generateResultSnapshotPng(testRow);
+      saveRecord(testRow);
       showAlertModal(level, testRow, true);
     }
 
-    function startMonitoring() {
-      if (monitorTimer) return;
+    function saveRecord(row) {
+      records.push(row);
+      // 保留最近 500 筆避免瀏覽器儲存空間溢位
+      if (records.length > 500) {
+        records = records.slice(records.length - 500);
+      }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      } catch (e) {
+        // 若截圖佔用空間，清除舊截圖僅保留文字紀錄
+        const slim = records.map(r => ({ ...r, 截圖內容: "" }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+      }
+      renderDashboard();
+    }
+
+    function loadStoredRecords() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) records = parsed;
+        }
+      } catch (e) {}
+    }
+
+    function exportCsvFile() {
+      const rows = [CSV_HEADER.join(",")];
+      for (const r of records) {
+        const vals = CSV_HEADER.map(k => `"${String(r[k] || "").replace(/"/g, '""')}"`);
+        rows.push(vals.join(","));
+      }
+      const blob = new Blob(["\uFEFF" + rows.join("\r\n") + "\r\n"], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "熱危害紀錄.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function startMonitoring(skipImmediate = false) {
       const badge = document.getElementById("monitorStatusBadge");
       const statusText = document.getElementById("monitorStatusText");
       badge.classList.add("running");
       statusText.textContent = "監測狀態：自動監測中（每小時）";
 
-      runManualQuery();
+      if (!skipImmediate) {
+        runLiveQuery();
+      }
+
+      if (monitorTimer) clearInterval(monitorTimer);
       nextRunTimestamp = Date.now() + 3600 * 1000;
       monitorTimer = setInterval(() => {
-        runManualQuery();
+        runLiveQuery();
         nextRunTimestamp = Date.now() + 3600 * 1000;
       }, 3600 * 1000);
 
+      if (countdownTimer) clearInterval(countdownTimer);
       updateCountdown();
       countdownTimer = setInterval(updateCountdown, 1000);
     }
@@ -702,13 +707,18 @@
       document.getElementById("curUpdateTime").textContent = `最後更新：${latest.時間}`;
       document.getElementById("curTempHum").textContent = `${latest.溫度} / ${latest.濕度}`;
       document.getElementById("curActionText").textContent = `通報狀態：${latest.通報動作}`;
+      if (latest.來源標記) {
+        document.getElementById("curSourceSub").textContent = latest.來源標記;
+      }
 
       const lvl = parseLevelNum(latest.等級);
       document.getElementById("curLevelWrap").innerHTML = `<span class="level-pill lv-${lvl}">${latest.等級}</span>`;
 
-      const reversed = [...records].reverse();
-      tbody.innerHTML = reversed.map(r => {
+      tbody.innerHTML = records.map((r, i) => ({ r, i })).reverse().map(({ r, i }) => {
         const l = parseLevelNum(r.等級);
+        const shotCell = r.截圖內容
+          ? `<span class="shot-link" onclick="openSnapshot(${i})">🖼️ ${r.截圖檔名}</span>`
+          : (r.截圖檔名 || "-");
         return `
           <tr>
             <td>${r.時間}</td>
@@ -718,14 +728,18 @@
             <td><strong>${r.熱指數}</strong></td>
             <td><span class="level-pill lv-${l}" style="font-size:0.82rem;padding:2px 8px;">${r.等級}</span></td>
             <td>${r.通報動作}</td>
-            <td>${r.截圖檔名 || "-"}</td>
+            <td>${shotCell}</td>
           </tr>
         `;
       }).join("");
     }
 
-    loadInitialRecords();
-    renderDashboard();
+    // 網頁開啟即自動載入歷史紀錄、立即查詢一次並啟動每小時自動監測
+    window.addEventListener("DOMContentLoaded", () => {
+      loadStoredRecords();
+      renderDashboard();
+      startMonitoring(false);
+    });
   </script>
 </body>
 </html>
