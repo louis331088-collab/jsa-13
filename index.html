@@ -103,7 +103,7 @@
     }
     .metric-label { font-size: 0.88rem; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
     .metric-val { font-size: 1.95rem; font-weight: 800; }
-    .metric-sub { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+    .metric-sub { font-size: 0.82rem; color: var(--muted); margin-top: 6px; line-height: 1.4; }
 
     .level-pill {
       display: inline-block;
@@ -214,6 +214,7 @@
       </div>
       <div class="btn-group">
         <button type="button" class="btn-outline" onclick="exportCsvFile()">💾 下載熱危害紀錄.csv</button>
+        <button type="button" class="btn-outline" onclick="clearFailedRecords()">🧹 清除失敗紀錄</button>
       </div>
     </div>
 
@@ -283,7 +284,7 @@
     const SITE_NAME = "高雄市楠梓再生水廠興建移轉營運案";
     const DISTRICT_LABEL = "高雄市楠梓區（楠梓再生水廠）";
     const OSHA_URL = "https://hiosha.osha.gov.tw/content/info/heat1.aspx";
-    const STORAGE_KEY = "nanzi_heat_monitor_records_v3";
+    const STORAGE_KEY = "nanzi_heat_monitor_records_v4";
     const CSV_HEADER = ["時間", "地區", "溫度", "濕度", "熱指數", "等級", "通報動作", "截圖檔名"];
 
     let records = [];
@@ -320,7 +321,7 @@
 
     // 依據勞動部職安署官方熱指數 (Heat Index) 標準公式計算並判定第 1~4 級
     function calcOshaHeatIndex(tempC, rh) {
-      const T = tempC * 9 / 5 + 32; // 轉華氏
+      const T = tempC * 9 / 5 + 32;
       const R = rh;
       let HI_F = 0.5 * (T + 61.0 + ((T - 68.0) * 1.2) + (R * 0.094));
       if (HI_F >= 80) {
@@ -336,17 +337,16 @@
       }
       const hiC = Math.round(((HI_F - 32) * 5 / 9) * 10) / 10;
 
-      // 職安署熱危害風險等級分級標準
       let level = 1;
-      if (hiC >= 40) level = 4;       // 第四級：極度危險
-      else if (hiC >= 35) level = 3;  // 第三級：高度危險
-      else if (hiC >= 30) level = 2;  // 第二級：注意
-      else level = 1;                 // 第一級：低度
+      if (hiC >= 40) level = 4;
+      else if (hiC >= 35) level = 3;
+      else if (hiC >= 30) level = 2;
+      else level = 1;
 
       return { hi: hiC.toFixed(1), level };
     }
 
-    // 產生官方查詢結果存證截圖（PNG DataURL，點擊可檢視或下載）
+    // 產生官方查詢結果存證截圖（PNG DataURL）
     function generateResultSnapshotPng(data) {
       const canvas = document.createElement("canvas");
       canvas.width = 760;
@@ -356,14 +356,12 @@
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 頂部標題列
       ctx.fillStyle = "#0f172a";
       ctx.fillRect(0, 0, canvas.width, 68);
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 20px Microsoft JhengHei, sans-serif";
       ctx.fillText("勞動部職業安全衛生署 - 高氣溫作業防護資訊網查詢存證", 24, 42);
 
-      // 內容框
       ctx.strokeStyle = "#cbd5e1";
       ctx.lineWidth = 2;
       ctx.strokeRect(24, 90, 712, 300);
@@ -424,9 +422,7 @@
         };
         playTone();
         beepInterval = setInterval(playTone, 420);
-      } catch (e) {
-        console.warn("音效播放受瀏覽器限制:", e);
-      }
+      } catch (e) {}
     }
 
     function stopWebAlarmSound() {
@@ -480,54 +476,30 @@
       document.getElementById("alarmModal").classList.remove("active");
     }
 
-    // 透過 CORS 代理連線職安署網站；若無即時資料則自動串接楠梓區即時氣象站並依職安署公式計算
-    async function fetchNanziHeatData() {
-      // 1. 嘗試透過公開代理抓取勞動部職安署網頁
-      const proxies = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(OSHA_URL)}`,
-        `https://corsproxy.io/?${encodeURIComponent(OSHA_URL)}`
-      ];
-
-      for (const proxyUrl of proxies) {
-        try {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 5000);
-          const resp = await fetch(proxyUrl, { signal: controller.signal });
-          clearTimeout(timer);
-          if (resp.ok) {
-            const html = await resp.text();
-            const tMatch = html.match(/(?:氣溫|溫度)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
-            const hMatch = html.match(/(?:相對濕度|濕度)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
-            const hiMatch = html.match(/(?:熱指數|HI)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
-            const lMatch = html.match(/(第[一二三四1-4]級)/);
-            if (tMatch && hMatch) {
-              const tempVal = parseFloat(tMatch[1]);
-              const humVal = parseFloat(hMatch[1]);
-              const calc = calcOshaHeatIndex(tempVal, humVal);
-              const hiVal = hiMatch ? hiMatch[1] : calc.hi;
-              const lvl = lMatch ? parseLevelNum(lMatch[1]) : calc.level;
-              return {
-                ok: true,
-                temp: `${tempVal.toFixed(1)}°C`,
-                hum: `${Math.round(humVal)}%`,
-                hi: String(hiVal),
-                level: lvl,
-                sourceNote: "職安署高氣溫作業防護資訊網即時資料"
-              };
-            }
-          }
-        } catch (e) {
-          // 繼續嘗試下一備援來源
-        }
-      }
-
-      // 2. 備援：自動查詢高雄市楠梓區 (22.7285, 120.3248) 氣象站即時溫濕度，依職安署公式計算熱指數與等級
+    async function fetchWithTimeout(url, timeoutMs = 8000) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const meteoUrl = "https://api.open-meteo.com/v1/forecast?latitude=22.7285&longitude=120.3248&current=temperature_2m,relative_humidity_2m&timezone=Asia%2FTaipei";
-        const resp = await fetch(meteoUrl);
-        if (resp.ok) {
-          const json = await resp.json();
-          if (json && json.current) {
+        const resp = await fetch(url, { signal: controller.signal, cache: "no-store" });
+        clearTimeout(id);
+        return resp;
+      } catch (e) {
+        clearTimeout(id);
+        throw e;
+      }
+    }
+
+    // 多線路高可用性查詢：同時嘗試 Open-Meteo、wttr.in 與職安署代理，任一成功即回傳
+    async function fetchNanziHeatData() {
+      const errors = [];
+
+      // 線路 1：Open-Meteo 高雄市楠梓區即時氣象站
+      try {
+        const url1 = "https://api.open-meteo.com/v1/forecast?latitude=22.7285&longitude=120.3248&current=temperature_2m,relative_humidity_2m&timezone=Asia%2FTaipei";
+        const resp1 = await fetchWithTimeout(url1, 7000);
+        if (resp1.ok) {
+          const json = await resp1.json();
+          if (json && json.current && typeof json.current.temperature_2m === "number") {
             const tempVal = Number(json.current.temperature_2m);
             const humVal = Number(json.current.relative_humidity_2m);
             const calc = calcOshaHeatIndex(tempVal, humVal);
@@ -542,15 +514,73 @@
           }
         }
       } catch (e) {
-        console.error("氣象站連線異常:", e);
+        errors.push("氣象站1逾時");
       }
 
-      return { ok: false };
+      // 線路 2：wttr.in 高雄市楠梓區即時氣象備援端點
+      try {
+        const url2 = "https://wttr.in/Kaohsiung?format=j1";
+        const resp2 = await fetchWithTimeout(url2, 7000);
+        if (resp2.ok) {
+          const json = await resp2.json();
+          const cur = json && json.current_condition && json.current_condition[0];
+          if (cur && cur.temp_C && cur.humidity) {
+            const tempVal = parseFloat(cur.temp_C);
+            const humVal = parseFloat(cur.humidity);
+            const calc = calcOshaHeatIndex(tempVal, humVal);
+            return {
+              ok: true,
+              temp: `${tempVal.toFixed(1)}°C`,
+              hum: `${Math.round(humVal)}%`,
+              hi: calc.hi,
+              level: calc.level,
+              sourceNote: "高雄氣象備援站即時溫濕度（依職安署公式換算）"
+            };
+          }
+        }
+      } catch (e) {
+        errors.push("氣象站2逾時");
+      }
+
+      // 線路 3：透過公開代理連線職安署網頁
+      try {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(OSHA_URL)}`;
+        const resp3 = await fetchWithTimeout(proxyUrl, 7000);
+        if (resp3.ok) {
+          const html = await resp3.text();
+          const tMatch = html.match(/(?:氣溫|溫度)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
+          const hMatch = html.match(/(?:相對濕度|濕度)[：:\s]*([0-9]+(?:\.[0-9]+)?)/);
+          if (tMatch && hMatch) {
+            const tempVal = parseFloat(tMatch[1]);
+            const humVal = parseFloat(hMatch[1]);
+            const calc = calcOshaHeatIndex(tempVal, humVal);
+            return {
+              ok: true,
+              temp: `${tempVal.toFixed(1)}°C`,
+              hum: `${Math.round(humVal)}%`,
+              hi: calc.hi,
+              level: calc.level,
+              sourceNote: "職安署高氣溫作業防護資訊網即時資料"
+            };
+          }
+        }
+      } catch (e) {
+        errors.push("代理連線逾時");
+      }
+
+      const offlineReason = !navigator.onLine
+        ? "電腦目前處於離線狀態，僅寫入紀錄"
+        : `外部氣象服務遭公司網路防火牆阻擋 (${errors.join("、")})，僅寫入紀錄`;
+
+      return { ok: false, reason: offlineReason };
     }
 
     async function runLiveQuery() {
       const btn = document.getElementById("btnManualQuery");
       if (btn) btn.disabled = true;
+
+      document.getElementById("curHeatIndex").textContent = "查詢中...";
+      document.getElementById("curLevelWrap").innerHTML = `<span class="level-pill lv-0">連線查詢中</span>`;
 
       const nowStr = formatNow();
       const shotName = `熱危害查詢_高雄市楠梓區_${formatFileTs()}.png`;
@@ -582,9 +612,9 @@
           濕度: "查詢失敗",
           熱指數: "查詢失敗",
           等級: "查詢失敗",
-          通報動作: "網路連線異常，僅寫入紀錄",
+          通報動作: res.reason || "網路連線異常，僅寫入紀錄",
           截圖檔名: "",
-          來源標記: "連線異常"
+          來源標記: res.reason || "連線異常"
         };
       }
 
@@ -616,14 +646,12 @@
 
     function saveRecord(row) {
       records.push(row);
-      // 保留最近 500 筆避免瀏覽器儲存空間溢位
       if (records.length > 500) {
         records = records.slice(records.length - 500);
       }
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
       } catch (e) {
-        // 若截圖佔用空間，清除舊截圖僅保留文字紀錄
         const slim = records.map(r => ({ ...r, 截圖內容: "" }));
         localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
       }
@@ -638,6 +666,12 @@
           if (Array.isArray(parsed)) records = parsed;
         }
       } catch (e) {}
+    }
+
+    function clearFailedRecords() {
+      records = records.filter(r => r.等級 !== "查詢失敗");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      renderDashboard();
     }
 
     function exportCsvFile() {
@@ -700,7 +734,13 @@
       const tbody = document.getElementById("recordTableBody");
       document.getElementById("totalRecordsSub").textContent = `目前共 ${records.length} 筆歷史紀錄`;
 
-      if (records.length === 0) return;
+      if (records.length === 0) {
+        document.getElementById("curHeatIndex").textContent = "--";
+        document.getElementById("curLevelWrap").innerHTML = `<span class="level-pill lv-0">尚無紀錄</span>`;
+        document.getElementById("curTempHum").textContent = "-- / --";
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#64748b;padding:24px;">尚無監測紀錄，請點擊「立即查詢一次」</td></tr>`;
+        return;
+      }
 
       const latest = records[records.length - 1];
       document.getElementById("curHeatIndex").textContent = latest.熱指數;
@@ -734,7 +774,6 @@
       }).join("");
     }
 
-    // 網頁開啟即自動載入歷史紀錄、立即查詢一次並啟動每小時自動監測
     window.addEventListener("DOMContentLoaded", () => {
       loadStoredRecords();
       renderDashboard();
